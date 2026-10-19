@@ -1,0 +1,189 @@
+@import 'tailwindcss';
+
+@source '../views/**/*.blade.php';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: 'Playfair Display', Georgia, Cambria, 'Times New Roman', Times, serif;
+
+    /* Reference Palette: Pist & Zerna (Warm Oatmeal + Sage + Terracotta) & Bake Today (Maroon) */
+    --color-oatmeal: #F4EFE6;
+    --color-oatmeal-light: #FBF8F3;
+    --color-oatmeal-card: #FAF7F2;
+    --color-sage-soft: #96A690;
+    --color-sage-deep: #2D4235;
+    --color-sage-tint: #D8E0D3;
+    --color-terracotta: #D96B43;
+    --color-terracotta-dark: #C25932;
+    --color-maroon-bake: #8B231A;
+    --color-maroon-dark: #701A13;
+    --color-ink-warm: #26221E;
+    --color-ink-muted: #5A534A;
+}
+
+:root {
+    --bg-oatmeal: #F4EFE6;
+    --bg-oatmeal-card: #FAF7F2;
+    --color-sage-deep: #2D4235;
+    --color-terracotta: #D96B43;
+    --color-maroon: #8B231A;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ANIMATIONS & KEYFRAMES (MARQUEE, 3D FLOAT, STAMP ROTATE)
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes marquee {
+    0% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 32s linear infinite;
+}
+
+.animate-marquee:hover {
+    animation-play-state: paused;
+}
+
+@keyframes floatSlow {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-10px) rotate(3deg);
+    }
+}
+
+@keyframes floatDelayed {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-8px) rotate(-4deg);
+    }
+}
+
+.animate-float-slow {
+    animation: floatSlow 4.5s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+    animation: floatDelayed 5.5s ease-in-out infinite 1.2s;
+}
+
+@keyframes spinSlow {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin-slow {
+    animation: spinSlow 20s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ORGANIC TEXTURES & EDITORIAL SURFACES
+   ═══════════════════════════════════════════════════════════ */
+
+/* Warm Oatmeal Linen Fine Texture */
+.bg-oatmeal-paper {
+    background-color: #F4EFE6;
+    background-image: 
+        radial-gradient(rgba(38, 34, 30, 0.05) 1px, transparent 1px),
+        radial-gradient(circle at 85% 15%, rgba(143, 160, 137, 0.08), transparent 45%),
+        radial-gradient(circle at 10% 80%, rgba(217, 107, 67, 0.06), transparent 50%);
+    background-size: 24px 24px, 100% 100%, 100% 100%;
+}
+
+/* Deep Sage Texture */
+.bg-sage-dark {
+    background-color: #2D4235;
+    background-image: 
+        radial-gradient(circle at 85% 15%, rgba(150, 166, 144, 0.15), transparent 50%),
+        radial-gradient(circle at 15% 85%, rgba(217, 107, 67, 0.10), transparent 55%);
+}
+
+/* Soft Cream Editorial Card */
+.card-oatmeal {
+    background: #FAF7F2;
+    border: 1px solid rgba(38, 34, 30, 0.10);
+    box-shadow: 0 4px 20px -2px rgba(38, 34, 30, 0.04);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-oatmeal:hover {
+    border-color: rgba(38, 34, 30, 0.20);
+    box-shadow: 0 12px 28px -4px rgba(38, 34, 30, 0.08);
+    transform: translateY(-2px);
+}
+
+/* Indonesian Architectural Motif: Kawung Heritage Geometry (Subtle Tactile Texture) */
+.bg-motif-kawung {
+    background-color: #F4EFE6;
+    background-image: url("data:image/svg+xml,%3Csvg width='56' height='56' viewBox='0 0 56 56' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%232D4235' stroke-width='0.85' stroke-opacity='0.045'%3E%3Cellipse cx='28' cy='14' rx='7' ry='12'/%3E%3Cellipse cx='28' cy='42' rx='7' ry='12'/%3E%3Cellipse cx='14' cy='28' rx='12' ry='7'/%3E%3Cellipse cx='42' cy='28' rx='12' ry='7'/%3E%3Ccircle cx='28' cy='28' r='2.5' fill='%23D96B43' fill-opacity='0.06' stroke='none'/%3E%3Ccircle cx='0' cy='0' r='1.5' fill='%232D4235' fill-opacity='0.035' stroke='none'/%3E%3Ccircle cx='56' cy='0' r='1.5' fill='%232D4235' fill-opacity='0.035' stroke='none'/%3E%3Ccircle cx='0' cy='56' r='1.5' fill='%232D4235' fill-opacity='0.035' stroke='none'/%3E%3Ccircle cx='56' cy='56' r='1.5' fill='%232D4235' fill-opacity='0.035' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Giant Serif Display Background Watermark */
+.editorial-watermark {
+    font-family: 'Playfair Display', Georgia, Cambria, serif;
+    font-size: clamp(4.5rem, 11vw, 9.5rem);
+    line-height: 0.82;
+    letter-spacing: -0.04em;
+    color: rgba(38, 34, 30, 0.035);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Classic Magazine Large Serif Drop-Cap */
+.editorial-dropcap::first-letter {
+    float: left;
+    font-family: 'Playfair Display', Georgia, Cambria, serif;
+    font-size: 3.5rem;
+    line-height: 0.8;
+    padding-right: 0.75rem;
+    padding-top: 0.25rem;
+    color: #8B231A;
+    font-weight: 700;
+}
+
+/* Newspaper Architectural Double Rule Divider */
+.border-editorial-double {
+    border-top: 3px double rgba(38, 34, 30, 0.22);
+    border-bottom: 1px solid rgba(38, 34, 30, 0.12);
+    height: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    .animate-marquee,
+    .animate-float-slow,
+    .animate-float-delayed,
+    .animate-spin-slow {
+        animation: none !important;
+    }
+    .card-oatmeal:hover {
+        transform: none !important;
+    }
+}
