@@ -22,6 +22,8 @@
         
         {{ $slot }}
 
+        @livewire('ai-consultant')
+
         @livewireScripts
     </body>
 </html>
