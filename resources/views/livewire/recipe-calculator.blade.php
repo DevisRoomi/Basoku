@@ -338,9 +338,16 @@
                     </div>
 
                     <!-- Notice Pill (Required String by Tests) -->
-                    <p class="text-[11px] text-[#D8E0D3]/80 leading-relaxed mb-5 bg-white/5 p-3 rounded-2xl border border-white/10">
-                        SIMULASI: Formula resep dan takaran kemasan sedang menunggu konfirmasi toko.
-                    </p>
+                    @if ($isSimulation)
+                        <p class="text-[11px] text-[#D8E0D3]/80 leading-relaxed mb-5 bg-white/5 p-3 rounded-2xl border border-white/10">
+                            SIMULASI: Formula resep dan takaran kemasan sedang menunggu konfirmasi toko.
+                        </p>
+                    @else
+                        <div class="text-[11px] text-[#D8E0D3]/90 leading-relaxed mb-5 bg-[#2D4235]/40 p-3 rounded-2xl border border-[#2D4235] flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>RESMI: Formula resep terverifikasi langsung oleh kios selepan BASOKU.</span>
+                        </div>
+                    @endif
 
                     <!-- Info Parameter Singkat -->
                     <div class="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-black/15 border border-white/10 text-xs mb-6 text-center">

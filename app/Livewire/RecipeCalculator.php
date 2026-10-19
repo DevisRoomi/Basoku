@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Material;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\RecipeFormula;
 use App\Models\SavedRecipe;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -31,6 +32,12 @@ class RecipeCalculator extends Component
 
     /** Preferensi karakter racikan: 'enak', 'seimbang', atau 'ekonomis' */
     public string $preference = 'seimbang';
+
+    /** Status formula simulasi atau resmi dari kios */
+    public bool $isSimulation = true;
+
+    /** Nama formula aktif */
+    public ?string $formulaName = null;
 
     /** Apakah menggunakan jasa selepan (penggilingan) */
     public bool $useGrinding = true;
@@ -71,13 +78,32 @@ class RecipeCalculator extends Component
 
     /**
      * Hitung estimasi racikan berdasarkan berat atau anggaran.
-     * Menggunakan Simulation Baseline Formula (500g daging acuan).
+     * Menggunakan Formula Rasio Dinamis (Database-Driven Ratios) dengan fallback aman.
      */
     public function calculateEstimation(): void
     {
         $this->budgetError = null;
 
-        // Ambil data harga riil dari database (Model Material)
+        // 1. Ambil data formula rasio dari database (Model RecipeFormula) dengan fallback aman
+        $defaultFormulas = RecipeFormula::defaultFormulas();
+        $fallback = $defaultFormulas[$this->preference] ?? $defaultFormulas['seimbang'];
+
+        try {
+            $formula = RecipeFormula::where('code', $this->preference)->first();
+        } catch (\Throwable $e) {
+            $formula = null;
+        }
+
+        $meatRatio = (float) ($formula?->meat_ratio ?? $fallback['meat_ratio']);
+        $flourRatio = (float) ($formula?->flour_ratio ?? $fallback['flour_ratio']);
+        $spiceRatio = (float) ($formula?->spice_ratio ?? $fallback['spice_ratio']);
+        $this->isSimulation = (bool) ($formula ? $formula->is_simulation : $fallback['is_simulation']);
+        $this->formulaName = (string) ($formula?->name ?? $fallback['name']);
+
+        $garlicRatio = $spiceRatio * 0.6;
+        $saltRatio = $spiceRatio * 0.4;
+
+        // 2. Ambil data harga riil dari database (Model Material)
         try {
             $meatMaterial = $this->meatType === 'sapi'
                 ? Material::where('name', 'like', '%Daging Sapi%')->first()
@@ -100,10 +126,10 @@ class RecipeCalculator extends Component
         $saltPricePerGram = (float) ($saltMaterial?->price ?? 3.0);
 
         // Biaya proporsional per 1 gram daging acuan
-        $costPerGram = ($this->startType === 'start_from_zero' ? $meatPricePerGram : 0.0)
-            + ((100.0 / 500.0) * $tapiocaPricePerGram)
-            + ((15.0 / 500.0) * $garlicPricePerGram)
-            + ((10.0 / 500.0) * $saltPricePerGram)
+        $costPerGram = ($this->startType === 'start_from_zero' ? ($meatPricePerGram * $meatRatio) : 0.0)
+            + ($flourRatio * $tapiocaPricePerGram)
+            + ($garlicRatio * $garlicPricePerGram)
+            + ($saltRatio * $saltPricePerGram)
             + ($this->useGrinding ? 15.0 : 0.0);
 
         // Logika Mode Anggaran (Calculate by Budget)
@@ -125,13 +151,12 @@ class RecipeCalculator extends Component
         }
 
         $weight = max(500, (int) $this->meatWeight);
-        $scaleFactor = $weight / 500.0;
 
-        // Kebutuhan takaran proporsional terpakai
-        $meatNeeded = $weight;
-        $tapiocaNeeded = 100.0 * $scaleFactor;
-        $garlicNeeded = 15.0 * $scaleFactor;
-        $saltNeeded = 10.0 * $scaleFactor;
+        // Kebutuhan takaran proporsional terpakai berdasarkan rasio dinamis
+        $meatNeeded = $weight * $meatRatio;
+        $tapiocaNeeded = $weight * $flourRatio;
+        $garlicNeeded = $weight * $garlicRatio;
+        $saltNeeded = $weight * $saltRatio;
 
         // Biaya proporsional bahan terpakai
         $meatPropCost = $meatNeeded * $meatPricePerGram;

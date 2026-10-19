@@ -3,6 +3,7 @@
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\ManageMaterials;
 use App\Livewire\Admin\ManageOrders;
+use App\Livewire\Admin\ManageRecipes;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Customer\MyRecipeLab;
@@ -34,6 +35,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/analytics', Dashboard::class)->name('admin.analytics');
     Route::get('/admin/bahan', ManageMaterials::class)->name('admin.materials');
     Route::redirect('/admin/materials', '/admin/bahan');
+    Route::get('/admin/resep', ManageRecipes::class)->name('admin.recipes');
+    Route::redirect('/admin/recipes', '/admin/resep');
     Route::get('/admin/pesanan', ManageOrders::class)->name('admin.orders');
     Route::redirect('/admin/orders', '/admin/pesanan');
     Route::redirect('/admin', '/admin/dashboard');
