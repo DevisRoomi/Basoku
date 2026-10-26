@@ -1,4 +1,4 @@
-<div class="min-h-screen flex flex-col justify-between text-[#26221E] bg-[#F4EFE6]">
+<div class="min-h-screen flex flex-col justify-between text-[#26221E] bg-motif-kawung">
     <!-- Navbar Publik -->
     <x-navbar />
 
@@ -55,7 +55,7 @@
         <div>
             @if ($recipes->isEmpty())
                 <!-- State Kosong (Empty State) -->
-                <div class="bg-[#FAF7F2] rounded-[2.5rem] p-10 sm:p-16 border border-[#26221E]/10 text-center max-w-lg mx-auto shadow-sm">
+                <div class="bg-[#FAF7F2] rounded-3xl p-10 sm:p-16 border border-[#26221E]/10 text-center max-w-lg mx-auto shadow-sm">
                     <div class="w-16 h-16 rounded-full bg-[#2D4235] text-[#F4EFE6] font-serif font-bold text-2xl mx-auto flex items-center justify-center mb-4">
                         B.
                     </div>
@@ -78,7 +78,7 @@
             @else
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach ($recipes as $recipe)
-                        <div class="bg-[#FAF7F2] rounded-[2rem] border border-[#26221E]/10 p-6 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between">
+                        <div class="bg-[#FAF7F2] rounded-3xl border border-[#26221E]/10 p-6 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between">
                             <div>
                                 <!-- Header Kartu Resep -->
                                 <div class="flex items-start justify-between gap-2 pb-3 border-b border-[#26221E]/10">

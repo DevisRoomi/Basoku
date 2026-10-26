@@ -1,23 +1,19 @@
 <div class="w-full">
 
-    <!-- Atmospheric Editorial Header Card (Kinfolk / Architectural Style) -->
-    <div class="rounded-[2.5rem] bg-[#FAF7F2] text-[#26221E] p-8 sm:p-12 mb-10 shadow-sm border border-[#26221E]/10 relative overflow-hidden">
-        <!-- Subtle Giant Watermark -->
-        <div class="absolute -right-6 -bottom-6 editorial-watermark select-none pointer-events-none opacity-25 tracking-tighter" aria-hidden="true">
-            SELEPAN
-        </div>
+    <!-- Atmospheric Editorial Header Card (Zomato-style clean editorial typography) -->
+    <div class="rounded-3xl bg-[#FAF7F2] text-[#26221E] p-8 sm:p-12 mb-10 border border-[#26221E]/10 relative overflow-hidden">
         <div class="relative z-10 max-w-2xl">
-            <div class="flex items-center gap-2 mb-3">
-                <span class="w-8 h-[2px] bg-[#D96B43]"></span>
+            <div class="flex items-center gap-2 mb-4">
+                <span class="w-6 h-[2px] bg-[#D96B43]"></span>
                 <span class="text-xs font-mono font-bold tracking-[0.2em] uppercase text-[#D96B43]">
                     Kalkulator Racikan &bull; Tradisi Pasar
                 </span>
             </div>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#26221E] leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#26221E] tracking-tight leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
                 Rancang Racikanmu
-            </h2>
-            <p class="mt-3 text-[#5A534A] text-sm sm:text-base leading-relaxed font-normal">
-                Pilih cara kalkulasi yang Anda inginkan: atur berat daging yang ingin diolah, atau tentukan anggaran belanja Anda untuk hasil porsi maksimal.
+            </h1>
+            <p class="mt-4 text-[#5A534A] text-sm sm:text-base leading-relaxed font-normal">
+                Kalkulasi transparan kebutuhan bahan bakso pasar: tentukan berat daging atau batas anggaran belanja untuk estimasi belanja paling hemat dan presisi.
             </p>
         </div>
     </div>
@@ -69,10 +65,10 @@
                     <button
                         type="button"
                         wire:click="$set('startType', 'start_from_zero')"
-                        class="text-left w-full rounded-3xl border-2 p-5 cursor-pointer focus:outline-none transition-all duration-200 {{ $startType === 'start_from_zero' ? 'border-[#D96B43] bg-[#FAF7F2] shadow-sm ring-1 ring-[#D96B43]/20' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                        class="text-left w-full rounded-2xl border p-5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $startType === 'start_from_zero' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
                     >
                         <div class="flex items-start gap-3.5">
-                            <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition-colors {{ $startType === 'start_from_zero' ? 'bg-[#D96B43] text-white' : 'bg-[#26221E]/5 text-[#26221E]/60' }}">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors {{ $startType === 'start_from_zero' ? 'bg-[#D96B43] text-white' : 'bg-[#26221E]/5 text-[#26221E]/60' }}">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                                 </svg>
@@ -88,10 +84,10 @@
                     <button
                         type="button"
                         wire:click="$set('startType', 'own_meat')"
-                        class="text-left w-full rounded-3xl border-2 p-5 cursor-pointer focus:outline-none transition-all duration-200 {{ $startType === 'own_meat' ? 'border-[#D96B43] bg-[#FAF7F2] shadow-sm ring-1 ring-[#D96B43]/20' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                        class="text-left w-full rounded-2xl border p-5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $startType === 'own_meat' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
                     >
                         <div class="flex items-start gap-3.5">
-                            <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition-colors {{ $startType === 'own_meat' ? 'bg-[#D96B43] text-white' : 'bg-[#26221E]/5 text-[#26221E]/60' }}">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors {{ $startType === 'own_meat' ? 'bg-[#D96B43] text-white' : 'bg-[#26221E]/5 text-[#26221E]/60' }}">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                 </svg>
@@ -152,30 +148,130 @@
                         Berat Daging (Gram)
                     </legend>
                     
-                    <div class="bg-white/90 rounded-3xl border border-[#26221E]/10 p-5 shadow-xs">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-xs text-[#5A534A]">Geser atau pilih takaran cepat:</span>
-                            <span class="text-xl font-mono font-bold text-[#D96B43] tabular-nums">
-                                {{ number_format($meatWeight) }} g
-                            </span>
+                    <!-- Analog Market Scale Dial & Slider Container (Haptic & Tactile) -->
+                    <div
+                        x-data="{
+                            weight: {{ $meatWeight }},
+                            lastTickWeight: {{ $meatWeight }},
+                            audioCtx: null,
+                            get needleAngle() {
+                                const w = Math.min(Math.max(this.weight, 500), 5000);
+                                return -80 + (w / 5000) * 160;
+                            },
+                            playHaptic() {
+                                try {
+                                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                                    if (AudioContextClass && !this.audioCtx) {
+                                        this.audioCtx = new AudioContextClass();
+                                    }
+                                    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                                        this.audioCtx.resume();
+                                    }
+                                    if (this.audioCtx) {
+                                        const osc = this.audioCtx.createOscillator();
+                                        const gain = this.audioCtx.createGain();
+                                        osc.type = 'triangle';
+                                        osc.frequency.setValueAtTime(520, this.audioCtx.currentTime);
+                                        osc.frequency.exponentialRampToValueAtTime(160, this.audioCtx.currentTime + 0.025);
+                                        gain.gain.setValueAtTime(0.07, this.audioCtx.currentTime);
+                                        gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.025);
+                                        osc.connect(gain);
+                                        gain.connect(this.audioCtx.destination);
+                                        osc.start();
+                                        osc.stop(this.audioCtx.currentTime + 0.028);
+                                    }
+                                } catch(e) {}
+                                if (navigator && typeof navigator.vibrate === 'function') {
+                                    try { navigator.vibrate(8); } catch(e) {}
+                                }
+                            },
+                            onSlide(val) {
+                                this.weight = Number(val);
+                                if (Math.abs(this.weight - this.lastTickWeight) >= 50) {
+                                    this.playHaptic();
+                                    this.lastTickWeight = this.weight;
+                                }
+                            }
+                        }"
+                        x-init="$watch('$wire.meatWeight', (val) => { weight = Number(val); })"
+                        class="bg-white/95 rounded-3xl border border-[#26221E]/10 p-5 shadow-xs"
+                    >
+                        <!-- Analog Scale Gauge (Jarum Timbangan Pasar Tradisional) -->
+                        <div class="flex flex-col items-center justify-center pt-2 pb-3 border-b border-[#26221E]/10 mb-4 select-none">
+                            <div class="relative w-52 h-28 flex items-end justify-center">
+                                <!-- Dial Semi-Circle Face & Calibration Ring -->
+                                <svg class="w-52 h-28" viewBox="0 0 200 110" fill="none">
+                                    <!-- Dial Background Bed -->
+                                    <path d="M 21.2 86.1 A 80 80 0 0 1 178.8 86.1" stroke="#26221E" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.3" />
+                                    <!-- Active Scale Arc -->
+                                    <path d="M 28.1 64.9 A 80 80 0 0 1 178.8 86.1" stroke="#2D4235" stroke-width="3.5" stroke-linecap="round" opacity="0.25" />
+                                    
+                                    <!-- Calibration Marks (0.5kg, 1.0kg, 2.5kg center, 4.0kg, 5.0kg) -->
+                                    <!-- 0.5kg tick (-64deg) -->
+                                    <line x1="28.1" y1="64.9" x2="37.1" y2="69.3" stroke="#D96B43" stroke-width="2" />
+                                    <!-- 1.0kg tick (-48deg) -->
+                                    <line x1="40.6" y1="46.5" x2="48.0" y2="53.2" stroke="#26221E" stroke-width="1.5" opacity="0.6" />
+                                    <!-- 2.5kg Center top tick (0deg) -->
+                                    <line x1="100" y1="20" x2="100" y2="30" stroke="#D96B43" stroke-width="2.5" />
+                                    <!-- 4.0kg tick (+48deg) -->
+                                    <line x1="159.4" y1="46.5" x2="152.0" y2="53.2" stroke="#26221E" stroke-width="1.5" opacity="0.6" />
+                                    <!-- 5.0kg tick (+80deg) -->
+                                    <line x1="178.8" y1="86.1" x2="168.9" y2="87.8" stroke="#D96B43" stroke-width="2" />
+
+                                    <!-- Calibration Numeric Labels -->
+                                    <text x="18" y="60" font-size="8.5" fill="#5A534A" font-family="monospace" font-weight="bold">0.5kg</text>
+                                    <text x="90" y="15" font-size="8.5" fill="#D96B43" font-family="monospace" font-weight="bold">2.5kg</text>
+                                    <text x="156" y="82" font-size="8.5" fill="#5A534A" font-family="monospace" font-weight="bold">5.0kg</text>
+
+                                    <!-- Rotating Analog Scale Needle (Jarum Timbangan Dacin/Pasar) -->
+                                    <g :transform="'rotate(' + needleAngle + ' 100 100)'" style="transition: transform 150ms ease-out;">
+                                        <!-- Needle Pointer Shaft -->
+                                        <line x1="100" y1="100" x2="100" y2="24" stroke="#D96B43" stroke-width="2.5" stroke-linecap="round" />
+                                        <!-- Counter-balance tail -->
+                                        <line x1="100" y1="100" x2="100" y2="106" stroke="#26221E" stroke-width="2" stroke-linecap="round" />
+                                        <!-- Brass/Black Center Pivot Hub -->
+                                        <circle cx="100" cy="100" r="5" fill="#26221E" stroke="#D96B43" stroke-width="1.5" />
+                                        <circle cx="100" cy="100" r="2" fill="#FAF7F2" />
+                                    </g>
+                                </svg>
+                            </div>
+
+                            <!-- Live Digital Weight Reading & Subtext -->
+                            <div class="mt-2 text-center">
+                                <span class="text-2xl font-mono font-bold text-[#26221E] tabular-nums tracking-tight">
+                                    <span x-text="Number(weight).toLocaleString()">{{ number_format($meatWeight) }}</span> <span class="text-sm font-sans font-semibold text-[#D96B43]">gram</span>
+                                </span>
+                                <span class="block text-[11px] font-mono text-[#5A534A]">
+                                    (setara <span x-text="(weight / 1000).toFixed(2)">{{ number_format($meatWeight / 1000, 2) }}</span> kg daging)
+                                </span>
+                            </div>
                         </div>
 
-                        <!-- Slider -->
-                        <input
-                            type="range"
-                            min="500"
-                            max="5000"
-                            step="50"
-                            wire:model.live.debounce.150ms="meatWeight"
-                            class="w-full h-2 bg-[#E8ECE4] rounded-lg appearance-none cursor-pointer accent-[#D96B43]"
-                        >
+                        <!-- Slider Bar with Haptic Tick On Input -->
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between text-[11px] font-mono text-[#5A534A]">
+                                <span>Timbangan Rendah (500g)</span>
+                                <span>Kapasitas Los (5 kg)</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="500"
+                                max="5000"
+                                step="50"
+                                wire:model.live.debounce.150ms="meatWeight"
+                                x-model="weight"
+                                @input="onSlide($event.target.value)"
+                                class="w-full h-2.5 bg-[#E8ECE4] rounded-lg appearance-none cursor-pointer accent-[#D96B43] focus:outline-none"
+                            >
+                        </div>
 
-                        <!-- Preset Buttons -->
+                        <!-- Preset Buttons (Snap Weights) -->
                         <div class="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-[#26221E]/10">
                             @foreach ([500, 1000, 2000, 3000] as $preset)
                                 <button
                                     type="button"
                                     wire:click="$set('meatWeight', {{ $preset }})"
+                                    @click="weight = {{ $preset }}; playHaptic();"
                                     class="py-1.5 px-2 rounded-xl text-xs font-mono font-semibold transition-colors cursor-pointer {{ $meatWeight == $preset ? 'bg-[#2D4235] text-white' : 'bg-[#FAF7F2] text-[#26221E] hover:bg-black/5' }}"
                                 >
                                     {{ $preset >= 1000 ? ($preset / 1000) . ' kg' : $preset . ' g' }}
@@ -237,7 +333,7 @@
                     <button
                         type="button"
                         wire:click="$set('preference', 'enak')"
-                        class="p-4 rounded-3xl border-2 text-left cursor-pointer transition-all duration-200 {{ $preference === 'enak' ? 'border-[#D96B43] bg-[#FAF7F2] shadow-sm ring-1 ring-[#D96B43]/20' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                        class="p-4 rounded-2xl border text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $preference === 'enak' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
                     >
                         <div class="flex items-center justify-between mb-2">
                             <span class="font-bold text-sm text-[#26221E]">Enak</span>
@@ -252,7 +348,7 @@
                     <button
                         type="button"
                         wire:click="$set('preference', 'seimbang')"
-                        class="p-4 rounded-3xl border-2 text-left cursor-pointer transition-all duration-200 {{ $preference === 'seimbang' ? 'border-[#D96B43] bg-[#FAF7F2] shadow-sm ring-1 ring-[#D96B43]/20' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                        class="p-4 rounded-2xl border text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $preference === 'seimbang' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
                     >
                         <div class="flex items-center justify-between mb-2">
                             <span class="font-bold text-sm text-[#26221E]">Seimbang</span>
@@ -267,7 +363,7 @@
                     <button
                         type="button"
                         wire:click="$set('preference', 'ekonomis')"
-                        class="p-4 rounded-3xl border-2 text-left cursor-pointer transition-all duration-200 {{ $preference === 'ekonomis' ? 'border-[#D96B43] bg-[#FAF7F2] shadow-sm ring-1 ring-[#D96B43]/20' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                        class="p-4 rounded-2xl border text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $preference === 'ekonomis' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
                     >
                         <div class="flex items-center justify-between mb-2">
                             <span class="font-bold text-sm text-[#26221E]">Ekonomis</span>
@@ -294,7 +390,7 @@
                     <button
                         type="button"
                         wire:click="$set('useGrinding', true)"
-                        class="p-4 rounded-3xl border-2 text-center cursor-pointer transition-all duration-200 {{ $useGrinding ? 'border-[#D96B43] bg-[#FAF7F2] shadow-sm ring-1 ring-[#D96B43]/20' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                        class="p-4 rounded-2xl border text-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $useGrinding ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
                     >
                         <span class="block font-bold text-sm text-[#26221E]">Pakai Jasa</span>
                         <span class="block text-[11px] text-[#5A534A] mt-0.5">Digiling di mesin selepan pasar</span>
@@ -304,7 +400,7 @@
                     <button
                         type="button"
                         wire:click="$set('useGrinding', false)"
-                        class="p-4 rounded-3xl border-2 text-center cursor-pointer transition-all duration-200 {{ !$useGrinding ? 'border-[#D96B43] bg-[#FAF7F2] shadow-sm ring-1 ring-[#D96B43]/20' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                        class="p-4 rounded-2xl border text-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ !$useGrinding ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
                     >
                         <span class="block font-bold text-sm text-[#26221E]">Tanpa Jasa</span>
                         <span class="block text-[11px] text-[#5A534A] mt-0.5">Bahan utuh tanpa digiling</span>
@@ -318,7 +414,7 @@
         <!-- KOLOM KANAN: PANEL STRUK ESTIMASI (5 Kolom) -->
         <!-- ═══════════════════════════════════════════ -->
         <div class="lg:col-span-5 sticky top-28">
-            <div class="rounded-[2.5rem] bg-[#2D4235] text-[#F4EFE6] p-6 sm:p-8 shadow-xl border border-[#2D4235]/30 relative overflow-hidden">
+            <div class="rounded-3xl bg-[#2D4235] text-[#F4EFE6] p-6 sm:p-8 shadow-xl border border-[#2D4235]/30 relative overflow-hidden">
                 
                 <div class="relative z-10">
                     
@@ -406,6 +502,14 @@
                                                 <span>&bull;</span>
                                                 <span class="text-[10px] text-[#D8E0D3]/50">{{ $item['note'] }}</span>
                                             </div>
+                                            @if (!empty($item['flour_packaging']))
+                                                <div class="mt-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-[#D8E0D3]/90 font-mono">
+                                                    <span class="text-[#D96B43] font-bold">Kemasan Pasar:</span> {{ $item['flour_packaging']['packaging_summary'] }}
+                                                    @if ($item['flour_packaging']['leftover_grams'] > 0)
+                                                        <span class="text-emerald-300 ml-1">({{ number_format($item['flour_packaging']['leftover_grams']) }}g sisa dapur)</span>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         </div>
                                         <div class="text-right shrink-0">
                                             <span class="font-semibold text-xs tabular-nums font-mono {{ !empty($item['own_meat']) ? 'text-emerald-400' : 'text-white' }}">
@@ -468,7 +572,8 @@
                         <button
                             type="button"
                             wire:click="openSaveModal"
-                            class="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-full border border-white/25 hover:border-white/50 bg-white/10 hover:bg-white/15 text-white font-medium text-xs sm:text-sm transition-all duration-200 active:scale-[0.99] cursor-pointer"
+                            wire:loading.attr="disabled"
+                            class="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border border-white/25 hover:border-white/50 bg-white/10 hover:bg-white/15 text-white font-medium text-xs sm:text-sm transition-all duration-200 active:scale-[0.99] cursor-pointer disabled:opacity-50"
                         >
                             <svg class="w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -482,7 +587,7 @@
                                 type="button"
                                 disabled
                                 aria-disabled="true"
-                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-full bg-[#25D366]/40 text-white font-medium text-xs sm:text-sm shadow-none cursor-not-allowed opacity-50"
+                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-[#25D366]/40 text-white font-medium text-xs sm:text-sm shadow-none cursor-not-allowed opacity-50"
                             >
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -493,7 +598,8 @@
                             <button
                                 type="button"
                                 wire:click="openCheckout"
-                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-full bg-[#25D366] hover:bg-[#1DA851] text-white font-semibold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.99] cursor-pointer"
+                                wire:loading.attr="disabled"
+                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white font-medium text-xs sm:text-sm shadow-md transition-all duration-200 active:scale-[0.99] cursor-pointer disabled:opacity-50"
                             >
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -513,9 +619,15 @@
     <!-- MODAL CHECKOUT & PENGAMBILAN PESANAN        -->
     <!-- ═══════════════════════════════════════════ -->
     @if ($showCheckoutModal)
-        <div class="fixed inset-0 z-50 bg-[#26221E]/80 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-300">
+        <div 
+            class="fixed inset-0 z-50 bg-[#26221E]/80 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-300"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-checkout-title"
+            @keydown.escape.window="$wire.closeCheckout()"
+        >
             <div
-                class="bg-[#FAF7F2] rounded-[2.5rem] w-full max-w-md p-6 sm:p-8 shadow-2xl relative border border-[#26221E]/10"
+                class="bg-[#FAF7F2] rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl relative border border-[#26221E]/10"
             >
                 <!-- Tombol Tutup 'X' -->
                 <button
@@ -532,7 +644,7 @@
                 <!-- Judul Modal -->
                 <div class="mb-5">
                     <p class="text-[#D96B43] font-bold tracking-widest text-xs uppercase mb-1 font-mono">Konfirmasi Pesanan</p>
-                    <h3 class="text-[#26221E] text-2xl font-bold leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
+                    <h3 id="modal-checkout-title" class="text-[#26221E] text-2xl font-bold leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
                         Data Pengambilan
                     </h3>
                     <p class="text-xs text-[#5A534A] mt-1">
@@ -602,13 +714,14 @@
                         <button
                             type="submit"
                             wire:loading.attr="disabled"
-                            class="w-full py-4 px-6 rounded-full bg-[#25D366] hover:bg-[#1DA851] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                            wire:target="processCheckout"
+                            class="w-full py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#1DA851] text-white font-bold text-sm shadow transition-all duration-200 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            <svg wire:loading.remove class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <svg wire:loading.remove wire:target="processCheckout" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                             </svg>
-                            <span wire:loading.remove>Konfirmasi & Kirim WA</span>
-                            <span wire:loading class="flex items-center gap-2">
+                            <span wire:loading.remove wire:target="processCheckout">Konfirmasi & Kirim WA</span>
+                            <span wire:loading wire:target="processCheckout" class="flex items-center gap-2">
                                 <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -626,9 +739,15 @@
     <!-- MODAL SIMPAN RACIKAN RESEP SAYA             -->
     <!-- ═══════════════════════════════════════════ -->
     @if ($showSaveModal)
-        <div class="fixed inset-0 z-50 bg-[#26221E]/80 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-300">
+        <div 
+            class="fixed inset-0 z-50 bg-[#26221E]/80 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-300"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-save-title"
+            @keydown.escape.window="$wire.closeSaveModal()"
+        >
             <div
-                class="bg-[#FAF7F2] rounded-[2.5rem] w-full max-w-md p-6 sm:p-8 shadow-2xl relative border border-[#26221E]/10"
+                class="bg-[#FAF7F2] rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl relative border border-[#26221E]/10"
             >
                 <!-- Tombol Tutup 'X' -->
                 <button
@@ -644,9 +763,9 @@
 
                 <!-- Judul Modal -->
                 <div class="mb-5">
-                    <p class="text-[#D96B43] font-bold tracking-widest text-xs uppercase mb-1 font-mono">Laboratorium Resep</p>
-                    <h3 class="text-[#26221E] text-2xl font-bold leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
-                        Simpan Racikan Saya
+                    <p class="text-[#D96B43] font-bold tracking-widest text-xs uppercase mb-1 font-mono">Buku Resep Pribadi</p>
+                    <h3 id="modal-save-title" class="text-[#26221E] text-2xl font-bold leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
+                        Simpan Racikan
                     </h3>
                     <p class="text-xs text-[#5A534A] mt-1">
                         Beri nama racikan ini untuk disimpan ke koleksi resep pribadi Anda.
@@ -687,17 +806,24 @@
                         <button
                             type="button"
                             wire:click="closeSaveModal"
-                            class="px-5 py-2.5 rounded-full border border-[#26221E]/20 hover:bg-black/5 text-[#26221E] font-semibold text-xs transition-colors cursor-pointer"
+                            class="px-5 py-2.5 rounded-xl border border-[#26221E]/20 hover:bg-black/5 text-[#26221E] font-semibold text-xs transition-colors cursor-pointer"
                         >
                             Batal
                         </button>
                         <button
                             type="submit"
                             wire:loading.attr="disabled"
-                            class="px-6 py-2.5 rounded-full bg-[#D96B43] hover:bg-[#C25932] text-white font-bold text-xs shadow-md transition-all active:scale-[0.99] cursor-pointer flex items-center gap-2"
+                            wire:target="saveRecipe"
+                            class="px-6 py-2.5 rounded-xl bg-[#D96B43] hover:bg-[#C25932] text-white font-bold text-xs shadow transition-all active:scale-[0.99] cursor-pointer flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            <span wire:loading.remove>Simpan ke Resep Saya</span>
-                            <span wire:loading>Menyimpan...</span>
+                            <span wire:loading.remove wire:target="saveRecipe">Simpan ke Resep Saya</span>
+                            <span wire:loading wire:target="saveRecipe" class="flex items-center gap-1.5">
+                                <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Menyimpan...
+                            </span>
                         </button>
                     </div>
                 </form>

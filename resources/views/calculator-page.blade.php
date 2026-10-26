@@ -3,7 +3,7 @@
     <x-navbar />
 
     <!-- Editorial Workspace Masthead -->
-    <header class="bg-[#F4EFE6] border-b border-[#26221E]/10 pt-8 pb-6">
+    <header class="border-b border-[#26221E]/10 pt-8 pb-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
             <!-- Breadcrumbs / Top Quick Link -->
             <div class="flex flex-wrap items-center justify-between gap-4 mb-4 text-xs font-mono uppercase tracking-[0.18em] text-[#5A534A]">
@@ -44,7 +44,7 @@
     </header>
 
     <!-- Main Workspace Container -->
-    <main class="w-full bg-[#F4EFE6] text-[#26221E] py-10 sm:py-16">
+    <main class="w-full text-[#26221E] py-10 sm:py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
             <livewire:recipe-calculator />
         </div>

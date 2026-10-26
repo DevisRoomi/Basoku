@@ -1,10 +1,5 @@
 <section id="daftar-harga" class="bg-motif-kawung text-[#26221E] py-20 lg:py-28 scroll-mt-20 relative overflow-hidden border-t border-[#26221E]/10">
 
-    <!-- Subtle Architectural Background Watermark -->
-    <div class="absolute top-10 left-1/2 -translate-x-1/2 editorial-watermark select-none pointer-events-none opacity-30 tracking-widest" aria-hidden="true">
-        KATALOG
-    </div>
-
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 relative z-10">
 
         <!-- Ornamental Botanical Section Header (Kinfolk / Specialty Apothecary Aesthetic) -->
@@ -184,7 +179,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- BOTTOM BANNER: JASA SELEPAN PASAR (Architectural Spec Showcase) -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div class="mt-16 sm:mt-20 rounded-[2.5rem] bg-[#D8E0D3] p-8 sm:p-12 border border-[#2D4235]/20 shadow-md relative overflow-hidden">
+        <div class="mt-16 sm:mt-20 rounded-3xl bg-[#D8E0D3] p-8 sm:p-12 border border-[#2D4235]/20 shadow-md relative overflow-hidden">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
                 
                 <!-- Left Details (7 Kolom) -->

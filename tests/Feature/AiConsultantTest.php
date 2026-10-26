@@ -151,4 +151,54 @@ class AiConsultantTest extends TestCase
         $this->assertStringContainsString('Tips Emas Saat Giling di Los Selepan Pasar', $result);
         $this->assertStringContainsString('Garam di Awal', $result);
     }
+
+    public function test_location_queries_return_kiosk_profile_fallback(): void
+    {
+        Config::set('services.gemini.key', null);
+
+        Livewire::test(AiConsultant::class)
+            ->set('question', 'Di mana alamat dan lokasi kios BASOKU?')
+            ->call('sendMessage')
+            ->assertHasNoErrors()
+            ->assertSee('Lokasi & Profil Kios BASOKU')
+            ->assertSee('Los Selepan Pasar Klakah')
+            ->assertSee('Lumajang')
+            ->assertSee('04.00 – 12.00 WIB');
+    }
+
+    public function test_system_prompt_contains_kiosk_profile_information(): void
+    {
+        $service = new GeminiConsultantService;
+        $prompt = $service->getSystemPrompt();
+
+        $this->assertStringContainsString('Los Selepan Pasar Klakah', $prompt);
+        $this->assertStringContainsString('Lumajang', $prompt);
+        $this->assertStringContainsString('7°59\'31.5"S 113°14\'58.9"E', $prompt);
+        $this->assertStringContainsString('04.00 - 12.00 WIB', $prompt);
+        $this->assertStringContainsString('Puskesmas Klakah', $prompt);
+    }
+
+    public function test_weather_off_topic_query_returns_polite_fallback(): void
+    {
+        Config::set('services.gemini.key', null);
+
+        Livewire::test(AiConsultant::class)
+            ->set('question', 'Gimana cuaca di pasar sekarang?')
+            ->call('sendMessage')
+            ->assertHasNoErrors()
+            ->assertSee('Waduh, saya konsultan adonan bakso jadi belum bisa mengecek cuaca langsung sedulur')
+            ->assertSee('04.00 – 12.00 WIB');
+    }
+
+    public function test_ice_price_query_returns_price_fallback(): void
+    {
+        Config::set('services.gemini.key', null);
+
+        Livewire::test(AiConsultant::class)
+            ->set('question', 'Berapa harga es batu di kios?')
+            ->call('sendMessage')
+            ->assertHasNoErrors()
+            ->assertSee('Harga & Ketersediaan Es Batu di Kios BASOKU')
+            ->assertSee('Rp2.000 – Rp5.000');
+    }
 }

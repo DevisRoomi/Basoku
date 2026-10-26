@@ -1,4 +1,4 @@
-<div class="min-h-screen w-full flex bg-[#F4EFE6] text-[#26221E]">
+<div class="min-h-screen w-full flex bg-motif-kawung text-[#26221E]">
 
     <!-- Sisi Kiri: Visual Split Editorial Sinematik (Desktop: Ref 1 & Ref 2) -->
     <div class="hidden lg:flex lg:w-1/2 relative bg-[#2D4235] overflow-hidden flex-col justify-between p-12 lg:p-16 text-[#F4EFE6]">
@@ -53,7 +53,7 @@
     </div>
 
     <!-- Sisi Kanan: Kartu Form Editorial Bertekstur Oatmeal -->
-    <div class="w-full lg:w-1/2 bg-[#F4EFE6] flex items-center justify-center p-6 sm:p-12 min-h-screen relative">
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 min-h-screen relative">
         <div class="w-full max-w-md">
 
             <!-- Back to Home Link -->
@@ -80,7 +80,7 @@
             </div>
 
             <!-- Form Card -->
-            <div class="bg-[#FAF7F2] rounded-[2.5rem] p-6 sm:p-8 shadow-sm border border-[#26221E]/10">
+            <div class="bg-[#FAF7F2] rounded-3xl p-6 sm:p-8 shadow-sm border border-[#26221E]/10">
                 <form wire:submit.prevent="authenticate" class="space-y-5">
                     
                     <!-- Field: Email -->

@@ -25,7 +25,7 @@ class GeminiConsultantService
         }
 
         $baseUrl = rtrim(config('services.gemini.base_url', 'https://generativelanguage.googleapis.com/v1beta'), '/');
-        $model = config('services.gemini.model', 'gemini-1.5-flash');
+        $model = config('services.gemini.model', 'gemini-3.1-flash-lite');
         $endpoint = "{$baseUrl}/models/{$model}:generateContent?key={$apiKey}";
 
         $payload = [
@@ -49,7 +49,12 @@ class GeminiConsultantService
         ];
 
         try {
-            $response = Http::timeout(10)->post($endpoint, $payload);
+            $httpClient = Http::timeout(30)->withOptions(['force_ip_resolve' => 'v4']);
+            if (! config('services.gemini.verify_ssl', true)) {
+                $httpClient = $httpClient->withoutVerifying();
+            }
+
+            $response = $httpClient->post($endpoint, $payload);
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -67,20 +72,31 @@ class GeminiConsultantService
 
             return $this->getLocalFallback($question);
         } catch (\Throwable $e) {
-            Log::warning('Gemini API gagal dihubungi (timeout/offline): '.$e->getMessage());
+            Log::error('Gemini API Error: '.$e->getMessage(), [
+                'exception' => get_class($e),
+            ]);
 
             return $this->getLocalFallback($question);
         }
     }
 
     /**
-     * System Prompt persona konsultan adonan pasar BASOKU.
+     * System Prompt persona konsultan adonan pasar BASOKU dilengkapi profil kios.
      */
     public function getSystemPrompt(): string
     {
         return <<<'PROMPT'
-Anda adalah "Tanya BASOKU" — Konsultan Ahli Adonan & Selepan Pasar Tradisional terpercaya dari platform BASOKU.
-Persona & Gaya Komunikasi:
+Anda adalah "Tanya BASOKU" — Asisten Konsultan Ahli Adonan & Selepan Pasar dari kios BASOKU.
+
+Profil & Informasi Resmi Kios BASOKU:
+- Nama Kios: BASOKU (Spesialis Bahan & Selepan Bakso)
+- Lokasi Kios: Los Selepan Pasar Klakah, Kecamatan Klakah, Kabupaten Lumajang, Jawa Timur
+- Koordinat GPS: 7°59'31.5"S 113°14'58.9"E (-7.992083, 113.249694)
+- Patokan Lokasi: Area Los Selepan Pasar Klakah, dekat Puskesmas Klakah & Jl. Gn. Ringgit
+- Jam Buka Operasional: Setiap hari (Senin s/d Minggu), buka subuh pukul 04.00 - 12.00 WIB
+- Layanan Utama: Belanja bahan baku segar (daging sapi gandik/paha, urat sengkel/brisket, tepung tapioka, aneka bumbu) dan jasa giling/selepan adonan bakso berkualitas tinggi.
+
+Persona & Pengetahuan Ahli:
 1. Ramah, hangat, bersahabat, santun khas pedagang pasar nusantara yang penuh kearifan lokal ("Halo sedulur bakso!").
 2. Sangat menguasai ilmu adonan bakso:
    - Kimia protein daging dingin: peran protein miosin yang harus diekstrak garam pada suhu dingin (< 15°C) menggunakan es batu (15%-20% dari bobot daging).
@@ -89,7 +105,7 @@ Persona & Gaya Komunikasi:
    - Urutan penggilingan di mesin selepan: Daging + es + garam di awal; tepung dan bumbu penyedap di akhir adonan.
    - Estimasi butir & porsi: 1 kg daging sapi menghasilkan sekitar 70-80 butir ukuran sedang (~18-20g) atau 14-16 porsi mangkok.
 3. Berikan saran yang praktis, higienis, dan realistis untuk diaplikasikan di dapur rumahan maupun pengusaha bakso keliling/kios.
-4. Jika pertanyaan di luar adonan bakso atau daging, jawab dengan sopan dan kembalikan obrolan ke seputar racikan bakso pasar.
+4. Jika ditanya seputar alamat, lokasi, rute, jam buka, atau kontak kios BASOKU, jelaskan secara ramah dengan informasi lokasi Pasar Klakah di atas.
 5. Format jawaban dengan paragraf ringkas atau poin-poin agar nyaman dibaca di layar ponsel.
 PROMPT;
     }
@@ -102,7 +118,46 @@ PROMPT;
     {
         $q = strtolower($question);
 
-        // 1. Topik Es Batu & Suhu Dingin (Protein Miosin)
+        // 0. Deteksi Pertanyaan di Luar Topik (seperti Cuaca)
+        if (
+            str_contains($q, 'cuaca') ||
+            str_contains($q, 'hujan') ||
+            str_contains($q, 'prakiraan') ||
+            str_contains($q, 'suhu udara')
+        ) {
+            return "🌤️ **Waduh, saya konsultan adonan bakso jadi belum bisa mengecek cuaca langsung sedulur.**\n\nTapi kalau mau belanja daging segar atau giling adonan, Los Selepan Pasar Klakah buka setiap hari subuh **04.00 – 12.00 WIB**!";
+        }
+
+        // 1. Topik Harga & Ketersediaan Es Batu
+        if ((str_contains($q, 'harga') && str_contains($q, 'es')) || str_contains($q, 'harga es') || str_contains($q, 'beli es')) {
+            return "🧊 **Harga & Ketersediaan Es Batu di Kios BASOKU:**\n\n"
+                ."Di kios BASOKU Los Selepan Pasar Klakah, kami selalu menyediakan es batu kristal higienis untuk kebutuhan adonan bakso sedulur:\n"
+                ."• **Es Batu Kemasan/Plastik:** Tersedia mulai **Rp2.000 – Rp5.000** per kantong.\n"
+                ."• **Untuk Penggilingan:** Takaran es batu (15% – 20% dari bobot daging) sudah kami siapkan agar adonan bakso tetap dingin di bawah 15°C dan kenyal alami.\n\n"
+                .'Monggo langsung merapat ke kios subuh **04.00 – 12.00 WIB**!';
+        }
+
+        // 2. Topik Alamat, Lokasi, Patokan, Jam Buka, & Profil Kios Pasar Klakah
+        if (
+            str_contains($q, 'alamat') ||
+            str_contains($q, 'lokasi') ||
+            str_contains($q, 'tempat') ||
+            str_contains($q, 'dimana') ||
+            str_contains($q, 'di mana') ||
+            (str_contains($q, 'kios') && ! str_contains($q, 'harga')) ||
+            (str_contains($q, 'pasar') && ! str_contains($q, 'giling') && ! str_contains($q, 'selepan') && ! str_contains($q, 'harga'))
+        ) {
+            return "📍 **Lokasi & Profil Kios BASOKU:**\n\n"
+                ."• **Nama Kios:** BASOKU (Spesialis Bahan & Selepan Bakso)\n"
+                ."• **Alamat:** Los Selepan Pasar Klakah, Kecamatan Klakah, Kabupaten Lumajang, Jawa Timur.\n"
+                ."• **Patokan Lokasi:** Di dalam area Los Selepan Pasar Klakah, dekat Puskesmas Klakah & akses Jl. Gn. Ringgit.\n"
+                ."• **Koordinat GPS:** `7°59'31.5\"S 113°14'58.9\"E` (-7.992083, 113.249694).\n"
+                ."• **Jam Buka:** Setiap hari subuh **04.00 – 12.00 WIB**.\n"
+                ."• **Layanan:** Belanja bahan baku segar (daging sapi gandik/paha pilihan, urat sengkel/brisket, tepung tapioka berkualitas, bumbu lengkap) dan jasa giling/selepan adonan bakso higienis.\n\n"
+                .'Monggo pinarak ke kios subuh-subuh untuk mendapatkan daging segar terbaik dan adonan bakso kenyal alami!';
+        }
+
+        // 3. Topik Es Batu & Suhu Dingin (Protein Miosin)
         if (str_contains($q, 'es batu') || str_contains($q, 'suhu') || str_contains($q, 'dingin') || str_contains($q, 'miosin') || preg_match('/\bes\b/i', $q)) {
             return "🧊 **Takaran Es Batu & Rahasia Protein Miosin:**\n\n"
                 ."Saat menggiling adonan di mesin selepan, gunakan es batu sebanyak **15% – 20% dari bobot daging segar** (sekitar 150g – 200g es per 1 kg daging).\n\n"
@@ -110,7 +165,7 @@ PROMPT;
                 ."• **Hasilnya:** Protein miosin yang terjaga dingin akan mengikat air dan lemak secara sempurna, menghasilkan tekstur bakso yang kenyal alami ('kemripik') tanpa perlu obat pengenyal kimia berbahaya!";
         }
 
-        // 2. Topik Estimasi Porsi & Jumlah Butir dari 1 kg
+        // 3. Topik Estimasi Porsi & Jumlah Butir dari 1 kg
         if (str_contains($q, 'porsi') || str_contains($q, 'butir') || str_contains($q, 'hasil') || str_contains($q, '1 kg')) {
             return "🥣 **Estimasi Butir & Porsi dari 1 Kg Daging Sapi:**\n\n"
                 ."Dengan formula racikan standar pasar (1 kg daging + 200g tepung tapioka + 200g es batu + 50g bumbu), total bobot adonan basah adalah sekitar **1,45 kg**.\n\n"
@@ -119,14 +174,14 @@ PROMPT;
                 .'• *Tips:* Jika menggunakan formula ekonomis (tepung 400g), hasil butir bisa bertambah hingga 95 – 110 butir!';
         }
 
-        // 3. Topik Bagian Daging & Bakso Urat
+        // 4. Topik Bagian Daging & Bakso Urat
         if (str_contains($q, 'urat') || str_contains($q, 'sengkel') || str_contains($q, 'gandik') || str_contains($q, 'bagian') || str_contains($q, 'paha')) {
             return "🥩 **Rekomendasi Bagian Daging Terbaik:**\n\n"
                 ."• **Bakso Halus Kenyal:** Gunakan daging sapi bagian **Paha Belakang (Gandik / Topside)** atau **Pendas**. Bagian ini memiliki serat panjang, padat miosin, dan minim lemak sehingga daya ikat airnya paling prima.\n"
                 ."• **Bakso Urat Istimewa:** Kombinasikan 70% daging gandik dengan 30% urat Sengkel atau Sandung Lamur (*brisket*). Minta operator selepan untuk mencincang kasar uratnya di tahap akhir penggilingan agar tekstur 'krenyes' uratnya terasa mantap!";
         }
 
-        // 4. Topik Rasio Tepung Tapioka / Sagu
+        // 5. Topik Rasio Tepung Tapioka / Sagu
         if (str_contains($q, 'tepung') || str_contains($q, 'tapioka') || str_contains($q, 'sagu') || str_contains($q, 'rasio')) {
             return "⚖️ **Kaidah Rasio Tepung Tapioka BASOKU:**\n\n"
                 ."Tepung tapioka berfungsi sebagai pengikat adonan. Sesuaikan persentasenya dengan target selera Anda:\n\n"
@@ -135,7 +190,7 @@ PROMPT;
                 .'3. **Racikan Ekonomis (Hemat Usaha):** Tepung 30% – 40% (300g – 400g per 1 kg daging). Cocok untuk pesanan hajatan atau porsi banyak dengan biaya ekonomis.';
         }
 
-        // 5. Topik Tips Penggilingan di Mesin Selepan & Garam di Awal
+        // 6. Topik Tips Penggilingan di Mesin Selepan & Garam di Awal
         if (str_contains($q, 'selepan') || str_contains($q, 'giling') || str_contains($q, 'pengenyal') || str_contains($q, 'stpp')) {
             return "⚙️ **Tips Emas Saat Giling di Los Selepan Pasar:**\n\n"
                 ."1. **Garam di Awal:** Pastikan garam kasar dimasukkan saat daging pertama kali digiling bersama sebagian pecahan es batu. Garam berfungsi membuka ikatan serat protein miosin agar getah daging keluar.\n"
@@ -143,7 +198,7 @@ PROMPT;
                 .'3. **Segera Rebus:** Begitu adonan selesai digiling, bawa pulang dalam wadah tertutup dingin dan segera cetak ke dalam air hangat kuku (sekitar 60°C–70°C) sebelum dididihkan.';
         }
 
-        // 6. Default Fallback Umum
+        // 7. Default Fallback Umum
         return "👋 **Halo sedulur BASOKU!**\n\n"
             ."Saya siap membantu konsultasi adonan bakso pasar Anda. Kunci utama adonan bakso sempurna ada pada 3 pilar:\n"
             ."1. **Kesegaran Daging:** Gunakan daging segar yang belum terkena air mentah atau pembekuan lama.\n"

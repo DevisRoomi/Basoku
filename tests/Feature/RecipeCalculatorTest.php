@@ -145,7 +145,7 @@ class RecipeCalculatorTest extends TestCase
             'meat_weight' => 500.000,
             'preference' => 'seimbang',
             'grinding_fee' => 7500.00,
-            'total_price' => 79930.00,
+            'total_price' => 89000.00, // Uang belanja pasar kemasan utuh (daging 500g + tapioka 250g pack + bumbu pasar + selepan)
             'status' => 'pending',
         ]);
 
@@ -161,12 +161,13 @@ class RecipeCalculatorTest extends TestCase
             'subtotal' => 70000.00,
         ]);
 
+        // Tapioka: butuh 100g, beli kemasan utuh 250g @ Rp 18/g = Rp 4.500
         $this->assertDatabaseHas('order_items', [
             'order_id' => $order->id,
             'material_name' => 'Tepung Tapioka',
             'quantity' => 100.000,
             'unit_price' => 18.00,
-            'subtotal' => 1800.00,
+            'subtotal' => 4500.00,
         ]);
 
         // 3. Assert redirect to WhatsApp
@@ -174,5 +175,68 @@ class RecipeCalculatorTest extends TestCase
         $redirectUrl = $test->effects['redirect'] ?? '';
         $this->assertStringContainsString('https://wa.me/6285122797969', $redirectUrl);
         $this->assertStringContainsString(urlencode('Pak Sukadi'), $redirectUrl);
+    }
+
+    public function test_flour_packaging_market_rules(): void
+    {
+        // 1. Daging 500g rasio seimbang (0.20) -> tepung 100g (di bawah 250g) -> wajib beli 1x 250g
+        $component = Livewire::test(RecipeCalculator::class)
+            ->set('meatWeight', 500);
+
+        $breakdown = $component->get('breakdown');
+        $tapioca = collect($breakdown)->firstWhere('name', 'Tepung Tapioka');
+        $this->assertNotNull($tapioca);
+        $this->assertEquals(100.0, $tapioca['weight']);
+        $this->assertStringContainsString('1x 250g', $tapioca['note']);
+        $this->assertEquals(4500.0, $tapioca['market_cost']); // 250g * Rp 18
+
+        // 2. Daging 3750g rasio seimbang (0.20) -> tepung 750g -> wajib beli 1x 500g + 1x 250g
+        $component->set('meatWeight', 3750);
+        $breakdown = $component->get('breakdown');
+        $tapioca = collect($breakdown)->firstWhere('name', 'Tepung Tapioka');
+        $this->assertEquals(750.0, $tapioca['weight']);
+        $this->assertStringContainsString('1x 500g + 1x 250g', $tapioca['note']);
+        $this->assertEquals(13500.0, $tapioca['market_cost']); // 750g * Rp 18
+
+        // 3. Daging 4000g rasio seimbang (0.20) -> tepung 800g (di atas 750g di bawah 1kg) -> wajib beli 1x 1 kg
+        $component->set('meatWeight', 4000);
+        $breakdown = $component->get('breakdown');
+        $tapioca = collect($breakdown)->firstWhere('name', 'Tepung Tapioka');
+        $this->assertEquals(800.0, $tapioca['weight']);
+        $this->assertStringContainsString('1x 1 kg', $tapioca['note']);
+        $this->assertEquals(18000.0, $tapioca['market_cost']); // 1000g * Rp 18
+    }
+
+    public function test_checkout_ignores_tampered_client_price_and_recalculates_server_side(): void
+    {
+        $pickupDate = now()->addDays(2)->format('Y-m-d\TH:i');
+
+        Livewire::test(RecipeCalculator::class)
+            ->set('meatWeight', 500)
+            ->set('startType', 'start_from_zero')
+            ->set('preference', 'seimbang')
+            ->set('useGrinding', true)
+            // Manipulasi nilai publik oleh attacker
+            ->set('totalProportionalCost', 100.0)
+            ->set('breakdown', [
+                [
+                    'material_id' => 1,
+                    'name' => 'Daging Sapi',
+                    'weight' => 500,
+                    'cost' => 100.0,
+                    'proportional_cost' => 100.0,
+                    'market_cost' => 100.0,
+                ],
+            ])
+            ->call('openCheckout')
+            ->set('customerName', 'Attacker Tamper')
+            ->set('pickupTime', $pickupDate)
+            ->call('processCheckout');
+
+        // Order yang tersimpan harus menggunakan kalkulasi belanja pasar server, bukan nilai Rp 100
+        $this->assertDatabaseHas('orders', [
+            'customer_name' => 'Attacker Tamper',
+            'total_price' => 89000.00,
+        ]);
     }
 }

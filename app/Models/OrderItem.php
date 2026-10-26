@@ -18,11 +18,19 @@ class OrderItem extends Model
     protected $table = 'order_items';
 
     /**
-     * The attributes that aren't mass assignable.
+     * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-    protected $guarded = [];
+    protected $fillable = [
+        'order_id',
+        'material_id',
+        'material_name',
+        'quantity',
+        'unit',
+        'unit_price',
+        'subtotal',
+    ];
 
     /**
      * Get the attributes that should be cast.

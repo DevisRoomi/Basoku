@@ -31,16 +31,18 @@ Route::middleware(['auth'])->group(function () {
     Route::redirect('/resep-saya', '/racikan-saya');
 
     // 2. Panel Khusus Admin
-    Route::get('/admin/dashboard', Dashboard::class)->name('admin.dashboard');
-    Route::get('/admin/analytics', Dashboard::class)->name('admin.analytics');
-    Route::get('/admin/bahan', ManageMaterials::class)->name('admin.materials');
-    Route::redirect('/admin/materials', '/admin/bahan');
-    Route::get('/admin/resep', ManageRecipes::class)->name('admin.recipes');
-    Route::redirect('/admin/recipes', '/admin/resep');
-    Route::get('/admin/pesanan', ManageOrders::class)->name('admin.orders');
-    Route::redirect('/admin/orders', '/admin/pesanan');
-    Route::redirect('/admin', '/admin/dashboard');
-    Route::redirect('/dashboard', '/admin/dashboard');
+    Route::middleware(['admin'])->group(function () {
+        Route::get('/admin/dashboard', Dashboard::class)->name('admin.dashboard');
+        Route::get('/admin/analytics', Dashboard::class)->name('admin.analytics');
+        Route::get('/admin/bahan', ManageMaterials::class)->name('admin.materials');
+        Route::redirect('/admin/materials', '/admin/bahan');
+        Route::get('/admin/resep', ManageRecipes::class)->name('admin.recipes');
+        Route::redirect('/admin/recipes', '/admin/resep');
+        Route::get('/admin/pesanan', ManageOrders::class)->name('admin.orders');
+        Route::redirect('/admin/orders', '/admin/pesanan');
+        Route::redirect('/admin', '/admin/dashboard');
+        Route::redirect('/dashboard', '/admin/dashboard');
+    });
 
     // 3. Logout Global
     Route::post('/keluar', function () {

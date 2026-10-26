@@ -8,12 +8,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- 12-COLUMN ARCHITECTURAL STORE & MAP SHOWCASE                    -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div id="lokasi-kios" class="bg-[#FAF7F2] border border-[#26221E]/15 rounded-[2.5rem] p-6 sm:p-10 shadow-sm mb-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center scroll-mt-24 relative overflow-hidden">
-            <!-- Architectural Background Watermark -->
-            <div class="absolute -right-8 -bottom-8 editorial-watermark select-none pointer-events-none opacity-20 tracking-tighter" aria-hidden="true">
-                PASAR
-            </div>
-
+        <div id="lokasi-kios" class="bg-[#FAF7F2] border border-[#26221E]/15 rounded-3xl p-6 sm:p-10 shadow-sm mb-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center scroll-mt-24 relative overflow-hidden">
             <!-- Left Column: Store Details & Coordinates (6 Kolom) -->
             <div class="lg:col-span-6 space-y-4 relative z-10">
                 <!-- Coordinate Badge -->
@@ -71,10 +66,10 @@
 
             <!-- Right Column: Interactive Embedded Google Map (6 Kolom) -->
             <div class="lg:col-span-6 relative z-10">
-                <div class="rounded-[2rem] overflow-hidden border-2 border-[#26221E]/15 shadow-md bg-[#FAF7F2]">
+                <div class="rounded-3xl overflow-hidden border-2 border-[#26221E]/15 shadow-md bg-[#FAF7F2]">
                     <iframe
                         src="https://www.google.com/maps?q=-7.992083,113.249694&hl=id&z=17&output=embed"
-                        class="w-full h-72 sm:h-80 rounded-[1.75rem] border-0"
+                        class="w-full h-72 sm:h-80 rounded-2xl border-0"
                         style="filter: sepia(18%) contrast(98%) saturate(90%);"
                         loading="lazy"
                         referrerpolicy="no-referrer-when-downgrade"
@@ -137,17 +132,8 @@
 
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════════ -->
-        <!-- OVERSIZED ARCHITECTURAL WORDMARK (Reference 3: Bake Today)     -->
-        <!-- ═══════════════════════════════════════════════════════════════ -->
-        <div class="py-10 text-center select-none overflow-hidden" aria-hidden="true">
-            <span class="block text-6xl sm:text-8xl md:text-9xl lg:text-[13rem] font-serif font-black tracking-tight text-[#26221E]/[0.06] leading-none pointer-events-none" style="font-family: 'Playfair Display', Georgia, serif;">
-                BASOKU
-            </span>
-        </div>
-
         <!-- Baris Bawah: Hak Cipta -->
-        <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#5A534A]/80 border-t border-[#26221E]/10">
+        <div class="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#5A534A]/80 border-t border-[#26221E]/10">
             <p>
                 &copy; {{ date('Y') }} <strong>BASOKU</strong>. Hak Cipta Dilindungi.
             </p>

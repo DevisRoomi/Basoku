@@ -3,12 +3,6 @@
     <x-navbar />
 
     <main class="relative w-full bg-motif-kawung text-[#26221E] py-12 sm:py-16 lg:py-24 overflow-hidden">
-        
-        <!-- Architectural Watermark Behind Masthead -->
-        <div class="absolute top-12 right-6 editorial-watermark select-none pointer-events-none opacity-20 tracking-tighter" aria-hidden="true">
-            1620
-        </div>
-
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 relative z-10">
 
             <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -84,7 +78,7 @@
                     </div>
 
                     <!-- Chapter Content Body (9 Kolom) -->
-                    <div class="lg:col-span-9 space-y-5 bg-[#FAF7F2] p-8 sm:p-10 rounded-[2rem] border border-[#26221E]/10 shadow-xs relative">
+                    <div class="lg:col-span-9 space-y-5 bg-[#FAF7F2] p-8 sm:p-10 rounded-3xl border border-[#26221E]/10 shadow-xs relative">
                         <span class="absolute top-4 right-4 text-xs font-mono text-[#26221E]/20 select-none">+</span>
                         
                         <h2 class="text-2xl sm:text-3xl font-serif font-bold text-[#26221E]" style="font-family: 'Playfair Display', Georgia, serif;">
@@ -143,7 +137,7 @@
                     </div>
 
                     <!-- Chapter Content Body (9 Kolom) -->
-                    <div class="lg:col-span-9 space-y-5 bg-[#FAF7F2] p-8 sm:p-10 rounded-[2rem] border border-[#26221E]/10 shadow-xs relative">
+                    <div class="lg:col-span-9 space-y-5 bg-[#FAF7F2] p-8 sm:p-10 rounded-3xl border border-[#26221E]/10 shadow-xs relative">
                         <span class="absolute top-4 right-4 text-xs font-mono text-[#26221E]/20 select-none">+</span>
 
                         <h2 class="text-2xl sm:text-3xl font-serif font-bold text-[#26221E]" style="font-family: 'Playfair Display', Georgia, serif;">
@@ -226,7 +220,7 @@
                     </div>
 
                     <!-- Chapter Content Body (9 Kolom) -->
-                    <div class="lg:col-span-9 space-y-6 bg-[#FAF7F2] p-8 sm:p-10 rounded-[2rem] border border-[#26221E]/10 shadow-xs relative">
+                    <div class="lg:col-span-9 space-y-6 bg-[#FAF7F2] p-8 sm:p-10 rounded-3xl border border-[#26221E]/10 shadow-xs relative">
                         <span class="absolute top-4 right-4 text-xs font-mono text-[#26221E]/20 select-none">+</span>
 
                         <div>
@@ -329,7 +323,7 @@
                     </div>
 
                     <!-- Chapter Content Body (9 Kolom) -->
-                    <div class="lg:col-span-9 space-y-6 bg-[#FAF7F2] p-8 sm:p-10 rounded-[2rem] border border-[#26221E]/10 shadow-xs">
+                    <div class="lg:col-span-9 space-y-6 bg-[#FAF7F2] p-8 sm:p-10 rounded-3xl border border-[#26221E]/10 shadow-xs">
                         <div>
                             <h2 class="text-2xl sm:text-3xl font-serif font-bold text-[#26221E]" style="font-family: 'Playfair Display', Georgia, serif;">
                                 Arsitektur Presisi: Bagaimana BASOKU Bekerja?
@@ -383,7 +377,7 @@
             <!-- ═══════════════════════════════════════════════════════════════ -->
             <!-- SECTION 3: CALM FOOTER CALLOUT TO TEST THE CALCULATOR          -->
             <!-- ═══════════════════════════════════════════════════════════════ -->
-            <div class="mt-8 rounded-[2.5rem] bg-[#2D4235] text-[#F4EFE6] p-8 sm:p-12 text-center relative overflow-hidden shadow-xl">
+            <div class="mt-8 rounded-3xl bg-[#2D4235] text-[#F4EFE6] p-8 sm:p-12 text-center relative overflow-hidden shadow-xl">
                 <div class="max-w-xl mx-auto space-y-4 relative z-10">
                     <span class="text-xs font-mono uppercase tracking-[0.2em] text-[#D8E0D3] block">
                         UJI LANGSUNG ILMU &amp; FORMULANYA

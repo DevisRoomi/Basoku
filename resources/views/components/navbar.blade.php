@@ -16,6 +16,7 @@
     id="main-header"
     class="sticky top-0 z-50 w-full transition-all duration-300"
     x-data="{
+        mobileOpen: false,
         activeNav: @if(request()->is('/')) (function() {
             const h = window.location.hash;
             if (h === '#lokasi-kios') return '#lokasi-kios';
@@ -246,15 +247,17 @@
                 <button
                     id="mobile-menu-btn"
                     type="button"
-                    class="p-2 rounded-xl text-[#26221E]/80 hover:text-[#26221E] hover:bg-black/5 transition-colors focus:outline-none cursor-pointer"
-                    aria-label="Buka Menu"
-                    aria-expanded="false"
+                    @click="mobileOpen = !mobileOpen"
+                    @keydown.escape.window="mobileOpen = false"
+                    class="p-2 rounded-xl text-[#26221E]/80 hover:text-[#26221E] hover:bg-black/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] cursor-pointer"
+                    aria-label="Menu Navigasi"
+                    :aria-expanded="mobileOpen.toString()"
                     aria-controls="mobile-menu"
                 >
-                    <svg id="menu-icon" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-6 h-6" x-show="!mobileOpen" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
-                    <svg id="close-icon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-6 h-6" x-show="mobileOpen" x-cloak fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
@@ -265,11 +268,20 @@
         <!-- Mobile Drawer Container -->
         <div
             id="mobile-menu"
-            class="hidden mt-3 bg-[#FAF7F2] border border-[#26221E]/10 rounded-2xl p-5 shadow-xl flex flex-col gap-2.5 transition-all duration-300 lg:hidden"
+            x-show="mobileOpen"
+            x-cloak
+            @click.outside="mobileOpen = false"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-2"
+            class="mt-3 bg-[#FAF7F2] border border-[#26221E]/10 rounded-2xl p-5 shadow-xl flex flex-col gap-2.5 lg:hidden"
         >
             <a
                 href="{{ url('/') }}"
-                @click="activeNav = 'beranda'; isClicking = true; setTimeout(() => isClicking = false, 800)"
+                @click="mobileOpen = false; activeNav = 'beranda'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                 class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === 'beranda' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
@@ -277,7 +289,7 @@
             </a>
             <a
                 href="{{ route('bakso.history') }}"
-                @click="activeNav = 'sejarah'; isClicking = true; setTimeout(() => isClicking = false, 800)"
+                @click="mobileOpen = false; activeNav = 'sejarah'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                 class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === 'sejarah' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
@@ -285,7 +297,7 @@
             </a>
             <a
                 href="{{ url('/') }}#cara-kerja"
-                @click="activeNav = '#cara-kerja'; isClicking = true; setTimeout(() => isClicking = false, 800)"
+                @click="mobileOpen = false; activeNav = '#cara-kerja'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                 class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === '#cara-kerja' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
@@ -293,7 +305,7 @@
             </a>
             <a
                 href="{{ route('calculator') }}"
-                @click="activeNav = 'kalkulator'; isClicking = true; setTimeout(() => isClicking = false, 800)"
+                @click="mobileOpen = false; activeNav = 'kalkulator'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                 class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === 'kalkulator' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
@@ -301,7 +313,7 @@
             </a>
             <a
                 href="{{ route('catalog') }}"
-                @click="activeNav = 'daftar-harga'; isClicking = true; setTimeout(() => isClicking = false, 800)"
+                @click="mobileOpen = false; activeNav = 'daftar-harga'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                 class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === 'daftar-harga' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
@@ -309,7 +321,7 @@
             </a>
             <a
                 href="{{ url('/') }}#lokasi-kios"
-                @click="activeNav = '#lokasi-kios'; isClicking = true; setTimeout(() => isClicking = false, 800)"
+                @click="mobileOpen = false; activeNav = '#lokasi-kios'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                 class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === '#lokasi-kios' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
@@ -354,35 +366,4 @@
         </div>
     </nav>
 </header>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const btn = document.getElementById('mobile-menu-btn');
-        const menu = document.getElementById('mobile-menu');
-        const menuIcon = document.getElementById('menu-icon');
-        const closeIcon = document.getElementById('close-icon');
-
-        if (btn && menu) {
-            btn.addEventListener('click', () => {
-                const isHidden = menu.classList.contains('hidden');
-                menu.classList.toggle('hidden', !isHidden);
-                btn.setAttribute('aria-expanded', isHidden);
-                if (menuIcon && closeIcon) {
-                    menuIcon.classList.toggle('hidden', isHidden);
-                    closeIcon.classList.toggle('hidden', !isHidden);
-                }
-            });
-
-            menu.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', () => {
-                    menu.classList.add('hidden');
-                    btn.setAttribute('aria-expanded', 'false');
-                    if (menuIcon && closeIcon) {
-                        menuIcon.classList.remove('hidden');
-                        closeIcon.classList.add('hidden');
-                    }
-                });
-            });
-        }
-    });
-</script>
+<!-- Mobile menu state is managed declaratively via Alpine x-data in header -->

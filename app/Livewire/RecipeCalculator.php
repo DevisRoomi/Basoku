@@ -8,6 +8,7 @@ use App\Models\OrderItem;
 use App\Models\RecipeFormula;
 use App\Models\SavedRecipe;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class RecipeCalculator extends Component
@@ -166,8 +167,11 @@ class RecipeCalculator extends Component
 
         // Biaya kemasan pasar (uang belanja pasar minimum kemasan utuh)
         $meatMarketCost = $this->startType === 'own_meat' ? 0.0 : $meatPropCost;
-        $tapiocaPacks = (int) ceil($tapiocaNeeded / 500.0);
-        $tapiocaMarketCost = $tapiocaPacks * 9000.0;
+
+        // Logika kemasan tepung pasar (250g, 500g, 1 kg)
+        $flourPackaging = $this->calculateFlourPackaging($tapiocaNeeded);
+        $tapiocaMarketCost = $flourPackaging['total_grams'] * $tapiocaPricePerGram;
+
         $garlicPacks = (int) ceil($garlicNeeded / 100.0);
         $garlicMarketCost = $garlicPacks * 4000.0;
         $saltPacks = (int) ceil($saltNeeded / 1000.0);
@@ -201,7 +205,7 @@ class RecipeCalculator extends Component
             'cost' => $tapiocaPropCost,
             'proportional_cost' => $tapiocaPropCost,
             'market_cost' => $tapiocaMarketCost,
-            'note' => 'Acuan kemasan 500g',
+            'note' => $flourPackaging['note'],
             'is_meat' => false,
             'own_meat' => false,
         ];
@@ -295,33 +299,45 @@ class RecipeCalculator extends Component
             'pickupTime.date' => 'Format jam pengambilan tidak valid.',
         ]);
 
-        $grindingFee = $this->useGrinding ? (($this->meatWeight / 1000.0) * 15000.0) : 0.0;
-        $totalPrice = (float) $this->totalProportionalCost;
+        // Hitung ulang secara server-authoritative agar manipulasi state client diabaikan
+        $this->calculateEstimation();
 
-        // 1. Simpan header order ke tabel orders
-        $order = Order::create([
-            'customer_name' => $this->customerName,
-            'pickup_at' => $this->pickupTime,
-            'start_type' => $this->startType,
-            'meat_weight' => $this->meatWeight,
-            'preference' => $this->preference,
-            'grinding_fee' => $grindingFee,
-            'total_price' => $totalPrice,
-            'status' => 'pending',
-        ]);
-
-        // 2. Simpan snapshot item bahan ke tabel order_items
-        foreach ($this->breakdown as $item) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'material_id' => $item['material_id'] ?? null,
-                'material_name' => $item['name'],
-                'quantity' => $item['weight'],
-                'unit' => $item['unit'] ?? 'gram',
-                'unit_price' => $item['price_per_gram'] ?? 0.0,
-                'subtotal' => $item['cost'] ?? $item['proportional_cost'] ?? 0.0,
-            ]);
+        if ($this->totalMarketCost <= 0 || ! empty($this->budgetError)) {
+            $this->addError('calculation', 'Kalkulasi racikan tidak valid.');
+            return;
         }
+
+        $grindingFee = $this->useGrinding ? (($this->meatWeight / 1000.0) * 15000.0) : 0.0;
+        $totalPrice = (float) $this->totalMarketCost;
+
+        // 1 & 2. Simpan order dan order items secara atomik dalam transaksi DB
+        $order = DB::transaction(function () use ($grindingFee, $totalPrice) {
+            $order = Order::create([
+                'user_id' => Auth::id(),
+                'customer_name' => $this->customerName,
+                'pickup_at' => $this->pickupTime,
+                'start_type' => $this->startType,
+                'meat_weight' => $this->meatWeight,
+                'preference' => $this->preference,
+                'grinding_fee' => $grindingFee,
+                'total_price' => $totalPrice,
+                'status' => 'pending',
+            ]);
+
+            foreach ($this->breakdown as $item) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'material_id' => $item['material_id'] ?? null,
+                    'material_name' => $item['name'],
+                    'quantity' => $item['weight'],
+                    'unit' => $item['unit'] ?? 'gram',
+                    'unit_price' => $item['price_per_gram'] ?? 0.0,
+                    'subtotal' => $item['market_cost'] ?? $item['cost'] ?? $item['proportional_cost'] ?? 0.0,
+                ]);
+            }
+
+            return $order;
+        });
 
         // 3. Susun teks pesan WhatsApp terstruktur
         $startTypeLabel = $this->startType === 'start_from_zero' ? 'Mulai dari Nol (Beli Semua)' : 'Bawa Daging Sendiri';
@@ -413,6 +429,58 @@ class RecipeCalculator extends Component
         $this->recipeName = '';
 
         session()->flash('success_save', 'Racikan berhasil disimpan ke Laboratorium Resep Anda!');
+    }
+
+    /**
+     * Hitung kombinasi kemasan pasar tepung (250g, 500g, 1000g).
+     *
+     * @return array{packs: array{250: int, 500: int, 1000: int}, total_grams: int, note: string}
+     */
+    private function calculateFlourPackaging(float $neededGrams): array
+    {
+        if ($neededGrams <= 0) {
+            return ['packs' => [250 => 0, 500 => 0, 1000 => 0], 'total_grams' => 0, 'note' => ''];
+        }
+
+        $kgPacks = (int) floor($neededGrams / 1000.0);
+        $remainder = fmod($neededGrams, 1000.0);
+
+        $pack500 = 0;
+        $pack250 = 0;
+
+        if ($remainder > 0 && $remainder <= 250.0) {
+            $pack250 = 1;
+        } elseif ($remainder > 250.0 && $remainder <= 500.0) {
+            $pack500 = 1;
+        } elseif ($remainder > 500.0 && $remainder <= 750.0) {
+            $pack500 = 1;
+            $pack250 = 1;
+        } elseif ($remainder > 750.0) {
+            $kgPacks += 1;
+        }
+
+        $totalGrams = ($kgPacks * 1000) + ($pack500 * 500) + ($pack250 * 250);
+        $excess = $totalGrams - (int) round($neededGrams);
+
+        $parts = [];
+        if ($kgPacks > 0) {
+            $parts[] = "{$kgPacks}x 1 kg";
+        }
+        if ($pack500 > 0) {
+            $parts[] = "{$pack500}x 500g";
+        }
+        if ($pack250 > 0) {
+            $parts[] = "{$pack250}x 250g";
+        }
+
+        $packDesc = implode(' + ', $parts);
+        $note = "Beli {$packDesc}" . ($excess > 0 ? " (sisa {$excess}g)" : '');
+
+        return [
+            'packs' => [250 => $pack250, 500 => $pack500, 1000 => $kgPacks],
+            'total_grams' => $totalGrams,
+            'note' => $note,
+        ];
     }
 
     public function render()

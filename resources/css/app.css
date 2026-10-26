@@ -139,8 +139,12 @@ html {
 
 /* Indonesian Architectural Motif: Kawung Heritage Geometry (Subtle Tactile Texture) */
 .bg-motif-kawung {
-    background-color: #F4EFE6;
-    background-image: url("data:image/svg+xml,%3Csvg width='56' height='56' viewBox='0 0 56 56' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%232D4235' stroke-width='0.85' stroke-opacity='0.045'%3E%3Cellipse cx='28' cy='14' rx='7' ry='12'/%3E%3Cellipse cx='28' cy='42' rx='7' ry='12'/%3E%3Cellipse cx='14' cy='28' rx='12' ry='7'/%3E%3Cellipse cx='42' cy='28' rx='12' ry='7'/%3E%3Ccircle cx='28' cy='28' r='2.5' fill='%23D96B43' fill-opacity='0.06' stroke='none'/%3E%3Ccircle cx='0' cy='0' r='1.5' fill='%232D4235' fill-opacity='0.035' stroke='none'/%3E%3Ccircle cx='56' cy='0' r='1.5' fill='%232D4235' fill-opacity='0.035' stroke='none'/%3E%3Ccircle cx='0' cy='56' r='1.5' fill='%232D4235' fill-opacity='0.035' stroke='none'/%3E%3Ccircle cx='56' cy='56' r='1.5' fill='%232D4235' fill-opacity='0.035' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
+    background-color: #FAF6F0;
+    background-image: 
+        radial-gradient(circle at 10% 15%, rgba(217, 107, 67, 0.04) 0%, transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(45, 66, 53, 0.05) 0%, transparent 45%),
+        url("data:image/svg+xml,%3Csvg width='56' height='56' viewBox='0 0 56 56' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%232D4235' stroke-width='0.9' stroke-opacity='0.065'%3E%3Cellipse cx='28' cy='14' rx='7' ry='12'/%3E%3Cellipse cx='28' cy='42' rx='7' ry='12'/%3E%3Cellipse cx='14' cy='28' rx='12' ry='7'/%3E%3Cellipse cx='42' cy='28' rx='12' ry='7'/%3E%3Ccircle cx='28' cy='28' r='2.5' fill='%23D96B43' fill-opacity='0.09' stroke='none'/%3E%3Ccircle cx='0' cy='0' r='1.5' fill='%232D4235' fill-opacity='0.05' stroke='none'/%3E%3Ccircle cx='56' cy='0' r='1.5' fill='%232D4235' fill-opacity='0.05' stroke='none'/%3E%3Ccircle cx='0' cy='56' r='1.5' fill='%232D4235' fill-opacity='0.05' stroke='none'/%3E%3Ccircle cx='56' cy='56' r='1.5' fill='%232D4235' fill-opacity='0.05' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
+    background-attachment: fixed;
 }
 
 /* Giant Serif Display Background Watermark */
@@ -173,6 +177,154 @@ html {
     height: 6px;
 }
 
+/* ═══════════════════════════════════════════════════════════════════ */
+/* REFINED HERO MOTION SYSTEM (Kinetic & Minimalist)                 */
+/* ═══════════════════════════════════════════════════════════════════ */
+.hero-mask-wrapper {
+    overflow: hidden;
+    display: block;
+    padding-top: 0.1em;
+    padding-bottom: 0.18em;
+    margin-top: -0.1em;
+    margin-bottom: -0.18em;
+}
+
+.hero-masked-line {
+    display: inline-block;
+    transform: translateY(110%);
+    opacity: 0;
+    transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.85s ease;
+    will-change: transform, opacity;
+}
+
+.hero-masked-line.is-revealed {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.hero-kicker-anim {
+    transform: translateY(105%);
+    opacity: 0;
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.7s ease;
+    will-change: transform, opacity;
+}
+
+.hero-kicker-anim.is-revealed {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.hero-desc-anim {
+    transform: translateY(105%);
+    opacity: 0;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
+    will-change: transform, opacity;
+}
+
+.hero-desc-anim.is-revealed {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.hero-cta-anim {
+    transform: translateY(20px);
+    opacity: 0;
+    transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.75s ease;
+    will-change: transform, opacity;
+}
+
+.hero-cta-anim.is-revealed {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Ambient Gradient Drift behind hero typography */
+.hero-ambient-drift {
+    position: absolute;
+    inset: -15%;
+    background: radial-gradient(circle at 35% 40%, rgba(217, 107, 67, 0.14) 0%, transparent 48%),
+                radial-gradient(circle at 65% 60%, rgba(139, 35, 26, 0.16) 0%, transparent 52%),
+                radial-gradient(circle at 50% 80%, rgba(45, 66, 53, 0.12) 0%, transparent 56%);
+    filter: blur(52px);
+    pointer-events: none;
+    animation: heroAmbientShift 18s ease-in-out infinite alternate;
+    will-change: transform;
+    z-index: 5;
+}
+
+@keyframes heroAmbientShift {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+        transform: translate3d(-2.5%, 3%, 0) scale(1.05);
+    }
+    100% {
+        transform: translate3d(2.5%, -2%, 0) scale(1.02);
+    }
+}
+
+/* Magnetic CTA microinteraction */
+.btn-magnetic {
+    transition: transform 0.18s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.2s, box-shadow 0.2s;
+    will-change: transform;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* MOTION GRAPHICS SCROLL ANIMATIONS (Native, 60fps, Zero External Libs)*/
+/* ═══════════════════════════════════════════════════════════════════ */
+.motion-reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+
+.motion-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.motion-reveal-text {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+
+.motion-reveal-text.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.motion-scale {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+
+.motion-scale.is-visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.motion-draw-line {
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+}
+
+.motion-draw-line.is-visible {
+    transform: scaleX(1);
+}
+
+.stagger-1 { transition-delay: 90ms; }
+.stagger-2 { transition-delay: 180ms; }
+.stagger-3 { transition-delay: 270ms; }
+.stagger-4 { transition-delay: 360ms; }
+
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
@@ -185,5 +337,26 @@ html {
     }
     .card-oatmeal:hover {
         transform: none !important;
+    }
+    .motion-reveal,
+    .motion-reveal-text,
+    .motion-scale,
+    .hero-masked-line,
+    .hero-kicker-anim,
+    .hero-desc-anim,
+    .hero-cta-anim {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+    .hero-ambient-drift {
+        animation: none !important;
+    }
+    .btn-magnetic {
+        transform: none !important;
+    }
+    .motion-draw-line {
+        transform: scaleX(1) !important;
+        transition: none !important;
     }
 }

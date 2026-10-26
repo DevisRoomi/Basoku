@@ -19,11 +19,21 @@ class Order extends Model
     protected $table = 'orders';
 
     /**
-     * The attributes that aren't mass assignable.
+     * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'customer_name',
+        'pickup_at',
+        'start_type',
+        'meat_weight',
+        'preference',
+        'grinding_fee',
+        'total_price',
+        'status',
+    ];
 
     /**
      * Get the attributes that should be cast.

@@ -50,6 +50,18 @@ class AiConsultant extends Component
     }
 
     /**
+     * Ajukan pertanyaan cepat berdasarkan index array untuk keamanan dan stabilitas.
+     */
+    public function askQuickPromptByIndex(int $index): void
+    {
+        if (isset($this->quickPrompts[$index])) {
+            $this->isOpen = true;
+            $this->question = $this->quickPrompts[$index];
+            $this->sendMessage();
+        }
+    }
+
+    /**
      * Ajukan pertanyaan cepat dari daftar tombol rekomendasi.
      */
     public function askQuickPrompt(string $prompt): void
