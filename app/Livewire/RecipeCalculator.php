@@ -16,8 +16,8 @@ class RecipeCalculator extends Component
     /** Mode kalkulasi: 'weight' (berdasarkan berat) atau 'budget' (berdasarkan anggaran) */
     public string $calculationMode = 'weight';
 
-    /** Nilai anggaran dalam rupiah */
-    public int|float $budget = 0;
+    /** Nilai anggaran dalam rupiah (default Rp 100.000) */
+    public int|float $budget = 100000;
 
     /** Pesan kesalahan jika anggaran tidak mencukupi standar minimum 500g */
     public ?string $budgetError = null;

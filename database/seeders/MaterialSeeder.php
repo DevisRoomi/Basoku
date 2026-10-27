@@ -84,6 +84,34 @@ class MaterialSeeder extends Seeder
                 'price' => 3.00, // Rp3.000 / kg -> Rp3 / gram
                 'is_available' => true,
             ],
+            [
+                'name' => 'Telur Ayam',
+                'category' => 'pengikat',
+                'unit' => 'butir',
+                'price' => 2000.00, // Rp2.000 / butir
+                'is_available' => true,
+            ],
+            [
+                'name' => 'Merica Bubuk Sachet',
+                'category' => 'bumbu',
+                'unit' => 'pack',
+                'price' => 1000.00, // Rp1.000 / sachet
+                'is_available' => true,
+            ],
+            [
+                'name' => 'Pengenyal Sobaso',
+                'category' => 'tambahan',
+                'unit' => 'pack',
+                'price' => 10000.00, // Rp10.000 / pack (250g)
+                'is_available' => true,
+            ],
+            [
+                'name' => 'Penyedap Masako',
+                'category' => 'penyedap',
+                'unit' => 'pack',
+                'price' => 500.00, // Rp500 / sachet
+                'is_available' => true,
+            ],
         ];
 
         foreach ($materials as $item) {
