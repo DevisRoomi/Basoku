@@ -75,7 +75,8 @@
                             <th scope="col" class="py-4 px-6">Nama Bahan</th>
                             <th scope="col" class="py-4 px-6">Kategori</th>
                             <th scope="col" class="py-4 px-6">Satuan</th>
-                            <th scope="col" class="py-4 px-6 text-right">Harga Satuan</th>
+                            <th scope="col" class="py-4 px-6">Berat/Kemasan</th>
+                            <th scope="col" class="py-4 px-6 text-right">Harga Kemasan</th>
                             <th scope="col" class="py-4 px-6 text-center">Status</th>
                             <th scope="col" class="py-4 px-6 text-right">Aksi</th>
                         </tr>
@@ -100,18 +101,32 @@
                                     </span>
                                 </td>
 
-                                <!-- Kolom 3: Satuan -->
-                                <td class="py-4 px-6 text-[#161210]/70">
-                                    {{ $material->unit }}
+                                <!-- Kolom 3: Satuan (Pack/Kg/Bungkus) -->
+                                <td class="py-4 px-6 text-[#161210]/70 font-semibold">
+                                    {{ $material->package_unit ?? $material->unit }}
                                 </td>
 
-                                <!-- Kolom 4: Harga Satuan -->
+                                <!-- Kolom 4: Berat per Kemasan -->
+                                <td class="py-4 px-6 font-mono text-[#161210]/80">
+                                    @if ($material->package_weight)
+                                        {{ number_format($material->package_weight, 0, ',', '.') }} g
+                                    @else
+                                        <span class="text-xs text-[#161210]/30">-</span>
+                                    @endif
+                                </td>
+
+                                <!-- Kolom 5: Harga Kemasan (Utuh) & Harga Gram Dasar -->
                                 <td class="py-4 px-6 text-right font-extrabold text-[#C83B2B] text-sm">
-                                    {{ \Illuminate\Support\Number::currency($material->price, 'IDR', 'id', precision: 0) }}
-                                    <span class="text-[10px] font-normal text-[#161210]/50">/ {{ $material->unit }}</span>
+                                    @if ($material->package_price)
+                                        {{ \Illuminate\Support\Number::currency($material->package_price, 'IDR', 'id', precision: 0) }}
+                                        <span class="text-[10px] font-normal text-[#161210]/50 block">({{ \Illuminate\Support\Number::currency($material->price, 'IDR', 'id', precision: 0) }} / g)</span>
+                                    @else
+                                        {{ \Illuminate\Support\Number::currency($material->price, 'IDR', 'id', precision: 0) }}
+                                        <span class="text-[10px] font-normal text-[#161210]/50">/ {{ $material->unit }}</span>
+                                    @endif
                                 </td>
 
-                                <!-- Kolom 5: Status Ketersediaan (Clickable) -->
+                                <!-- Kolom 6: Status Ketersediaan (Clickable) -->
                                 <td class="py-4 px-6 text-center">
                                     <button
                                         type="button"
@@ -205,7 +220,7 @@
                         @enderror
                     </div>
 
-                    <!-- Field 2: Kategori & Satuan (2 Kolom) -->
+                    <!-- Field 2: Kategori & Satuan Kemasan (2 Kolom) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- Kategori -->
                         <div>
@@ -229,32 +244,81 @@
                             @enderror
                         </div>
 
-                        <!-- Satuan -->
+                        <!-- Bentuk Kemasan Pasar -->
                         <div>
-                            <label for="material-unit" class="block text-xs font-bold uppercase tracking-wider text-[#161210] mb-1.5">
-                                Satuan Acuan <span class="text-[#C83B2B]">*</span>
+                            <label for="material-package-unit" class="block text-xs font-bold uppercase tracking-wider text-[#161210] mb-1.5">
+                                Bentuk Kemasan (Pack/Kg)
                             </label>
-                            <select
-                                id="material-unit"
-                                wire:model="unit"
-                                class="w-full rounded-xl border-2 border-[#161210]/10 bg-white px-3 py-2.5 text-xs sm:text-sm font-medium text-[#161210] focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all cursor-pointer"
+                            <input
+                                type="text"
+                                id="material-package-unit"
+                                wire:model="package_unit"
+                                placeholder="Contoh: Pack, Kg, Butir"
+                                class="w-full rounded-xl border-2 border-[#161210]/10 bg-white px-3 py-2.5 text-xs sm:text-sm font-medium text-[#161210] focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
                             >
-                                <option value="gram">gram</option>
-                                <option value="kg">kg</option>
-                                <option value="butir">butir</option>
-                                <option value="pack">pack</option>
-                            </select>
-                            @error('unit')
+                            @error('package_unit')
                                 <p class="text-[11px] text-[#C83B2B] mt-1 font-medium">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
 
-                    <!-- Field 3: Harga Normalisasi -->
+                    <!-- Field 3: Berat Kemasan & Harga Kemasan Pasar Utuh (2 Kolom) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Berat per Kemasan (Gram) -->
+                        <div>
+                            <label for="material-package-weight" class="block text-xs font-bold uppercase tracking-wider text-[#161210] mb-1.5">
+                                Berat per Kemasan (Gram)
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    step="any"
+                                    id="material-package-weight"
+                                    wire:model="package_weight"
+                                    placeholder="250, 500, atau 1000"
+                                    class="w-full rounded-xl border-2 border-[#161210]/10 bg-white px-3 py-2.5 text-xs sm:text-sm font-semibold text-[#161210] focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
+                                >
+                                <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-bold text-[#161210]/40">
+                                    g
+                                </span>
+                            </div>
+                            @error('package_weight')
+                                <p class="text-[11px] text-[#C83B2B] mt-1 font-medium">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Harga Kemasan Pasar Utuh (Rp) -->
+                        <div>
+                            <label for="material-package-price" class="block text-xs font-bold uppercase tracking-wider text-[#161210] mb-1.5">
+                                Harga Kemasan Utuh (Rp)
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-[#161210]/40">
+                                    Rp
+                                </span>
+                                <input
+                                    type="number"
+                                    step="any"
+                                    id="material-package-price"
+                                    wire:model="package_price"
+                                    placeholder="Contoh: 10000 atau 9000"
+                                    class="w-full rounded-xl border-2 border-[#161210]/10 bg-white pl-9 pr-3 py-2.5 text-xs sm:text-sm font-semibold text-[#161210] focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
+                                >
+                            </div>
+                            @error('package_price')
+                                <p class="text-[11px] text-[#C83B2B] mt-1 font-medium">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <!-- Field 4: Harga Dasar Acuan (Per Gram/Satuan) -->
                     <div>
-                        <label for="material-price" class="block text-xs font-bold uppercase tracking-wider text-[#161210] mb-1.5">
-                            Harga Satuan (Rp) <span class="text-[#C83B2B]">*</span>
-                        </label>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="material-price" class="block text-xs font-bold uppercase tracking-wider text-[#161210]">
+                                Harga Dasar Acuan (Rp) <span class="text-[#C83B2B]">*</span>
+                            </label>
+                            <span class="text-[11px] text-[#161210]/50 font-mono">Satuan: {{ $unit }}</span>
+                        </div>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-xs font-bold text-[#161210]/40">
                                 Rp
@@ -264,12 +328,12 @@
                                 step="any"
                                 id="material-price"
                                 wire:model="price"
-                                placeholder="Contoh: 140 (per gram) atau 40000"
+                                placeholder="Contoh: 40 (per gram) atau 140"
                                 class="w-full rounded-xl border-2 border-[#161210]/10 bg-white pl-11 pr-4 py-2.5 text-xs sm:text-sm font-semibold text-[#161210] placeholder:text-[#161210]/30 focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
                             >
                         </div>
                         <p class="text-[10px] text-[#161210]/50 mt-1">
-                            *Jika satuan <code>gram</code>, masukkan harga per 1 gram (misal Rp140.000/kg diisi <code>140</code>).
+                            *Acuan hitungan resep kalkulator (misal Rp10.000 / 250g diisi <code>40</code>).
                         </p>
                         @error('price')
                             <p class="text-[11px] text-[#C83B2B] mt-1 font-medium">{{ $message }}</p>

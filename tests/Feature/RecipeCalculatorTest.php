@@ -125,7 +125,7 @@ class RecipeCalculatorTest extends TestCase
 
     public function test_process_checkout_saves_order_and_items_and_redirects_to_whatsapp(): void
     {
-        $pickupDate = now()->addDays(2)->format('Y-m-d\TH:i');
+        $pickupDate = now()->addDays(2)->setTime(8, 0)->format('Y-m-d\TH:i');
 
         $test = Livewire::test(RecipeCalculator::class)
             ->set('startType', 'start_from_zero')
@@ -209,7 +209,7 @@ class RecipeCalculatorTest extends TestCase
 
     public function test_checkout_ignores_tampered_client_price_and_recalculates_server_side(): void
     {
-        $pickupDate = now()->addDays(2)->format('Y-m-d\TH:i');
+        $pickupDate = now()->addDays(2)->setTime(8, 0)->format('Y-m-d\TH:i');
 
         Livewire::test(RecipeCalculator::class)
             ->set('meatWeight', 500)
@@ -238,5 +238,61 @@ class RecipeCalculatorTest extends TestCase
             'customer_name' => 'Attacker Tamper',
             'total_price' => 89000.00,
         ]);
+    }
+
+    public function test_pickup_time_validation_rejects_past_time_and_outside_operating_hours(): void
+    {
+        // 1. Kurang dari 1 jam dari sekarang
+        $tooSoon = now()->addMinutes(20)->format('Y-m-d\TH:i');
+
+        Livewire::test(RecipeCalculator::class)
+            ->set('meatWeight', 500)
+            ->call('openCheckout')
+            ->set('customerName', 'Budi Santoso')
+            ->set('pickupTime', $tooSoon)
+            ->call('processCheckout')
+            ->assertHasErrors(['pickupTime']);
+
+        // 2. Di luar jam operasional (kios tutup: misal pkl 16.00 WIB)
+        $outsideHours = now()->addDays(1)->setTime(16, 0)->format('Y-m-d\TH:i');
+
+        Livewire::test(RecipeCalculator::class)
+            ->set('meatWeight', 500)
+            ->call('openCheckout')
+            ->set('customerName', 'Budi Santoso')
+            ->set('pickupTime', $outsideHours)
+            ->call('processCheckout')
+            ->assertHasErrors(['pickupTime']);
+
+        // 3. Valid: jam buka kios (pkl 08.00 WIB besok)
+        $validPickup = now()->addDays(1)->setTime(8, 0)->format('Y-m-d\TH:i');
+
+        Livewire::test(RecipeCalculator::class)
+            ->set('meatWeight', 500)
+            ->call('openCheckout')
+            ->set('customerName', 'Budi Santoso')
+            ->set('pickupTime', $validPickup)
+            ->call('processCheckout')
+            ->assertHasNoErrors();
+    }
+
+    public function test_calculator_loads_saved_recipe_from_query_parameter(): void
+    {
+        $user = \App\Models\User::factory()->create();
+        $recipe = \App\Models\SavedRecipe::create([
+            'user_id' => $user->id,
+            'name' => 'Resep Bakso Spesial Urat',
+            'meat_weight' => 1250,
+            'start_type' => 'start_from_zero',
+            'preference' => 'urat',
+            'recipe_details' => [],
+            'estimated_total' => 150000,
+        ]);
+
+        Livewire::withQueryParams(['recipe_id' => $recipe->id])
+            ->test(RecipeCalculator::class)
+            ->assertSet('meatWeight', 1250)
+            ->assertSet('preference', 'urat')
+            ->assertSet('startType', 'start_from_zero');
     }
 }

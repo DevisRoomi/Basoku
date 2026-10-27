@@ -69,6 +69,17 @@ class RecipeCalculator extends Component
 
     public function mount(): void
     {
+        $this->sellerWaNumber = config('services.kiosk.wa_number', '6285122797969');
+
+        if ($recipeId = request()->query('recipe_id')) {
+            $saved = \App\Models\SavedRecipe::find($recipeId);
+            if ($saved) {
+                $this->meatWeight = (int) $saved->meat_weight;
+                $this->startType = $saved->start_type ?? 'weight';
+                $this->preference = $saved->preference ?? 'standar';
+            }
+        }
+
         $this->calculateEstimation();
     }
 
@@ -242,17 +253,18 @@ class RecipeCalculator extends Component
 
         // 5. Jasa Selepan (Penggilingan)
         if ($this->useGrinding) {
-            $grindingFee = ($weight / 1000.0) * 15000.0;
+            $grindingRate = (float) config('services.kiosk.grinding_fee_per_kg', 15000.0);
+            $grindingFee = ($weight / 1000.0) * $grindingRate;
             $items[] = [
                 'material_id' => null,
                 'name' => 'Jasa Selepan Pasar',
                 'weight' => $weight,
                 'unit' => 'gram',
-                'price_per_gram' => 15.0,
+                'price_per_gram' => $grindingRate / 1000.0,
                 'cost' => $grindingFee,
                 'proportional_cost' => $grindingFee,
                 'market_cost' => $grindingFee,
-                'note' => 'Rp 15.000 / kg daging',
+                'note' => 'Rp '.number_format($grindingRate, 0, ',', '.').' / kg daging',
                 'is_meat' => false,
                 'own_meat' => false,
             ];
@@ -291,7 +303,29 @@ class RecipeCalculator extends Component
     {
         $this->validate([
             'customerName' => ['required', 'string', 'min:2', 'max:100'],
-            'pickupTime' => ['required', 'date'],
+            'pickupTime' => [
+                'required',
+                'date',
+                function ($attribute, $value, $fail) {
+                    $pickup = \Carbon\Carbon::parse($value);
+                    $minPickup = now()->addHour();
+                    if ($pickup->lt($minPickup)) {
+                        $fail('Waktu pengambilan minimal 1 jam dari pemesanan (paling awal pukul '.$minPickup->format('H:i').' WIB).');
+                        return;
+                    }
+
+                    $openHour = (int) config('services.kiosk.open_hour', 5);
+                    $closeHour = (int) config('services.kiosk.close_hour', 12);
+
+                    $hour = (int) $pickup->format('H');
+                    $minute = (int) $pickup->format('i');
+
+                    // Jam operasional kios: 05.00 s/d 12.00 WIB
+                    if ($hour < $openHour || ($hour == $closeHour && $minute > 0) || $hour > $closeHour) {
+                        $fail(sprintf('Jam pengambilan harus pada jam operasional kios (%02d.00 – %02d.00 WIB).', $openHour, $closeHour));
+                    }
+                },
+            ],
         ], [
             'customerName.required' => 'Nama lengkap wajib diisi.',
             'customerName.min' => 'Nama minimal 2 karakter.',
@@ -307,7 +341,8 @@ class RecipeCalculator extends Component
             return;
         }
 
-        $grindingFee = $this->useGrinding ? (($this->meatWeight / 1000.0) * 15000.0) : 0.0;
+        $grindingRate = (float) config('services.kiosk.grinding_fee_per_kg', 15000.0);
+        $grindingFee = $this->useGrinding ? (($this->meatWeight / 1000.0) * $grindingRate) : 0.0;
         $totalPrice = (float) $this->totalMarketCost;
 
         // 1 & 2. Simpan order dan order items secara atomik dalam transaksi DB

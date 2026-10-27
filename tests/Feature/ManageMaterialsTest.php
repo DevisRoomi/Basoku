@@ -75,6 +75,9 @@ class ManageMaterialsTest extends TestCase
             ->set('name', 'Lada Putih Bubuk')
             ->set('category', 'bumbu')
             ->set('unit', 'gram')
+            ->set('package_unit', 'Pack')
+            ->set('package_weight', 100.00)
+            ->set('package_price', 6500.00)
             ->set('price', 65.00)
             ->set('is_available', true)
             ->call('save')
@@ -87,6 +90,9 @@ class ManageMaterialsTest extends TestCase
             'name' => 'Lada Putih Bubuk',
             'category' => 'bumbu',
             'unit' => 'gram',
+            'package_unit' => 'Pack',
+            'package_weight' => 100.00,
+            'package_price' => 6500.00,
             'price' => 65.00,
             'is_available' => true,
         ]);

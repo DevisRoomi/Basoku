@@ -42,4 +42,11 @@ return [
         'verify_ssl' => env('GEMINI_VERIFY_SSL', true),
     ],
 
+    'kiosk' => [
+        'wa_number' => env('KIOSK_WA_NUMBER', '6285122797969'),
+        'grinding_fee_per_kg' => (float) env('KIOSK_GRINDING_FEE_PER_KG', 15000),
+        'open_hour' => (int) env('KIOSK_OPEN_HOUR', 5),
+        'close_hour' => (int) env('KIOSK_CLOSE_HOUR', 12),
+    ],
+
 ];

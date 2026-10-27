@@ -26,6 +26,12 @@ class ManageMaterials extends Component
 
     public string $unit = 'gram';
 
+    public string $package_unit = 'Pack';
+
+    public $package_weight = null;
+
+    public $package_price = null;
+
     public $price = '';
 
     public bool $is_available = true;
@@ -67,6 +73,9 @@ class ManageMaterials extends Component
         $this->name = $material->name;
         $this->category = $material->category;
         $this->unit = $material->unit;
+        $this->package_unit = $material->package_unit ?? 'Pack';
+        $this->package_weight = $material->package_weight ? (float) $material->package_weight : null;
+        $this->package_price = $material->package_price ? (float) $material->package_price : null;
         // Format harga tanpa trailing desimal jika bulat
         $this->price = (float) $material->price;
         $this->is_available = (bool) $material->is_available;
@@ -106,6 +115,9 @@ class ManageMaterials extends Component
             'name' => ['required', 'string', 'max:100'],
             'category' => ['required', 'string', 'max:50'],
             'unit' => ['required', 'string', 'max:20'],
+            'package_unit' => ['nullable', 'string', 'max:30'],
+            'package_weight' => ['nullable', 'numeric', 'min:0'],
+            'package_price' => ['nullable', 'numeric', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],
             'is_available' => ['boolean'],
         ], [
@@ -117,25 +129,24 @@ class ManageMaterials extends Component
             'price.min' => 'Harga tidak boleh bernilai negatif.',
         ]);
 
+        $payload = [
+            'name' => trim($this->name),
+            'category' => strtolower(trim($this->category)),
+            'unit' => trim($this->unit),
+            'package_unit' => $this->package_unit ? trim($this->package_unit) : null,
+            'package_weight' => $this->package_weight !== null && $this->package_weight !== '' ? (float) $this->package_weight : null,
+            'package_price' => $this->package_price !== null && $this->package_price !== '' ? (float) $this->package_price : null,
+            'price' => $this->price,
+            'is_available' => $this->is_available,
+        ];
+
         if ($this->isEditing && $this->materialId) {
             $material = Material::findOrFail($this->materialId);
-            $material->update([
-                'name' => trim($this->name),
-                'category' => strtolower(trim($this->category)),
-                'unit' => trim($this->unit),
-                'price' => $this->price,
-                'is_available' => $this->is_available,
-            ]);
+            $material->update($payload);
 
             session()->flash('success', "Harga dan data bahan '{$material->name}' berhasil diperbarui.");
         } else {
-            $material = Material::create([
-                'name' => trim($this->name),
-                'category' => strtolower(trim($this->category)),
-                'unit' => trim($this->unit),
-                'price' => $this->price,
-                'is_available' => $this->is_available,
-            ]);
+            $material = Material::create($payload);
 
             session()->flash('success', "Bahan baru '{$material->name}' berhasil ditambahkan ke katalog.");
         }
@@ -164,6 +175,9 @@ class ManageMaterials extends Component
         $this->name = '';
         $this->category = 'daging';
         $this->unit = 'gram';
+        $this->package_unit = 'Pack';
+        $this->package_weight = null;
+        $this->package_price = null;
         $this->price = '';
         $this->is_available = true;
         $this->isEditing = false;

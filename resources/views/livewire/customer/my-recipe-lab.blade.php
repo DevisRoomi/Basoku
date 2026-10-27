@@ -153,10 +153,10 @@
                                     </span>
                                 </div>
                                 <a
-                                    href="{{ url('/') }}#racikan-saya"
-                                    class="inline-flex items-center gap-1 text-xs font-semibold text-[#2D4235] hover:text-[#D96B43] transition-colors"
+                                    href="{{ route('calculator', ['recipe_id' => $recipe->id]) }}"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2D4235] hover:bg-[#D96B43] text-white text-xs font-semibold transition-colors shadow-xs"
                                 >
-                                    <span>Hitung Ulang</span>
+                                    <span>Gunakan di Kalkulator</span>
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                     </svg>

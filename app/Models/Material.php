@@ -26,6 +26,9 @@ class Material extends Model
         'name',
         'category',
         'unit',
+        'package_unit',
+        'package_weight',
+        'package_price',
         'price',
         'is_available',
     ];
@@ -38,6 +41,8 @@ class Material extends Model
     protected function casts(): array
     {
         return [
+            'package_weight' => 'decimal:2',
+            'package_price' => 'decimal:2',
             'price' => 'decimal:2',
             'is_available' => 'boolean',
         ];

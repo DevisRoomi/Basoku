@@ -705,7 +705,7 @@
                             <p class="text-[11px] text-[#D96B43] mt-1 font-semibold">{{ $message }}</p>
                         @enderror
                         <p class="text-[11px] text-[#5A534A] mt-1">
-                            Pilih perkiraan waktu Anda akan tiba di pasar / los selepan.
+                            Kios buka pkl 05.00–12.00 WIB. Pengambilan minimal 1 jam setelah pemesanan agar racikan siap giling saat Anda tiba.
                         </p>
                     </div>
 
