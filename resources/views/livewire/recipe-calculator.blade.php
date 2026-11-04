@@ -60,22 +60,22 @@
                     <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#2D4235] text-white text-[11px] font-bold">1</span>
                     Mulai dari Mana?
                 </legend>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <!-- Opsi: Mulai dari Nol -->
                     <button
                         type="button"
                         wire:click="$set('startType', 'start_from_zero')"
-                        class="text-left w-full rounded-2xl border p-5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $startType === 'start_from_zero' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                        class="text-left w-full rounded-2xl border p-4 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $startType === 'start_from_zero' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
                     >
-                        <div class="flex items-start gap-3.5">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors {{ $startType === 'start_from_zero' ? 'bg-[#D96B43] text-white' : 'bg-[#26221E]/5 text-[#26221E]/60' }}">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors {{ $startType === 'start_from_zero' ? 'bg-[#D96B43] text-white' : 'bg-[#26221E]/5 text-[#26221E]/60' }}">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                                 </svg>
                             </div>
                             <div>
                                 <span class="block text-sm font-bold text-[#26221E]">Mulai dari Nol</span>
-                                <span class="block text-xs text-[#5A534A] mt-1 leading-relaxed">Belum punya bahan apa-apa. Hitung semua kebutuhan belanja daging dan bumbu dari awal.</span>
+                                <span class="block text-xs text-[#5A534A] mt-1 leading-relaxed">Beli daging & semua bahan racikan dari awal.</span>
                             </div>
                         </div>
                     </button>
@@ -84,23 +84,43 @@
                     <button
                         type="button"
                         wire:click="$set('startType', 'own_meat')"
-                        class="text-left w-full rounded-2xl border p-5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $startType === 'own_meat' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                        class="text-left w-full rounded-2xl border p-4 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $startType === 'own_meat' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
                     >
-                        <div class="flex items-start gap-3.5">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors {{ $startType === 'own_meat' ? 'bg-[#D96B43] text-white' : 'bg-[#26221E]/5 text-[#26221E]/60' }}">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors {{ $startType === 'own_meat' ? 'bg-[#D96B43] text-white' : 'bg-[#26221E]/5 text-[#26221E]/60' }}">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                 </svg>
                             </div>
                             <div>
                                 <span class="block text-sm font-bold text-[#26221E]">Bawa Daging Sendiri</span>
-                                <span class="block text-xs text-[#5A534A] mt-1 leading-relaxed">Sudah punya daging di rumah. Hitung kebutuhan bumbu tambahan dan selepan saja.</span>
+                                <span class="block text-xs text-[#5A534A] mt-1 leading-relaxed">Punya daging sendiri. Beli bumbu & selepan saja.</span>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- Opsi: Beli Bahan Saja -->
+                    <button
+                        type="button"
+                        wire:click="$set('startType', 'ingredients_only')"
+                        class="text-left w-full rounded-2xl border p-4 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $startType === 'ingredients_only' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                    >
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors {{ $startType === 'ingredients_only' ? 'bg-[#D96B43] text-white' : 'bg-[#26221E]/5 text-[#26221E]/60' }}">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="block text-sm font-bold text-[#26221E]">Beli Bahan Saja</span>
+                                <span class="block text-xs text-[#5A534A] mt-1 leading-relaxed">Hanya beli tepung atau bumbu eceran tanpa daging.</span>
                             </div>
                         </div>
                     </button>
                 </div>
             </fieldset>
 
+            @if ($startType !== 'ingredients_only')
             <!-- ──────────────────────────────────── -->
             <!-- 2. Pilih Daging                      -->
             <!-- ──────────────────────────────────── -->
@@ -318,6 +338,7 @@
                     </div>
                 </fieldset>
             @endif
+            @endif
 
             <!-- ──────────────────────────────────── -->
             <!-- 4. Varian Tepung Pilihan             -->
@@ -372,8 +393,47 @@
                         <span class="block text-[9px] font-mono text-[#5A534A] mt-1 font-semibold">Campuran Padat</span>
                     </button>
                 </div>
+
+                @if ($startType === 'ingredients_only')
+                    <div class="mt-4 p-4 rounded-2xl bg-[#FAF7F2] border border-[#26221E]/10 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-[#26221E] block">Jumlah Pack Tepung:</span>
+                                <span class="text-[10px] text-[#5A534A]">Kemasan utuh standar pasar</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" wire:click="$set('ingredientFlourPacks', {{ max(1, $ingredientFlourPacks - 1) }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center">-</button>
+                                <span class="w-8 text-center font-mono font-bold text-sm text-[#26221E]">{{ $ingredientFlourPacks }}</span>
+                                <button type="button" wire:click="$set('ingredientFlourPacks', {{ $ingredientFlourPacks + 1 }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                        <div class="border-t border-[#26221E]/5 pt-3 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-[#26221E] block">Bawang Putih Kupas (Pack 100g):</span>
+                                <span class="text-[10px] text-[#5A534A]">Bumbu pelengkap siap ulek</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" wire:click="$set('ingredientGarlicPacks', {{ max(0, $ingredientGarlicPacks - 1) }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center">-</button>
+                                <span class="w-8 text-center font-mono font-bold text-sm text-[#26221E]">{{ $ingredientGarlicPacks }}</span>
+                                <button type="button" wire:click="$set('ingredientGarlicPacks', {{ $ingredientGarlicPacks + 1 }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                        <div class="border-t border-[#26221E]/5 pt-3 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-[#26221E] block">Garam Halus (Pack 1.000g):</span>
+                                <span class="text-[10px] text-[#5A534A]">Garam dapur beryodium</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" wire:click="$set('ingredientSaltPacks', {{ max(0, $ingredientSaltPacks - 1) }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center">-</button>
+                                <span class="w-8 text-center font-mono font-bold text-sm text-[#26221E]">{{ $ingredientSaltPacks }}</span>
+                                <button type="button" wire:click="$set('ingredientSaltPacks', {{ $ingredientSaltPacks + 1 }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </fieldset>
 
+            @if ($startType !== 'ingredients_only')
             <!-- ──────────────────────────────────── -->
             <!-- 5. Karakter Rasa & Komposisi         -->
             <!-- ──────────────────────────────────── -->
@@ -382,7 +442,7 @@
                     <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#2D4235] text-white text-[11px] font-bold">5</span>
                     Karakter Rasa & Komposisi
                 </legend>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     
                     <!-- Enak -->
                     <button
@@ -429,7 +489,58 @@
                         </p>
                     </button>
 
+                    <!-- Kustom Bebas -->
+                    <button
+                        type="button"
+                        wire:click="$set('preference', 'kustom')"
+                        class="p-4 rounded-2xl border text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $preference === 'kustom' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                    >
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-bold text-sm text-[#26221E]">Kustom Bebas</span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></span>
+                        </div>
+                        <p class="text-[11px] text-[#5A534A] leading-relaxed">
+                            Atur persentase tepung racikan sendiri (10% s/d 50%).
+                        </p>
+                    </button>
+
                 </div>
+
+                @if ($preference === 'kustom')
+                    <div class="mt-4 p-4 rounded-2xl bg-[#FAF7F2] border border-[#D96B43]/30">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="custom-flour-slider" class="text-xs font-bold text-[#26221E]">
+                                Rasio Tepung Terhadap Daging: <span class="font-mono text-[#D96B43] font-extrabold text-sm">{{ $customFlourRatio }}%</span>
+                            </label>
+                            <span class="text-[11px] text-[#5A534A] font-medium">
+                                @if ($customFlourRatio <= 15)
+                                    🥩 Daging Super Dominan (Kenyal Padat)
+                                @elseif ($customFlourRatio <= 25)
+                                    ⚖️ Seimbang Standar Warung Bakso
+                                @elseif ($customFlourRatio <= 35)
+                                    🥟 Ekonomis Kenyal Mekar
+                                @else
+                                    🍡 Bakso Aci / Jajan Hemat
+                                @endif
+                            </span>
+                        </div>
+                        <input
+                            type="range"
+                            id="custom-flour-slider"
+                            wire:model.live="customFlourRatio"
+                            min="10"
+                            max="50"
+                            step="1"
+                            class="w-full accent-[#D96B43] cursor-pointer"
+                        />
+                        <div class="flex justify-between text-[10px] text-[#5A534A]/70 mt-1 font-mono">
+                            <span>10% (Padat Daging)</span>
+                            <span>20% (Seimbang)</span>
+                            <span>35% (Ekonomis)</span>
+                            <span>50% (Hemat/Mekar)</span>
+                        </div>
+                    </div>
+                @endif
             </fieldset>
 
             <!-- ──────────────────────────────────── -->
@@ -440,7 +551,7 @@
                     <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#2D4235] text-white text-[11px] font-bold">6</span>
                     Jasa Selepan (Penggilingan Pasar)
                 </legend>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <!-- Pakai Jasa -->
                     <button
                         type="button"
@@ -462,6 +573,7 @@
                     </button>
                 </div>
             </fieldset>
+            @endif
 
         </div>
 
@@ -505,7 +617,11 @@
                         <div>
                             <span class="text-[#D8E0D3]/60 block text-[9px] uppercase font-mono">Daging</span>
                             <span class="font-semibold text-white truncate block text-[11px]">
-                                {{ ucfirst($meatType) }} ({{ number_format($meatWeight) }}g)
+                                @if ($startType === 'ingredients_only')
+                                    Tanpa Daging
+                                @else
+                                    {{ ucfirst($meatType) }} ({{ number_format($meatWeight) }}g)
+                                @endif
                             </span>
                         </div>
                         <div>
@@ -514,7 +630,15 @@
                         </div>
                         <div>
                             <span class="text-[#D8E0D3]/60 block text-[9px] uppercase font-mono">Karakter</span>
-                            <span class="font-semibold text-white text-[11px]">{{ ucfirst($preference) }}</span>
+                            <span class="font-semibold text-white text-[11px]">
+                                @if ($startType === 'ingredients_only')
+                                    Bahan Saja
+                                @elseif ($preference === 'kustom')
+                                    {{ $customFlourRatio }}% Tepung
+                                @else
+                                    {{ ucfirst($preference) }}
+                                @endif
+                            </span>
                         </div>
                         <div>
                             <span class="text-[#D8E0D3]/60 block text-[9px] uppercase font-mono">Selepan</span>
@@ -720,7 +844,13 @@
                 <div class="p-4 rounded-2xl bg-white border border-[#26221E]/10 mb-5 text-xs space-y-2 shadow-xs">
                     <div class="flex justify-between text-[#5A534A]">
                         <span>Racikan:</span>
-                        <span class="font-bold text-[#26221E]">{{ ucfirst($meatType) }} ({{ number_format($meatWeight) }} g)</span>
+                        <span class="font-bold text-[#26221E]">
+                            @if ($startType === 'ingredients_only')
+                                Belanja Bahan Saja (Tepung {{ ucfirst($flourType) }})
+                            @else
+                                {{ ucfirst($meatType) }} ({{ number_format($meatWeight) }} g)
+                            @endif
+                        </span>
                     </div>
                     <div class="flex justify-between text-[#5A534A]">
                         <span>Total Belanja Kemasan Pasar:</span>

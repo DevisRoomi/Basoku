@@ -31,8 +31,20 @@ class RecipeCalculator extends Component
     /** Berat daging dalam gram (minimal 500) */
     public int $meatWeight = 500;
 
-    /** Preferensi karakter racikan: 'enak', 'seimbang', atau 'ekonomis' */
+    /** Preferensi karakter racikan: 'enak', 'seimbang', 'ekonomis', atau 'kustom' */
     public string $preference = 'seimbang';
+
+    /** Persentase tepung kustom jika preference = 'kustom' (10% s/d 50%) */
+    public int $customFlourRatio = 20;
+
+    /** Jumlah pack tepung jika mode beli bahan saja */
+    public int $ingredientFlourPacks = 1;
+
+    /** Jumlah pack bawang putih jika mode beli bahan saja */
+    public int $ingredientGarlicPacks = 0;
+
+    /** Jumlah pack garam jika mode beli bahan saja */
+    public int $ingredientSaltPacks = 0;
 
     /** Varian tepung yang dipilih: 'tapioka', 'probakso', 'sagu', 'terigu' */
     public string $flourType = 'tapioka';
@@ -102,20 +114,28 @@ class RecipeCalculator extends Component
         $this->budgetError = null;
 
         // 1. Ambil data formula rasio dari database (Model RecipeFormula) dengan fallback aman
-        $defaultFormulas = RecipeFormula::defaultFormulas();
-        $fallback = $defaultFormulas[$this->preference] ?? $defaultFormulas['seimbang'];
+        if ($this->preference === 'kustom') {
+            $meatRatio = 1.0;
+            $flourRatio = max(0.10, min(0.60, (float) ($this->customFlourRatio / 100.0)));
+            $spiceRatio = 0.05;
+            $this->isSimulation = true;
+            $this->formulaName = 'Racikan Kustom ('.$this->customFlourRatio.'% Tepung)';
+        } else {
+            $defaultFormulas = RecipeFormula::defaultFormulas();
+            $fallback = $defaultFormulas[$this->preference] ?? $defaultFormulas['seimbang'];
 
-        try {
-            $formula = RecipeFormula::where('code', $this->preference)->first();
-        } catch (\Throwable $e) {
-            $formula = null;
+            try {
+                $formula = RecipeFormula::where('code', $this->preference)->first();
+            } catch (\Throwable $e) {
+                $formula = null;
+            }
+
+            $meatRatio = (float) ($formula?->meat_ratio ?? $fallback['meat_ratio']);
+            $flourRatio = (float) ($formula?->flour_ratio ?? $fallback['flour_ratio']);
+            $spiceRatio = (float) ($formula?->spice_ratio ?? $fallback['spice_ratio']);
+            $this->isSimulation = (bool) ($formula ? $formula->is_simulation : $fallback['is_simulation']);
+            $this->formulaName = (string) ($formula?->name ?? $fallback['name']);
         }
-
-        $meatRatio = (float) ($formula?->meat_ratio ?? $fallback['meat_ratio']);
-        $flourRatio = (float) ($formula?->flour_ratio ?? $fallback['flour_ratio']);
-        $spiceRatio = (float) ($formula?->spice_ratio ?? $fallback['spice_ratio']);
-        $this->isSimulation = (bool) ($formula ? $formula->is_simulation : $fallback['is_simulation']);
-        $this->formulaName = (string) ($formula?->name ?? $fallback['name']);
 
         $garlicRatio = $spiceRatio * 0.6;
         $saltRatio = $spiceRatio * 0.4;
@@ -148,6 +168,90 @@ class RecipeCalculator extends Component
         $flourPricePerGram = (float) ($flourMaterial?->price ?? 18.0);
         $garlicPricePerGram = (float) ($garlicMaterial?->price ?? 40.0);
         $saltPricePerGram = (float) ($saltMaterial?->price ?? 3.0);
+
+        // Logika Mode Beli Bahan Saja (Tanpa Daging & Tanpa Jasa Giling)
+        if ($this->startType === 'ingredients_only') {
+            $this->useGrinding = false;
+            $this->meatWeight = 0;
+
+            $flourPkgWeight = (float) ($flourMaterial?->package_weight ?? 500.0);
+            $flourPkgPrice = (float) ($flourMaterial?->package_price ?? 9000.0);
+            $flourPkgUnit = (string) ($flourMaterial?->package_unit ?? 'pack');
+            $flourPacks = max(1, (int) $this->ingredientFlourPacks);
+            $flourTotalGrams = $flourPacks * $flourPkgWeight;
+            $flourMarketCost = $flourPacks * $flourPkgPrice;
+
+            $garlicPkgWeight = (float) ($garlicMaterial?->package_weight ?? 100.0);
+            $garlicPkgPrice = (float) ($garlicMaterial?->package_price ?? 4000.0);
+            $garlicPacks = max(0, (int) $this->ingredientGarlicPacks);
+            $garlicTotalGrams = $garlicPacks * $garlicPkgWeight;
+            $garlicMarketCost = $garlicPacks * $garlicPkgPrice;
+
+            $saltPkgWeight = (float) ($saltMaterial?->package_weight ?? 1000.0);
+            $saltPkgPrice = (float) ($saltMaterial?->package_price ?? 3000.0);
+            $saltPacks = max(0, (int) $this->ingredientSaltPacks);
+            $saltTotalGrams = $saltPacks * $saltPkgWeight;
+            $saltMarketCost = $saltPacks * $saltPkgPrice;
+
+            $items = [];
+            $items[] = [
+                'material_id' => $flourMaterial?->id,
+                'name' => $flourMaterial?->name ?? 'Tepung '.ucfirst($this->flourType),
+                'weight' => $flourTotalGrams,
+                'unit' => 'gram',
+                'price_per_gram' => $flourPricePerGram,
+                'cost' => $flourMarketCost,
+                'proportional_cost' => $flourMarketCost,
+                'market_cost' => $flourMarketCost,
+                'package_info' => "{$flourPacks} {$flourPkgUnit} (@".number_format($flourPkgWeight)."g)",
+                'excess_grams' => 0,
+                'note' => "{$flourPacks} {$flourPkgUnit} utuh siap bawa pulang",
+                'is_meat' => false,
+                'own_meat' => false,
+            ];
+
+            if ($garlicPacks > 0) {
+                $items[] = [
+                    'material_id' => $garlicMaterial?->id,
+                    'name' => $garlicMaterial?->name ?? 'Bawang Putih Kupas',
+                    'weight' => $garlicTotalGrams,
+                    'unit' => 'gram',
+                    'price_per_gram' => $garlicPricePerGram,
+                    'cost' => $garlicMarketCost,
+                    'proportional_cost' => $garlicMarketCost,
+                    'market_cost' => $garlicMarketCost,
+                    'package_info' => "{$garlicPacks} pack (@".number_format($garlicPkgWeight)."g)",
+                    'excess_grams' => 0,
+                    'note' => "{$garlicPacks} pack bumbu pasar",
+                    'is_meat' => false,
+                    'own_meat' => false,
+                ];
+            }
+
+            if ($saltPacks > 0) {
+                $items[] = [
+                    'material_id' => $saltMaterial?->id,
+                    'name' => $saltMaterial?->name ?? 'Garam Halus',
+                    'weight' => $saltTotalGrams,
+                    'unit' => 'gram',
+                    'price_per_gram' => $saltPricePerGram,
+                    'cost' => $saltMarketCost,
+                    'proportional_cost' => $saltMarketCost,
+                    'market_cost' => $saltMarketCost,
+                    'package_info' => "{$saltPacks} pack (@".number_format($saltPkgWeight)."g)",
+                    'excess_grams' => 0,
+                    'note' => "{$saltPacks} pack garam beryodium",
+                    'is_meat' => false,
+                    'own_meat' => false,
+                ];
+            }
+
+            $this->breakdown = $items;
+            $this->totalProportionalCost = $flourMarketCost + $garlicMarketCost + $saltMarketCost;
+            $this->totalMarketCost = $this->totalProportionalCost;
+
+            return;
+        }
 
         // Biaya proporsional per 1 gram daging acuan
         $costPerGram = ($this->startType === 'start_from_zero' ? ($meatPricePerGram * $meatRatio) : 0.0)
@@ -413,7 +517,11 @@ class RecipeCalculator extends Component
         });
 
         // 3. Susun teks pesan WhatsApp terstruktur
-        $startTypeLabel = $this->startType === 'start_from_zero' ? 'Mulai dari Nol (Beli Semua)' : 'Bawa Daging Sendiri';
+        $startTypeLabel = match ($this->startType) {
+            'own_meat' => 'Bawa Daging Sendiri',
+            'ingredients_only' => 'Beli Bahan / Tepung Saja (Tanpa Daging)',
+            default => 'Mulai dari Nol (Beli Semua)',
+        };
         $pickupFormatted = date('d M Y, H:i', strtotime($this->pickupTime));
 
         $lines = [];
@@ -424,8 +532,12 @@ class RecipeCalculator extends Component
         $lines[] = '*No. WhatsApp:* '.$this->customerPhone;
         $lines[] = '*Jadwal Ambil:* '.$pickupFormatted.' WIB';
         $lines[] = '*Mode Racikan:* '.$startTypeLabel;
-        $lines[] = '*Daging Utama:* '.ucfirst($this->meatType).' ('.number_format($this->meatWeight).' gram)';
-        $lines[] = '*Karakter:* '.ucfirst($this->preference);
+        if ($this->startType !== 'ingredients_only') {
+            $lines[] = '*Daging Utama:* '.ucfirst($this->meatType).' ('.number_format($this->meatWeight).' gram)';
+            $lines[] = '*Karakter:* '.ucfirst($this->preference);
+        } else {
+            $lines[] = '*Kategori:* Belanja Bahan & Bumbu Kios';
+        }
         $lines[] = '';
         $lines[] = '*Rincian Belanja Kemasan Pasar:*';
         foreach ($this->breakdown as $item) {

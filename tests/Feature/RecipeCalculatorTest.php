@@ -306,4 +306,28 @@ class RecipeCalculatorTest extends TestCase
             ->assertSet('preference', 'urat')
             ->assertSet('startType', 'start_from_zero');
     }
+
+    public function test_custom_flour_ratio_calculation(): void
+    {
+        // 1000g daging, rasio kustom 25% -> tepung 250g
+        Livewire::test(RecipeCalculator::class)
+            ->set('meatWeight', 1000)
+            ->set('preference', 'kustom')
+            ->set('customFlourRatio', 25)
+            ->assertSee('Kustom Bebas')
+            ->assertSee('25% Tepung');
+    }
+
+    public function test_ingredients_only_mode_without_meat(): void
+    {
+        Livewire::test(RecipeCalculator::class)
+            ->set('startType', 'ingredients_only')
+            ->set('flourType', 'tapioka')
+            ->set('ingredientFlourPacks', 2)
+            ->set('ingredientGarlicPacks', 1)
+            ->assertSet('meatWeight', 0)
+            ->assertSet('useGrinding', false)
+            ->assertSee('Beli Bahan Saja')
+            ->assertSee('Tanpa Daging');
+    }
 }

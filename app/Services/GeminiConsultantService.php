@@ -25,7 +25,7 @@ class GeminiConsultantService
         }
 
         $baseUrl = rtrim(config('services.gemini.base_url', 'https://generativelanguage.googleapis.com/v1beta'), '/');
-        $model = config('services.gemini.model', 'gemini-3.1-flash-lite');
+        $model = config('services.gemini.model', 'gemini-1.5-flash');
         $endpoint = "{$baseUrl}/models/{$model}:generateContent?key={$apiKey}";
 
         $payload = [
