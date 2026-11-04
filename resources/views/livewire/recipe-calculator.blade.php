@@ -320,11 +320,66 @@
             @endif
 
             <!-- ──────────────────────────────────── -->
-            <!-- 4. Karakter Rasa & Komposisi         -->
+            <!-- 4. Varian Tepung Pilihan             -->
+            <!-- ──────────────────────────────────── -->
+            <fieldset>
+                <legend class="text-xs font-bold text-[#26221E] uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#2D4235] text-white text-[11px] font-bold">4</span>
+                    Pilihan Jenis Tepung
+                </legend>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <!-- Tapioka -->
+                    <button
+                        type="button"
+                        wire:click="$set('flourType', 'tapioka')"
+                        class="p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'tapioka' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
+                    >
+                        <span class="block font-bold text-xs text-[#26221E]">Tapioka</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Pack 500g (Rp 9.000)</span>
+                        <span class="block text-[9px] font-mono text-[#D96B43] mt-1 font-semibold">Kenyal Standar</span>
+                    </button>
+
+                    <!-- ProBakso (Premix) -->
+                    <button
+                        type="button"
+                        wire:click="$set('flourType', 'probakso')"
+                        class="p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'probakso' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
+                    >
+                        <span class="block font-bold text-xs text-[#26221E]">ProBakso</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Pack 250g (Rp 10.000)</span>
+                        <span class="block text-[9px] font-mono text-[#2D4235] mt-1 font-semibold">Premiks Pengenyal</span>
+                    </button>
+
+                    <!-- Sagu -->
+                    <button
+                        type="button"
+                        wire:click="$set('flourType', 'sagu')"
+                        class="p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'sagu' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
+                    >
+                        <span class="block font-bold text-xs text-[#26221E]">Sagu Aren</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Pack 500g (Rp 10.000)</span>
+                        <span class="block text-[9px] font-mono text-[#E5A93C] mt-1 font-semibold">Renyah Garing</span>
+                    </button>
+
+                    <!-- Terigu -->
+                    <button
+                        type="button"
+                        wire:click="$set('flourType', 'terigu')"
+                        class="p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'terigu' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
+                    >
+                        <span class="block font-bold text-xs text-[#26221E]">Terigu</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Kg / 1.000g (Rp 12.000)</span>
+                        <span class="block text-[9px] font-mono text-[#5A534A] mt-1 font-semibold">Campuran Padat</span>
+                    </button>
+                </div>
+            </fieldset>
+
+            <!-- ──────────────────────────────────── -->
+            <!-- 5. Karakter Rasa & Komposisi         -->
             <!-- ──────────────────────────────────── -->
             <fieldset>
                 <legend class="text-xs font-bold text-[#26221E] uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#2D4235] text-white text-[11px] font-bold">4</span>
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#2D4235] text-white text-[11px] font-bold">5</span>
                     Karakter Rasa & Komposisi
                 </legend>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -378,11 +433,11 @@
             </fieldset>
 
             <!-- ──────────────────────────────────── -->
-            <!-- 5. Jasa Selepan (Penggilingan Pasar) -->
+            <!-- 6. Jasa Selepan (Penggilingan Pasar) -->
             <!-- ──────────────────────────────────── -->
             <fieldset>
                 <legend class="text-xs font-bold text-[#26221E] uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#2D4235] text-white text-[11px] font-bold">5</span>
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#2D4235] text-white text-[11px] font-bold">6</span>
                     Jasa Selepan (Penggilingan Pasar)
                 </legend>
                 <div class="grid grid-cols-2 gap-4">
@@ -446,20 +501,24 @@
                     @endif
 
                     <!-- Info Parameter Singkat -->
-                    <div class="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-black/15 border border-white/10 text-xs mb-6 text-center">
+                    <div class="grid grid-cols-4 gap-1.5 p-3 rounded-2xl bg-black/15 border border-white/10 text-xs mb-6 text-center">
                         <div>
-                            <span class="text-[#D8E0D3]/60 block text-[10px] uppercase font-mono">Daging</span>
-                            <span class="font-semibold text-white truncate block">
-                                {{ ucfirst($meatType) }} ({{ number_format($meatWeight) }} g)
+                            <span class="text-[#D8E0D3]/60 block text-[9px] uppercase font-mono">Daging</span>
+                            <span class="font-semibold text-white truncate block text-[11px]">
+                                {{ ucfirst($meatType) }} ({{ number_format($meatWeight) }}g)
                             </span>
                         </div>
                         <div>
-                            <span class="text-[#D8E0D3]/60 block text-[10px] uppercase font-mono">Karakter</span>
-                            <span class="font-semibold text-white">{{ ucfirst($preference) }}</span>
+                            <span class="text-[#D8E0D3]/60 block text-[9px] uppercase font-mono">Tepung</span>
+                            <span class="font-semibold text-white uppercase text-[11px]">{{ $flourType }}</span>
                         </div>
                         <div>
-                            <span class="text-[#D8E0D3]/60 block text-[10px] uppercase font-mono">Jasa Selepan</span>
-                            <span class="font-semibold text-white">{{ $useGrinding ? 'Pakai Jasa' : 'Tanpa Jasa' }}</span>
+                            <span class="text-[#D8E0D3]/60 block text-[9px] uppercase font-mono">Karakter</span>
+                            <span class="font-semibold text-white text-[11px]">{{ ucfirst($preference) }}</span>
+                        </div>
+                        <div>
+                            <span class="text-[#D8E0D3]/60 block text-[9px] uppercase font-mono">Selepan</span>
+                            <span class="font-semibold text-white text-[11px]">{{ $useGrinding ? 'Pakai' : 'Tanpa' }}</span>
                         </div>
                     </div>
 
@@ -497,10 +556,15 @@
                                                     <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Bawa Sendiri</span>
                                                 @endif
                                             </div>
-                                            <div class="text-[11px] text-[#D8E0D3]/60 flex items-center gap-1.5 mt-0.5 font-mono">
-                                                <span class="tabular-nums">{{ number_format($item['weight']) }} {{ $item['unit'] }}</span>
-                                                <span>&bull;</span>
-                                                <span class="text-[10px] text-[#D8E0D3]/50">{{ $item['note'] }}</span>
+                                            <div class="text-[11px] text-[#D8E0D3]/60 flex flex-wrap items-center gap-1.5 mt-0.5 font-mono">
+                                                <span class="tabular-nums font-semibold text-white/90">{{ number_format($item['weight']) }} {{ $item['unit'] }}</span>
+                                                @if (!empty($item['package_info']))
+                                                    <span>&bull;</span>
+                                                    <span class="text-amber-200/90 font-medium">{{ $item['package_info'] }}</span>
+                                                @endif
+                                                @if (isset($item['excess_grams']) && $item['excess_grams'] > 0)
+                                                    <span class="text-emerald-300 text-[10px]">(sisa {{ $item['excess_grams'] }}g dibawa pulang)</span>
+                                                @endif
                                             </div>
                                             @if (!empty($item['flour_packaging']))
                                                 <div class="mt-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-[#D8E0D3]/90 font-mono">
@@ -659,8 +723,12 @@
                         <span class="font-bold text-[#26221E]">{{ ucfirst($meatType) }} ({{ number_format($meatWeight) }} g)</span>
                     </div>
                     <div class="flex justify-between text-[#5A534A]">
-                        <span>Estimasi Nilai Bahan:</span>
-                        <span class="font-bold text-[#D96B43] tabular-nums">{{ \Illuminate\Support\Number::currency($totalProportionalCost, 'IDR', 'id', precision: 0) }}</span>
+                        <span>Total Belanja Kemasan Pasar:</span>
+                        <span class="font-bold text-[#D96B43] text-sm tabular-nums">{{ \Illuminate\Support\Number::currency($totalMarketCost, 'IDR', 'id', precision: 0) }}</span>
+                    </div>
+                    <div class="flex justify-between text-[11px] text-[#5A534A]/80">
+                        <span>Biaya Bahan Masuk Adonan:</span>
+                        <span class="font-mono">{{ \Illuminate\Support\Number::currency($totalProportionalCost, 'IDR', 'id', precision: 0) }}</span>
                     </div>
                     <div class="pt-2 border-t border-[#26221E]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-[#5A534A]">
                         <span>Lokasi Pengambilan: <strong class="text-[#26221E] font-mono">Titik Kios 7°59'31.5"S 113°14'58.9"E</strong></span>
@@ -688,6 +756,26 @@
                         @error('customerName')
                             <p class="text-[11px] text-[#D96B43] mt-1 font-semibold">{{ $message }}</p>
                         @enderror
+                    </div>
+
+                    <!-- Field: Nomor WhatsApp Pembeli -->
+                    <div>
+                        <label for="customerPhone" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
+                            Nomor WhatsApp Pembeli <span class="text-[#D96B43]">*</span>
+                        </label>
+                        <input
+                            type="tel"
+                            id="customerPhone"
+                            wire:model="customerPhone"
+                            placeholder="Contoh: 08123456789 atau 628123456789"
+                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/30 focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
+                        >
+                        @error('customerPhone')
+                            <p class="text-[11px] text-[#D96B43] mt-1 font-semibold">{{ $message }}</p>
+                        @enderror
+                        <p class="text-[11px] text-[#5A534A] mt-1">
+                            Pihak kios akan menghubungi nomor ini jika ada konfirmasi ketersediaan bahan.
+                        </p>
                     </div>
 
                     <!-- Field: Jam Pengambilan -->

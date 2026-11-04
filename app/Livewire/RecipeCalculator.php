@@ -34,6 +34,9 @@ class RecipeCalculator extends Component
     /** Preferensi karakter racikan: 'enak', 'seimbang', atau 'ekonomis' */
     public string $preference = 'seimbang';
 
+    /** Varian tepung yang dipilih: 'tapioka', 'probakso', 'sagu', 'terigu' */
+    public string $flourType = 'tapioka';
+
     /** Status formula simulasi atau resmi dari kios */
     public bool $isSimulation = true;
 
@@ -57,6 +60,8 @@ class RecipeCalculator extends Component
 
     /** Form data checkout */
     public string $customerName = '';
+
+    public string $customerPhone = '';
 
     public string $pickupTime = '';
 
@@ -121,25 +126,32 @@ class RecipeCalculator extends Component
                 ? Material::where('name', 'like', '%Daging Sapi%')->first()
                 : Material::where('name', 'like', '%Daging Ayam%')->first();
 
-            $tapiocaMaterial = Material::where('name', 'like', '%Tapioka%')->first();
+            $flourQuery = match ($this->flourType) {
+                'probakso' => Material::where('name', 'like', '%ProBakso%'),
+                'sagu' => Material::where('name', 'like', '%Sagu%'),
+                'terigu' => Material::where('name', 'like', '%Terigu%'),
+                default => Material::where('name', 'like', '%Tapioka%'),
+            };
+            $flourMaterial = $flourQuery->first() ?? Material::where('name', 'like', '%Tapioka%')->first();
+
             $garlicMaterial = Material::where('name', 'like', '%Bawang Putih%')->first();
             $saltMaterial = Material::where('name', 'like', '%Garam%')->first();
         } catch (\Throwable $e) {
             $meatMaterial = null;
-            $tapiocaMaterial = null;
+            $flourMaterial = null;
             $garlicMaterial = null;
             $saltMaterial = null;
         }
 
         // Harga per gram dari database dengan fallback aman jika belum ada
         $meatPricePerGram = (float) ($meatMaterial?->price ?? ($this->meatType === 'sapi' ? 140.0 : 40.0));
-        $tapiocaPricePerGram = (float) ($tapiocaMaterial?->price ?? 18.0);
+        $flourPricePerGram = (float) ($flourMaterial?->price ?? 18.0);
         $garlicPricePerGram = (float) ($garlicMaterial?->price ?? 40.0);
         $saltPricePerGram = (float) ($saltMaterial?->price ?? 3.0);
 
         // Biaya proporsional per 1 gram daging acuan
         $costPerGram = ($this->startType === 'start_from_zero' ? ($meatPricePerGram * $meatRatio) : 0.0)
-            + ($flourRatio * $tapiocaPricePerGram)
+            + ($flourRatio * $flourPricePerGram)
             + ($garlicRatio * $garlicPricePerGram)
             + ($saltRatio * $saltPricePerGram)
             + ($this->useGrinding ? 15.0 : 0.0);
@@ -166,27 +178,38 @@ class RecipeCalculator extends Component
 
         // Kebutuhan takaran proporsional terpakai berdasarkan rasio dinamis
         $meatNeeded = $weight * $meatRatio;
-        $tapiocaNeeded = $weight * $flourRatio;
+        $flourNeeded = $weight * $flourRatio;
         $garlicNeeded = $weight * $garlicRatio;
         $saltNeeded = $weight * $saltRatio;
 
         // Biaya proporsional bahan terpakai
         $meatPropCost = $meatNeeded * $meatPricePerGram;
-        $tapiocaPropCost = $tapiocaNeeded * $tapiocaPricePerGram;
+        $flourPropCost = $flourNeeded * $flourPricePerGram;
         $garlicPropCost = $garlicNeeded * $garlicPricePerGram;
         $saltPropCost = $saltNeeded * $saltPricePerGram;
 
         // Biaya kemasan pasar (uang belanja pasar minimum kemasan utuh)
         $meatMarketCost = $this->startType === 'own_meat' ? 0.0 : $meatPropCost;
 
-        // Logika kemasan tepung pasar (250g, 500g, 1 kg)
-        $flourPackaging = $this->calculateFlourPackaging($tapiocaNeeded);
-        $tapiocaMarketCost = $flourPackaging['total_grams'] * $tapiocaPricePerGram;
+        // Logika kemasan tepung pasar dinamis berdasarkan master bahan
+        $flourPkgWeight = (float) ($flourMaterial?->package_weight ?? 500.0);
+        $flourPkgPrice = (float) ($flourMaterial?->package_price ?? 9000.0);
+        $flourPkgUnit = (string) ($flourMaterial?->package_unit ?? 'pack');
+        $flourPacks = (int) max(1, ceil($flourNeeded / max(1.0, $flourPkgWeight)));
+        $flourMarketCost = $flourPacks * $flourPkgPrice;
+        $flourTotalGrams = $flourPacks * $flourPkgWeight;
+        $flourExcessGrams = max(0, $flourTotalGrams - (int) round($flourNeeded));
 
-        $garlicPacks = (int) ceil($garlicNeeded / 100.0);
-        $garlicMarketCost = $garlicPacks * 4000.0;
-        $saltPacks = (int) ceil($saltNeeded / 1000.0);
-        $saltMarketCost = $saltPacks * 3000.0;
+        // Kemasan bawang putih & garam dari master bahan
+        $garlicPkgWeight = (float) ($garlicMaterial?->package_weight ?? 100.0);
+        $garlicPkgPrice = (float) ($garlicMaterial?->package_price ?? 4000.0);
+        $garlicPacks = (int) max(1, ceil($garlicNeeded / max(1.0, $garlicPkgWeight)));
+        $garlicMarketCost = $garlicPacks * $garlicPkgPrice;
+
+        $saltPkgWeight = (float) ($saltMaterial?->package_weight ?? 1000.0);
+        $saltPkgPrice = (float) ($saltMaterial?->package_price ?? 3000.0);
+        $saltPacks = (int) max(1, ceil($saltNeeded / max(1.0, $saltPkgWeight)));
+        $saltMarketCost = $saltPacks * $saltPkgPrice;
 
         $items = [];
 
@@ -201,27 +224,33 @@ class RecipeCalculator extends Component
             'cost' => $isOwnMeat ? 0.0 : $meatPropCost,
             'proportional_cost' => $isOwnMeat ? 0.0 : $meatPropCost,
             'market_cost' => $meatMarketCost,
+            'package_info' => $isOwnMeat ? 'Bawa Sendiri' : number_format($meatNeeded).' gram daging pasar',
             'note' => $isOwnMeat ? 'Bawa sendiri (Rp 0)' : 'Daging segar pasar',
             'is_meat' => true,
             'own_meat' => $isOwnMeat,
         ];
 
-        // 2. Tepung Tapioka
+        // 2. Tepung Pilihan
+        $flourName = $flourMaterial?->name ?? 'Tepung Tapioka';
+        $flourNote = "Beli {$flourPacks} {$flourPkgUnit} @".number_format($flourPkgWeight)."g" . ($flourExcessGrams > 0 ? " (sisa {$flourExcessGrams}g disimpan)" : '');
         $items[] = [
-            'material_id' => $tapiocaMaterial?->id,
-            'name' => $tapiocaMaterial?->name ?? 'Tepung Tapioka',
-            'weight' => $tapiocaNeeded,
+            'material_id' => $flourMaterial?->id,
+            'name' => $flourName,
+            'weight' => $flourNeeded,
             'unit' => 'gram',
-            'price_per_gram' => $tapiocaPricePerGram,
-            'cost' => $tapiocaPropCost,
-            'proportional_cost' => $tapiocaPropCost,
-            'market_cost' => $tapiocaMarketCost,
-            'note' => $flourPackaging['note'],
+            'price_per_gram' => $flourPricePerGram,
+            'cost' => $flourPropCost,
+            'proportional_cost' => $flourPropCost,
+            'market_cost' => $flourMarketCost,
+            'package_info' => "{$flourPacks} {$flourPkgUnit} (@".number_format($flourPkgWeight)."g)",
+            'excess_grams' => $flourExcessGrams,
+            'note' => $flourNote,
             'is_meat' => false,
             'own_meat' => false,
         ];
 
         // 3. Bawang Putih
+        $garlicExcess = max(0, ($garlicPacks * $garlicPkgWeight) - (int) round($garlicNeeded));
         $items[] = [
             'material_id' => $garlicMaterial?->id,
             'name' => $garlicMaterial?->name ?? 'Bawang Putih Kupas',
@@ -231,12 +260,15 @@ class RecipeCalculator extends Component
             'cost' => $garlicPropCost,
             'proportional_cost' => $garlicPropCost,
             'market_cost' => $garlicMarketCost,
-            'note' => 'Acuan kemasan 100g',
+            'package_info' => "{$garlicPacks} pack (@".number_format($garlicPkgWeight)."g)",
+            'excess_grams' => $garlicExcess,
+            'note' => "Beli {$garlicPacks} pack @".number_format($garlicPkgWeight).'g',
             'is_meat' => false,
             'own_meat' => false,
         ];
 
         // 4. Garam
+        $saltExcess = max(0, ($saltPacks * $saltPkgWeight) - (int) round($saltNeeded));
         $items[] = [
             'material_id' => $saltMaterial?->id,
             'name' => $saltMaterial?->name ?? 'Garam Kasar',
@@ -246,7 +278,9 @@ class RecipeCalculator extends Component
             'cost' => $saltPropCost,
             'proportional_cost' => $saltPropCost,
             'market_cost' => $saltMarketCost,
-            'note' => 'Acuan kemasan 1 kg',
+            'package_info' => "{$saltPacks} pack (@".number_format($saltPkgWeight)."g)",
+            'excess_grams' => $saltExcess,
+            'note' => "Beli {$saltPacks} pack @".number_format($saltPkgWeight).'g',
             'is_meat' => false,
             'own_meat' => false,
         ];
@@ -303,6 +337,7 @@ class RecipeCalculator extends Component
     {
         $this->validate([
             'customerName' => ['required', 'string', 'min:2', 'max:100'],
+            'customerPhone' => ['required', 'string', 'regex:/^(\+62|62|08)[0-9]{8,13}$/'],
             'pickupTime' => [
                 'required',
                 'date',
@@ -329,6 +364,8 @@ class RecipeCalculator extends Component
         ], [
             'customerName.required' => 'Nama lengkap wajib diisi.',
             'customerName.min' => 'Nama minimal 2 karakter.',
+            'customerPhone.required' => 'Nomor WhatsApp pembeli wajib diisi.',
+            'customerPhone.regex' => 'Format nomor WhatsApp tidak valid (contoh: 08123456789 atau 628123456789).',
             'pickupTime.required' => 'Jam pengambilan wajib diisi.',
             'pickupTime.date' => 'Format jam pengambilan tidak valid.',
         ]);
@@ -350,6 +387,7 @@ class RecipeCalculator extends Component
             $order = Order::create([
                 'user_id' => Auth::id(),
                 'customer_name' => $this->customerName,
+                'customer_phone' => $this->customerPhone,
                 'pickup_at' => $this->pickupTime,
                 'start_type' => $this->startType,
                 'meat_weight' => $this->meatWeight,
@@ -383,23 +421,25 @@ class RecipeCalculator extends Component
         $lines[] = '-----------------------------------';
         $lines[] = '*No. Pesanan:* #ORD-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
         $lines[] = '*Nama Pemesan:* '.$this->customerName;
+        $lines[] = '*No. WhatsApp:* '.$this->customerPhone;
         $lines[] = '*Jadwal Ambil:* '.$pickupFormatted.' WIB';
         $lines[] = '*Mode Racikan:* '.$startTypeLabel;
         $lines[] = '*Daging Utama:* '.ucfirst($this->meatType).' ('.number_format($this->meatWeight).' gram)';
         $lines[] = '*Karakter:* '.ucfirst($this->preference);
         $lines[] = '';
-        $lines[] = '*Rincian Bahan & Takaran:*';
+        $lines[] = '*Rincian Belanja Kemasan Pasar:*';
         foreach ($this->breakdown as $item) {
-            $costFormatted = 'Rp '.number_format($item['cost'] ?? $item['proportional_cost'] ?? 0, 0, ',', '.');
-            $note = ! empty($item['own_meat']) ? ' (Bawa Sendiri)' : '';
-            $lines[] = '• '.$item['name'].': '.number_format($item['weight']).' '.($item['unit'] ?? 'gram').$note.' - '.$costFormatted;
+            $costFormatted = 'Rp '.number_format($item['market_cost'] ?? $item['cost'] ?? 0, 0, ',', '.');
+            $pkgInfo = ! empty($item['package_info']) ? ' ['. $item['package_info'] .']' : '';
+            $excessInfo = ! empty($item['excess_grams']) ? " (sisa {$item['excess_grams']}g dibawa pulang)" : '';
+            $lines[] = '• '.$item['name'].$pkgInfo.': '.$costFormatted.$excessInfo;
         }
 
         $lines[] = '';
         $lines[] = '*Jasa Selepan:* '.($this->useGrinding ? 'Rp '.number_format($grindingFee, 0, ',', '.') : 'Tanpa Selepan');
         $lines[] = '-----------------------------------';
-        $lines[] = '*TOTAL NILAI BAHAN:* Rp '.number_format($totalPrice, 0, ',', '.');
-        $lines[] = '*ESTIMASI BELANJA PASAR:* Rp '.number_format($this->totalMarketCost, 0, ',', '.');
+        $lines[] = '*TOTAL BAYAR BELANJA PASAR:* Rp '.number_format($this->totalMarketCost, 0, ',', '.');
+        $lines[] = '*Nilai Bahan Terpakai:* Rp '.number_format($this->totalProportionalCost, 0, ',', '.');
         $lines[] = '';
         $lines[] = 'Mohon konfirmasi pesanan ini agar bahan dapat disiapkan sebelum waktu pengambilan. Terima kasih!';
 

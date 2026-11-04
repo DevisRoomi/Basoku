@@ -114,20 +114,27 @@
                                     <span class="text-[10px] text-[#161210]/50 block pl-5">WIB (Pasar)</span>
                                 </td>
 
-                                <!-- Kolom 3: Nama Pemesan -->
+                                <!-- Kolom 3: Nama Pemesan & Kontak -->
                                 <td class="py-4 px-6">
                                     <p class="font-bold text-sm text-[#161210]">
                                         {{ $order->customer_name }}
                                     </p>
-                                    @if ($order->user)
-                                        <span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                                            Member Akun
-                                        </span>
-                                    @else
-                                        <span class="text-[10px] text-[#161210]/50">
-                                            Tamu WhatsApp
-                                        </span>
+                                    @if ($order->customer_phone)
+                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $order->customer_phone) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-emerald-700 hover:text-emerald-900 mt-0.5">
+                                            <span>📱 {{ $order->customer_phone }}</span>
+                                        </a>
                                     @endif
+                                    <div class="mt-1">
+                                        @if ($order->user)
+                                            <span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                                Member Akun
+                                            </span>
+                                        @else
+                                            <span class="text-[10px] text-[#161210]/50">
+                                                Tamu WhatsApp
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
 
                                 <!-- Kolom 4: Mode Racikan -->
@@ -239,6 +246,11 @@
                         <h2 class="text-xl sm:text-2xl font-bold text-[#161210] mt-1" style="font-family: 'Playfair Display', Georgia, serif;">
                             Pesanan: {{ $selectedOrder->customer_name }}
                         </h2>
+                        @if ($selectedOrder->customer_phone)
+                            <p class="text-xs text-[#161210]/70 mt-1">
+                                Kontak WhatsApp: <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $selectedOrder->customer_phone) }}" target="_blank" rel="noopener noreferrer" class="font-mono font-bold text-emerald-700 hover:underline">📱 {{ $selectedOrder->customer_phone }}</a>
+                            </p>
+                        @endif
                     </div>
                     <button
                         type="button"

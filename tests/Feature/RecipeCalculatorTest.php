@@ -118,9 +118,10 @@ class RecipeCalculatorTest extends TestCase
         Livewire::test(RecipeCalculator::class)
             ->call('openCheckout')
             ->set('customerName', '')
+            ->set('customerPhone', '')
             ->set('pickupTime', '')
             ->call('processCheckout')
-            ->assertHasErrors(['customerName', 'pickupTime']);
+            ->assertHasErrors(['customerName', 'customerPhone', 'pickupTime']);
     }
 
     public function test_process_checkout_saves_order_and_items_and_redirects_to_whatsapp(): void
@@ -131,21 +132,24 @@ class RecipeCalculatorTest extends TestCase
             ->set('startType', 'start_from_zero')
             ->set('meatType', 'sapi')
             ->set('meatWeight', 500)
+            ->set('flourType', 'tapioka')
             ->set('preference', 'seimbang')
             ->set('useGrinding', true)
             ->call('openCheckout')
             ->set('customerName', 'Pak Sukadi')
+            ->set('customerPhone', '081234567890')
             ->set('pickupTime', $pickupDate)
             ->call('processCheckout');
 
         // 1. Assert database record exists in orders table
         $this->assertDatabaseHas('orders', [
             'customer_name' => 'Pak Sukadi',
+            'customer_phone' => '081234567890',
             'start_type' => 'start_from_zero',
             'meat_weight' => 500.000,
             'preference' => 'seimbang',
             'grinding_fee' => 7500.00,
-            'total_price' => 89000.00, // Uang belanja pasar kemasan utuh (daging 500g + tapioka 250g pack + bumbu pasar + selepan)
+            'total_price' => 93500.00, // Uang belanja pasar kemasan utuh (daging 500g + tapioka 500g pack + bumbu pasar + selepan)
             'status' => 'pending',
         ]);
 
@@ -161,13 +165,13 @@ class RecipeCalculatorTest extends TestCase
             'subtotal' => 70000.00,
         ]);
 
-        // Tapioka: butuh 100g, beli kemasan utuh 250g @ Rp 18/g = Rp 4.500
+        // Tapioka: butuh 100g, beli kemasan utuh pack 500g = Rp 9.000
         $this->assertDatabaseHas('order_items', [
             'order_id' => $order->id,
             'material_name' => 'Tepung Tapioka',
             'quantity' => 100.000,
             'unit_price' => 18.00,
-            'subtotal' => 4500.00,
+            'subtotal' => 9000.00,
         ]);
 
         // 3. Assert redirect to WhatsApp
@@ -179,7 +183,7 @@ class RecipeCalculatorTest extends TestCase
 
     public function test_flour_packaging_market_rules(): void
     {
-        // 1. Daging 500g rasio seimbang (0.20) -> tepung 100g (di bawah 250g) -> wajib beli 1x 250g
+        // 1. Daging 500g rasio seimbang (0.20) -> tepung tapioka 100g (kemasan pack 500g) -> wajib beli 1 pack @500g
         $component = Livewire::test(RecipeCalculator::class)
             ->set('meatWeight', 500);
 
@@ -187,24 +191,26 @@ class RecipeCalculatorTest extends TestCase
         $tapioca = collect($breakdown)->firstWhere('name', 'Tepung Tapioka');
         $this->assertNotNull($tapioca);
         $this->assertEquals(100.0, $tapioca['weight']);
-        $this->assertStringContainsString('1x 250g', $tapioca['note']);
-        $this->assertEquals(4500.0, $tapioca['market_cost']); // 250g * Rp 18
+        $this->assertStringContainsString('Beli 1 Pack @500g', $tapioca['note']);
+        $this->assertEquals(9000.0, $tapioca['market_cost']); // 1 pack * Rp 9.000
 
-        // 2. Daging 3750g rasio seimbang (0.20) -> tepung 750g -> wajib beli 1x 500g + 1x 250g
+        // 2. Daging 3750g rasio seimbang (0.20) -> tepung tapioka 750g -> wajib beli 2 pack @500g = 1.000g
         $component->set('meatWeight', 3750);
         $breakdown = $component->get('breakdown');
         $tapioca = collect($breakdown)->firstWhere('name', 'Tepung Tapioka');
         $this->assertEquals(750.0, $tapioca['weight']);
-        $this->assertStringContainsString('1x 500g + 1x 250g', $tapioca['note']);
-        $this->assertEquals(13500.0, $tapioca['market_cost']); // 750g * Rp 18
+        $this->assertStringContainsString('Beli 2 Pack @500g', $tapioca['note']);
+        $this->assertEquals(18000.0, $tapioca['market_cost']); // 2 pack * Rp 9.000
 
-        // 3. Daging 4000g rasio seimbang (0.20) -> tepung 800g (di atas 750g di bawah 1kg) -> wajib beli 1x 1 kg
-        $component->set('meatWeight', 4000);
+        // 3. Varian ProBakso (kemasan pack 250g, Rp 10.000/pack) untuk 500g daging -> butuh 100g -> wajib beli 1 pack
+        $component->set('meatWeight', 500)
+            ->set('flourType', 'probakso');
         $breakdown = $component->get('breakdown');
-        $tapioca = collect($breakdown)->firstWhere('name', 'Tepung Tapioka');
-        $this->assertEquals(800.0, $tapioca['weight']);
-        $this->assertStringContainsString('1x 1 kg', $tapioca['note']);
-        $this->assertEquals(18000.0, $tapioca['market_cost']); // 1000g * Rp 18
+        $probakso = collect($breakdown)->firstWhere('name', 'Tepung ProBakso');
+        $this->assertNotNull($probakso);
+        $this->assertEquals(100.0, $probakso['weight']);
+        $this->assertStringContainsString('Beli 1 Pack @250g', $probakso['note']);
+        $this->assertEquals(10000.0, $probakso['market_cost']); // 1 pack * Rp 10.000
     }
 
     public function test_checkout_ignores_tampered_client_price_and_recalculates_server_side(): void
@@ -230,13 +236,15 @@ class RecipeCalculatorTest extends TestCase
             ])
             ->call('openCheckout')
             ->set('customerName', 'Attacker Tamper')
+            ->set('customerPhone', '081234567890')
             ->set('pickupTime', $pickupDate)
             ->call('processCheckout');
 
         // Order yang tersimpan harus menggunakan kalkulasi belanja pasar server, bukan nilai Rp 100
         $this->assertDatabaseHas('orders', [
             'customer_name' => 'Attacker Tamper',
-            'total_price' => 89000.00,
+            'customer_phone' => '081234567890',
+            'total_price' => 93500.00,
         ]);
     }
 
@@ -249,6 +257,7 @@ class RecipeCalculatorTest extends TestCase
             ->set('meatWeight', 500)
             ->call('openCheckout')
             ->set('customerName', 'Budi Santoso')
+            ->set('customerPhone', '081234567890')
             ->set('pickupTime', $tooSoon)
             ->call('processCheckout')
             ->assertHasErrors(['pickupTime']);
@@ -260,6 +269,7 @@ class RecipeCalculatorTest extends TestCase
             ->set('meatWeight', 500)
             ->call('openCheckout')
             ->set('customerName', 'Budi Santoso')
+            ->set('customerPhone', '081234567890')
             ->set('pickupTime', $outsideHours)
             ->call('processCheckout')
             ->assertHasErrors(['pickupTime']);
@@ -271,6 +281,7 @@ class RecipeCalculatorTest extends TestCase
             ->set('meatWeight', 500)
             ->call('openCheckout')
             ->set('customerName', 'Budi Santoso')
+            ->set('customerPhone', '081234567890')
             ->set('pickupTime', $validPickup)
             ->call('processCheckout')
             ->assertHasNoErrors();
