@@ -575,6 +575,62 @@
             </fieldset>
             @endif
 
+            <!-- ──────────────────────────────────── -->
+            <!-- 7. Bahan Tambahan & Pelengkap Kios   -->
+            <!-- ──────────────────────────────────── -->
+            <fieldset class="mt-8 pt-6 border-t border-[#26221E]/10">
+                <legend class="text-xs font-bold text-[#26221E] uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#D96B43] text-white text-[11px] font-bold">7</span>
+                    Bahan Tambahan &amp; Pelengkap Kios (Opsional)
+                </legend>
+                <p class="text-xs text-[#5A534A] mb-4">
+                    Tambahkan bumbu pelengkap pasar (Telur, Sobaso, Merica, Masako) ke pesanan racikan Anda tanpa ribet.
+                </p>
+
+                <!-- Grid Item Pelengkap -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @foreach ($this->availableExtraMaterials as $extraMat)
+                        @php
+                            $extraQty = $extraItems[$extraMat->id] ?? 0;
+                            $pkgPrice = (float) ($extraMat->package_price ?? $extraMat->price);
+                        @endphp
+                        <div class="p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 {{ $extraQty > 0 ? 'border-[#2D4235] bg-[#FAF7F2] shadow-xs' : 'border-[#26221E]/10 bg-white/80 hover:bg-white' }}">
+                            <div class="grow min-w-0">
+                                <div class="font-bold text-xs text-[#26221E] truncate">{{ $extraMat->name }}</div>
+                                <div class="text-[11px] font-mono text-[#5A534A] mt-0.5">
+                                    Rp {{ number_format($pkgPrice, 0, ',', '.') }} <span class="text-[10px]">/ {{ $extraMat->package_unit }} (@{{ number_format($extraMat->package_weight) }}g)</span>
+                                </div>
+                            </div>
+
+                            <!-- Stepper Counter -->
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                @if ($extraQty > 0)
+                                    <button
+                                        type="button"
+                                        wire:click="decrementExtra({{ $extraMat->id }})"
+                                        class="w-7 h-7 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] font-bold text-xs flex items-center justify-center transition-colors shadow-2xs"
+                                        title="Kurangi"
+                                    >
+                                        -
+                                    </button>
+                                    <span class="font-mono font-bold text-xs text-[#2D4235] px-1 tabular-nums">
+                                        {{ $extraQty }}
+                                    </span>
+                                @endif
+                                <button
+                                    type="button"
+                                    wire:click="incrementExtra({{ $extraMat->id }})"
+                                    class="w-7 h-7 rounded-full bg-[#2D4235] hover:bg-[#D96B43] text-white font-bold text-xs flex items-center justify-center transition-colors shadow-2xs"
+                                    title="Tambah"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </fieldset>
+
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
@@ -678,6 +734,9 @@
                                                 <span class="font-medium text-white">{{ $item['name'] }}</span>
                                                 @if (!empty($item['own_meat']))
                                                     <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Bawa Sendiri</span>
+                                                @endif
+                                                @if (!empty($item['is_extra']))
+                                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Pelengkap Kios</span>
                                                 @endif
                                             </div>
                                             <div class="text-[11px] text-[#D8E0D3]/60 flex flex-wrap items-center gap-1.5 mt-0.5 font-mono">
@@ -849,11 +908,14 @@
                 <div class="p-4 rounded-2xl bg-white border border-[#26221E]/10 mb-5 text-xs space-y-2 shadow-xs">
                     <div class="flex justify-between text-[#5A534A]">
                         <span>Racikan:</span>
-                        <span class="font-bold text-[#26221E]">
+                        <span class="font-bold text-[#26221E] text-right">
                             @if ($startType === 'ingredients_only')
                                 Belanja Bahan Saja (Tepung {{ ucfirst($flourType) }})
                             @else
                                 {{ ucfirst($meatType) }} ({{ number_format($meatWeight) }} g)
+                            @endif
+                            @if (!empty($extraItems))
+                                <span class="text-[11px] text-[#D96B43] font-mono font-medium block">+ {{ count($extraItems) }} bahan pelengkap</span>
                             @endif
                         </span>
                     </div>

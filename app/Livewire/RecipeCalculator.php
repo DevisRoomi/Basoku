@@ -84,6 +84,9 @@ class RecipeCalculator extends Component
 
     public string $recipeName = '';
 
+    /** Bahan tambahan & bumbu pelengkap [material_id => qty] */
+    public array $extraItems = [];
+
     public function mount(): void
     {
         $this->sellerWaNumber = config('services.kiosk.wa_number', '6285122797969');
@@ -97,7 +100,50 @@ class RecipeCalculator extends Component
             }
         }
 
+        if ($sessionExtras = session()->get('selected_materials')) {
+            $this->extraItems = $sessionExtras;
+            session()->forget('selected_materials');
+        }
+
         $this->calculateEstimation();
+    }
+
+    public function incrementExtra(int $materialId): void
+    {
+        $this->extraItems[$materialId] = ($this->extraItems[$materialId] ?? 0) + 1;
+        $this->calculateEstimation();
+    }
+
+    public function decrementExtra(int $materialId): void
+    {
+        if (isset($this->extraItems[$materialId])) {
+            $this->extraItems[$materialId]--;
+            if ($this->extraItems[$materialId] <= 0) {
+                unset($this->extraItems[$materialId]);
+            }
+            $this->calculateEstimation();
+        }
+    }
+
+    public function removeExtra(int $materialId): void
+    {
+        unset($this->extraItems[$materialId]);
+        $this->calculateEstimation();
+    }
+
+    public function clearExtras(): void
+    {
+        $this->extraItems = [];
+        $this->calculateEstimation();
+    }
+
+    public function getAvailableExtraMaterialsProperty()
+    {
+        return Material::where('is_available', true)
+            ->whereNotIn('category', ['daging'])
+            ->orderBy('category')
+            ->orderBy('name')
+            ->get();
     }
 
     public function updated($property = null): void
@@ -246,9 +292,13 @@ class RecipeCalculator extends Component
                 ];
             }
 
+            if (! empty($this->extraItems)) {
+                $this->appendExtraItemsToBreakdown($items);
+            }
+
             $this->breakdown = $items;
-            $this->totalProportionalCost = $flourMarketCost + $garlicMarketCost + $saltMarketCost;
-            $this->totalMarketCost = $this->totalProportionalCost;
+            $this->totalProportionalCost = (float) array_sum(array_column($items, 'proportional_cost'));
+            $this->totalMarketCost = (float) array_sum(array_column($items, 'market_cost'));
 
             return;
         }
@@ -408,9 +458,52 @@ class RecipeCalculator extends Component
             ];
         }
 
+        if (! empty($this->extraItems)) {
+            $this->appendExtraItemsToBreakdown($items);
+        }
+
         $this->breakdown = $items;
         $this->totalProportionalCost = (float) array_sum(array_column($items, 'proportional_cost'));
         $this->totalMarketCost = (float) array_sum(array_column($items, 'market_cost'));
+    }
+
+    /**
+     * Tambahkan bahan pelengkap pilihan pengguna ke breakdown kalkulator.
+     */
+    protected function appendExtraItemsToBreakdown(array &$items): void
+    {
+        $activeExtraIds = array_keys(array_filter($this->extraItems, fn ($q) => $q > 0));
+        if (empty($activeExtraIds)) {
+            return;
+        }
+
+        $extraMaterials = Material::whereIn('id', $activeExtraIds)->get()->keyBy('id');
+        foreach ($this->extraItems as $extraId => $qty) {
+            if ($qty > 0 && isset($extraMaterials[$extraId])) {
+                $mat = $extraMaterials[$extraId];
+                $pkgWeight = (float) ($mat->package_weight ?? 1.0);
+                $pkgPrice = (float) ($mat->package_price ?? $mat->price ?? 0.0);
+                $pkgUnit = (string) ($mat->package_unit ?? 'pack');
+                $cost = $qty * $pkgPrice;
+
+                $items[] = [
+                    'material_id' => $mat->id,
+                    'name' => $mat->name,
+                    'weight' => $qty * $pkgWeight,
+                    'unit' => $mat->unit ?? 'gram',
+                    'price_per_gram' => (float) $mat->price,
+                    'cost' => $cost,
+                    'proportional_cost' => $cost,
+                    'market_cost' => $cost,
+                    'package_info' => "{$qty} {$pkgUnit} (@".number_format($pkgWeight)."g)",
+                    'excess_grams' => 0,
+                    'note' => "Bahan Pelengkap: {$qty} {$pkgUnit}",
+                    'is_meat' => false,
+                    'own_meat' => false,
+                    'is_extra' => true,
+                ];
+            }
+        }
     }
 
     /**

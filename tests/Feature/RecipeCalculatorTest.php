@@ -330,4 +330,31 @@ class RecipeCalculatorTest extends TestCase
             ->assertSee('Beli Bahan Saja')
             ->assertSee('Tanpa Daging');
     }
+
+    public function test_calculator_loads_transferred_materials_from_session(): void
+    {
+        $material = \App\Models\Material::where('name', 'Merica Bubuk Sachet')->first();
+        session(['selected_materials' => [$material->id => 3]]);
+
+        Livewire::test(RecipeCalculator::class)
+            ->assertSet('extraItems.' . $material->id, 3)
+            ->assertSee('Merica Bubuk Sachet')
+            ->assertSee('Pelengkap Kios');
+    }
+
+    public function test_calculator_can_increment_and_decrement_extra_materials(): void
+    {
+        $material = \App\Models\Material::where('name', 'Telur Ayam')->first();
+
+        Livewire::test(RecipeCalculator::class)
+            ->call('incrementExtra', $material->id)
+            ->assertSet('extraItems.' . $material->id, 1)
+            ->assertSee('Telur Ayam')
+            ->call('incrementExtra', $material->id)
+            ->assertSet('extraItems.' . $material->id, 2)
+            ->call('decrementExtra', $material->id)
+            ->assertSet('extraItems.' . $material->id, 1)
+            ->call('decrementExtra', $material->id)
+            ->assertSet('extraItems', []);
+    }
 }
