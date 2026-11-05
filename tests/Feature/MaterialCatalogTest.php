@@ -29,7 +29,7 @@ class MaterialCatalogTest extends TestCase
             ->assertSee('Daging Ayam')
             ->assertSee('Tepung Tapioka')
             ->assertSee('Bawang Putih Kupas')
-            ->assertSee('Garam Kasar')
+            ->assertSee('Garam Halus')
             ->assertSee('Jasa Selepan (Penggilingan)');
     }
 

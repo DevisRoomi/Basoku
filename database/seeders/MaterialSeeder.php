@@ -27,8 +27,8 @@ class MaterialSeeder extends Seeder
                 'unit' => 'Kg',
                 'package_unit' => 'Kg',
                 'package_weight' => 1000.00,
-                'package_price' => 140000.00,
-                'price' => 140.00, // Rp140.000 / kg -> Rp140 / gram
+                'package_price' => 120000.00,
+                'price' => 120.00, // Rp120.000 / kg -> Rp120 / gram
                 'is_available' => true,
             ],
             [
@@ -37,8 +37,8 @@ class MaterialSeeder extends Seeder
                 'unit' => 'Kg',
                 'package_unit' => 'Kg',
                 'package_weight' => 1000.00,
-                'package_price' => 40000.00,
-                'price' => 40.00, // Rp40.000 / kg -> Rp40 / gram
+                'package_price' => 45000.00,
+                'price' => 45.00, // Rp45.000 / kg -> Rp45 / gram
                 'is_available' => true,
             ],
             [
@@ -102,13 +102,13 @@ class MaterialSeeder extends Seeder
                 'is_available' => true,
             ],
             [
-                'name' => 'Garam Kasar',
+                'name' => 'Garam Halus',
                 'category' => 'bumbu',
                 'unit' => 'Pack',
                 'package_unit' => 'Pack',
-                'package_weight' => 1000.00,
-                'package_price' => 3000.00,
-                'price' => 3.00, // Rp3.000 / kg -> Rp3 / gram
+                'package_weight' => 250.00,
+                'package_price' => 3500.00,
+                'price' => 14.00, // Rp3.500 / 250g -> Rp14 / gram
                 'is_available' => true,
             ],
             [
@@ -117,41 +117,49 @@ class MaterialSeeder extends Seeder
                 'unit' => 'Butir',
                 'package_unit' => 'Butir',
                 'package_weight' => 60.00,
-                'package_price' => 2000.00,
-                'price' => 2000.00, // Rp2.000 / butir
+                'package_price' => 2500.00,
+                'price' => 2500.00, // Rp2.500 / butir
                 'is_available' => true,
             ],
             [
                 'name' => 'Merica Bubuk Sachet',
                 'category' => 'bumbu',
-                'unit' => 'Pack',
-                'package_unit' => 'Pack',
-                'package_weight' => 10.00,
+                'unit' => 'Sachet',
+                'package_unit' => 'Sachet',
+                'package_weight' => 5.00,
                 'package_price' => 1000.00,
-                'price' => 1000.00, // Rp1.000 / sachet
+                'price' => 1000.00, // Rp1.000 / sachet 5g
                 'is_available' => true,
             ],
             [
                 'name' => 'Pengenyal Sobaso',
                 'category' => 'tambahan',
-                'unit' => 'Pack',
-                'package_unit' => 'Pack',
-                'package_weight' => 250.00,
-                'package_price' => 10000.00,
-                'price' => 10000.00, // Rp10.000 / pack (250g)
+                'unit' => 'Sachet',
+                'package_unit' => 'Sachet',
+                'package_weight' => 32.00,
+                'package_price' => 4500.00,
+                'price' => 4500.00, // Rp4.500 / sachet 32g
                 'is_available' => true,
             ],
             [
                 'name' => 'Penyedap Masako',
                 'category' => 'penyedap',
-                'unit' => 'Pack',
-                'package_unit' => 'Pack',
+                'unit' => 'Sachet',
+                'package_unit' => 'Sachet',
                 'package_weight' => 10.00,
-                'package_price' => 500.00,
-                'price' => 500.00, // Rp500 / sachet
+                'package_price' => 1000.00,
+                'price' => 1000.00, // Rp1.000 / sachet 10g
                 'is_available' => true,
             ],
         ];
+
+        // Migrasi data nama lama jika ada
+        Material::where('name', 'Garam Kasar')->update([
+            'name' => 'Garam Halus',
+            'package_weight' => 250.00,
+            'package_price' => 3500.00,
+            'price' => 14.00,
+        ]);
 
         foreach ($materials as $item) {
             Material::updateOrCreate(

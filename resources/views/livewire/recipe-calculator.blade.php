@@ -140,7 +140,7 @@
                             SP
                         </div>
                         <span class="block font-bold text-sm text-[#26221E]">Daging Sapi</span>
-                        <span class="block text-[11px] text-[#5A534A] mt-0.5">Sapi segar paha / gandik</span>
+                        <span class="block text-[11px] text-[#5A534A] mt-0.5">Sapi segar paha / gandik &bull; <strong class="text-[#D96B43]">Rp 120.000/kg</strong></span>
                     </button>
 
                     <!-- Daging Ayam -->
@@ -153,7 +153,7 @@
                             AY
                         </div>
                         <span class="block font-bold text-sm text-[#26221E]">Daging Ayam</span>
-                        <span class="block text-[11px] text-[#5A534A] mt-0.5">Dada ayam fillet bersih</span>
+                        <span class="block text-[11px] text-[#5A534A] mt-0.5">Dada ayam fillet bersih &bull; <strong class="text-[#D96B43]">Rp 45.000/kg</strong></span>
                     </button>
                 </div>
             </fieldset>
@@ -420,8 +420,8 @@
                         </div>
                         <div class="border-t border-[#26221E]/5 pt-3 flex items-center justify-between">
                             <div>
-                                <span class="text-xs font-bold text-[#26221E] block">Garam Halus (Pack 1.000g):</span>
-                                <span class="text-[10px] text-[#5A534A]">Garam dapur beryodium</span>
+                                <span class="text-xs font-bold text-[#26221E] block">Garam Halus (Pack 250g):</span>
+                                <span class="text-[10px] text-[#5A534A]">Garam dapur beryodium (Rp 3.500)</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <button type="button" wire:click="$set('ingredientSaltPacks', {{ max(0, $ingredientSaltPacks - 1) }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center">-</button>
@@ -701,8 +701,13 @@
                                         </div>
                                         <div class="text-right shrink-0">
                                             <span class="font-semibold text-xs tabular-nums font-mono {{ !empty($item['own_meat']) ? 'text-emerald-400' : 'text-white' }}">
-                                                {{ \Illuminate\Support\Number::currency($item['cost'] ?? $item['proportional_cost'], 'IDR', 'id', precision: 0) }}
+                                                {{ \Illuminate\Support\Number::currency($item['market_cost'] ?? $item['cost'], 'IDR', 'id', precision: 0) }}
                                             </span>
+                                            @if (isset($item['market_cost']) && isset($item['proportional_cost']) && $item['market_cost'] > $item['proportional_cost'])
+                                                <span class="block text-[10px] text-[#D8E0D3]/60 tabular-nums font-mono">
+                                                    Resep: {{ \Illuminate\Support\Number::currency($item['proportional_cost'], 'IDR', 'id', precision: 0) }}
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
                                 @endforeach
