@@ -1,0 +1,18 @@
+{
+  "name": "BASOKU — Spesialis Bahan & Selepan Bakso",
+  "short_name": "BASOKU",
+  "description": "Kalkulator racikan bakso, katalog harga pasar, dan estimasi biaya belanja kios.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFDF9",
+  "theme_color": "#2D4235",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

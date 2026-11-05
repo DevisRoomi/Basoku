@@ -18,6 +18,20 @@
                 <p class="text-sm text-[#D8E0D3]/85 mt-3 leading-relaxed font-normal">
                     Koleksi resep bakso favorit Anda. Buka takaran bahan yang pernah Anda hitung dan rencanakan belanja pasar berikutnya dengan presisi.
                 </p>
+                <div class="mt-4 inline-flex p-1 bg-white/10 rounded-xl border border-white/15">
+                    <a
+                        href="{{ route('customer.recipes') }}"
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-white/20 transition-all"
+                    >
+                        Laboratorium Resep
+                    </a>
+                    <a
+                        href="{{ route('customer.orders') }}"
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-all"
+                    >
+                        Riwayat Pesanan
+                    </a>
+                </div>
             </div>
 
             <!-- Tombol Tambah Racikan Baru -->

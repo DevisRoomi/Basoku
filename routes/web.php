@@ -6,6 +6,7 @@ use App\Livewire\Admin\ManageOrders;
 use App\Livewire\Admin\ManageRecipes;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
+use App\Livewire\Customer\MyOrders;
 use App\Livewire\Customer\MyRecipeLab;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -26,9 +27,11 @@ Route::redirect('/register', '/daftar');
 
 // Rute Terproteksi Autentikasi Pengguna & Admin
 Route::middleware(['auth'])->group(function () {
-    // 1. Laboratorium Resep Pelanggan
+    // 1. Laboratorium Resep & Riwayat Pesanan Pelanggan
     Route::get('/racikan-saya', MyRecipeLab::class)->name('customer.recipes');
     Route::redirect('/resep-saya', '/racikan-saya');
+    Route::get('/pesanan-saya', MyOrders::class)->name('customer.orders');
+    Route::redirect('/order-saya', '/pesanan-saya');
 
     // 2. Panel Khusus Admin
     Route::middleware(['admin'])->group(function () {

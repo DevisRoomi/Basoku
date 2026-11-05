@@ -108,25 +108,36 @@
     <nav class="bg-[#F4EFE6]/95 backdrop-blur-md border-b border-[#26221E]/10 px-4 sm:px-6 lg:px-12 py-3.5 transition-all duration-300" aria-label="Navigasi Utama">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             
-            <!-- Brand Identity (Ref 1: Sage Circle Monogram B. + Warm Serif Wordmark) -->
-            <a
-                href="{{ url('/') }}"
-                @click="activeNav = 'beranda'"
-                class="group flex items-center gap-3.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] rounded-2xl"
-                aria-label="Beranda BASOKU"
-            >
-                <div class="w-10 h-10 rounded-full bg-[#2D4235] text-[#F4EFE6] font-serif font-bold text-lg flex items-center justify-center shadow-sm transition-transform group-hover:scale-105 shrink-0 border border-[#2D4235]/30">
-                    B.
+            @php
+                $currentHourWib = (int) now()->timezone('Asia/Jakarta')->format('G');
+                $isKioskOpen = ($currentHourWib >= (int) config('services.kiosk.open_hour', 5) && $currentHourWib < (int) config('services.kiosk.close_hour', 12));
+            @endphp
+            <div class="flex items-center gap-3">
+                <a
+                    href="{{ url('/') }}"
+                    @click="activeNav = 'beranda'"
+                    class="group flex items-center gap-3.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] rounded-2xl"
+                    aria-label="Beranda BASOKU"
+                >
+                    <div class="w-10 h-10 rounded-full bg-[#2D4235] text-[#F4EFE6] font-serif font-bold text-lg flex items-center justify-center shadow-sm transition-transform group-hover:scale-105 shrink-0 border border-[#2D4235]/30">
+                        B.
+                    </div>
+                    <div>
+                        <span class="text-[#26221E] text-2xl font-bold tracking-tight block leading-none" style="font-family: 'Playfair Display', Georgia, serif;">
+                            BASOKU<span class="text-[#D96B43]">.</span>
+                        </span>
+                        <span class="text-[10px] uppercase font-mono tracking-wider text-[#5A534A] block mt-1">
+                            spesialis bahan & selepan bakso
+                        </span>
+                    </div>
+                </a>
+
+                <!-- Live Kiosk Badge -->
+                <div class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide {{ $isKioskOpen ? 'bg-emerald-500/10 text-emerald-800 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-900 border border-amber-500/20' }}">
+                    <span class="w-2 h-2 rounded-full {{ $isKioskOpen ? 'bg-emerald-600 animate-pulse' : 'bg-amber-600' }}"></span>
+                    <span>{{ $isKioskOpen ? 'Kios Buka (05.00–12.00 WIB)' : 'Kios Tutup (Buka 05.00 WIB)' }}</span>
                 </div>
-                <div>
-                    <span class="text-[#26221E] text-2xl font-bold tracking-tight block leading-none" style="font-family: 'Playfair Display', Georgia, serif;">
-                        BASOKU<span class="text-[#D96B43]">.</span>
-                    </span>
-                    <span class="text-[10px] uppercase font-mono tracking-wider text-[#5A534A] block mt-1">
-                        spesialis bahan & selepan bakso
-                    </span>
-                </div>
-            </a>
+            </div>
 
             <!-- Center: Desktop Navigation Links (Ref 1 Delicate Pill Links) -->
             <div class="hidden lg:flex items-center gap-1.5 bg-[#FAF7F2] border border-[#26221E]/10 rounded-full px-3 py-1.5 shadow-xs">
@@ -182,10 +193,18 @@
                     <a
                         href="{{ url('/racikan-saya') }}"
                         @click="activeNav = 'racikan-saya'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                        class="rounded-full px-4 py-1.5 text-xs font-medium tracking-wide transition-colors flex items-center gap-1.5"
+                        class="rounded-full px-3.5 py-1.5 text-xs font-medium tracking-wide transition-colors flex items-center gap-1.5"
                         :class="activeNav === 'racikan-saya' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                     >
-                        <span>Racikan Saya</span>
+                        <span>Racikan</span>
+                    </a>
+                    <a
+                        href="{{ url('/pesanan-saya') }}"
+                        @click="activeNav = 'pesanan-saya'; isClicking = true; setTimeout(() => isClicking = false, 800)"
+                        class="rounded-full px-3.5 py-1.5 text-xs font-medium tracking-wide transition-colors flex items-center gap-1.5"
+                        :class="activeNav === 'pesanan-saya' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
+                    >
+                        <span>Pesanan</span>
                         <span class="w-1.5 h-1.5 rounded-full bg-[#D96B43] animate-pulse"></span>
                     </a>
                 @endif
@@ -331,11 +350,20 @@
             @if (auth()->check() && auth()->user()->role === 'customer')
                 <a
                     href="{{ url('/racikan-saya') }}"
-                    @click="activeNav = 'racikan-saya'; isClicking = true; setTimeout(() => isClicking = false, 800)"
+                    @click="mobileOpen = false; activeNav = 'racikan-saya'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                     class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
                     :class="activeNav === 'racikan-saya' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                 >
                     Racikan Saya
+                </a>
+                <a
+                    href="{{ url('/pesanan-saya') }}"
+                    @click="mobileOpen = false; activeNav = 'pesanan-saya'; isClicking = true; setTimeout(() => isClicking = false, 800)"
+                    class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-between"
+                    :class="activeNav === 'pesanan-saya' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
+                >
+                    <span>Pesanan Saya</span>
+                    <span class="w-2 h-2 rounded-full bg-[#D96B43]"></span>
                 </a>
             @endif
 

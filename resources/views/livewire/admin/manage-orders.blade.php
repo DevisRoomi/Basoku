@@ -409,7 +409,17 @@
                 </div>
 
                 <!-- Footer Modal -->
-                <div class="pt-4 mt-4 border-t border-[#161210]/10 flex justify-end shrink-0">
+                <div class="pt-4 mt-4 border-t border-[#161210]/10 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                    <button
+                        type="button"
+                        onclick="window.print()"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2D4235] hover:bg-[#1E2D24] text-white font-semibold text-xs transition-colors cursor-pointer shadow-xs active:scale-[0.98]"
+                    >
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        <span>Cetak Struk Kios (Thermal)</span>
+                    </button>
                     <button
                         type="button"
                         wire:click="closeModal"
@@ -420,5 +430,90 @@
                 </div>
             </div>
         </div>
+
+        <!-- Template Struk Fisik Thermal Kios (80mm / 58mm) Khusus Print -->
+        <div id="thermal-receipt" class="hidden">
+            <div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px;">
+                <h2 style="font-size: 15px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 1px;">KIOS BASOKU</h2>
+                <p style="margin: 2px 0 0; font-size: 10px;">Bahan & Selepan Gilingan Bakso Pasar</p>
+                <p style="margin: 1px 0 0; font-size: 9px;">WA: {{ config('services.kiosk.wa_number', '0851-2279-7969') }}</p>
+            </div>
+
+            <div style="font-size: 11px; margin-bottom: 8px; border-bottom: 1px dashed #000; padding-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Order: <strong>#BSK-{{ str_pad($selectedOrder->id, 5, '0', STR_PAD_LEFT) }}</strong></span>
+                    <span>{{ $selectedOrder->created_at->format('d/m/Y H:i') }}</span>
+                </div>
+                <div>Pelanggan: <strong>{{ $selectedOrder->customer_name }}</strong></div>
+                @if ($selectedOrder->customer_phone)
+                    <div>Telp: {{ $selectedOrder->customer_phone }}</div>
+                @endif
+                <div>Jadwal Ambil: <strong>{{ $selectedOrder->pickup_at ? \Carbon\Carbon::parse($selectedOrder->pickup_at)->format('d M, H:i') : '-' }} WIB</strong></div>
+                <div>Mode: {{ match($selectedOrder->start_type) {
+                    'start_from_zero' => 'Bahan Lengkap Toko',
+                    'ingredients_only' => 'Beli Bahan Saja',
+                    default => 'Bawa Daging Sendiri'
+                } }}</div>
+                @if ($selectedOrder->start_type !== 'ingredients_only')
+                    <div>Racikan: {{ (int) $selectedOrder->meat_weight }}g Daging &bull; {{ ucfirst(str_replace('_', ' ', $selectedOrder->preference)) }}</div>
+                @endif
+            </div>
+
+            <div style="font-size: 11px; border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 8px;">
+                <div style="font-weight: bold; margin-bottom: 4px;">RINCIAN KOMPONEN:</div>
+                @foreach ($selectedOrder->orderItems as $item)
+                    <div style="margin-bottom: 3px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>{{ $item->material_name }}</span>
+                            <span style="font-weight: bold;">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                        </div>
+                        <div style="font-size: 9px; color: #333;">
+                            {{ (float) $item->quantity }} {{ $item->unit }} @ Rp {{ number_format($item->unit_price, 0, ',', '.') }}
+                        </div>
+                    </div>
+                @endforeach
+
+                @if ((float) $selectedOrder->grinding_fee > 0)
+                    <div style="display: flex; justify-content: space-between; margin-top: 4px; padding-top: 3px; border-top: 1px dotted #ccc;">
+                        <span>Jasa Giling / Selepan:</span>
+                        <span style="font-weight: bold;">Rp {{ number_format($selectedOrder->grinding_fee, 0, ',', '.') }}</span>
+                    </div>
+                @endif
+            </div>
+
+            <div style="font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span>TOTAL BAYAR:</span>
+                <span>Rp {{ number_format($selectedOrder->total_price, 0, ',', '.') }}</span>
+            </div>
+
+            <div style="text-align: center; font-size: 9px; border-top: 1px dashed #000; padding-top: 6px;">
+                <p style="margin: 0;">Tempelkan struk ini pada kantong adonan.</p>
+                <p style="margin: 2px 0 0;">Terima kasih atas kepercayaan Anda di BASOKU.</p>
+            </div>
+        </div>
+
+        <style>
+            @media print {
+                body * {
+                    visibility: hidden !important;
+                }
+                #thermal-receipt, #thermal-receipt * {
+                    visibility: visible !important;
+                }
+                #thermal-receipt {
+                    display: block !important;
+                    position: absolute !important;
+                    left: 0 !important;
+                    top: 0 !important;
+                    width: 78mm !important;
+                    max-width: 100% !important;
+                    margin: 0 !important;
+                    padding: 4mm !important;
+                    background: #fff !important;
+                    color: #000 !important;
+                    font-family: 'Courier New', Courier, monospace !important;
+                }
+            }
+        </style>
     @endif
 </main>

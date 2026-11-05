@@ -4,6 +4,11 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="{{ $description ?? 'Pilih bahan, atur racikan, dan ketahui perkiraan biaya belanja sebelum mulai membuat bakso dengan BASOKU.' }}">
+        <meta name="theme-color" content="#2D4235">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
         <title>{{ $title ?? 'BASOKU — Mau Racik Bakso? Hitung Dulu Biayanya.' }}</title>
 
