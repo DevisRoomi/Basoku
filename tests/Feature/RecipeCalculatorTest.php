@@ -33,7 +33,7 @@ class RecipeCalculatorTest extends TestCase
             ->assertSee('Daging Sapi')
             ->assertSee('Tepung Tapioka')
             ->assertSee('Bawang Putih Kupas')
-            ->assertSee('Garam Halus')
+            ->assertSee('Garam Kasar')
             ->assertSee('Jasa Selepan Pasar')
             ->assertSee('Biaya Bahan Terpakai')
             ->assertSee('Uang Belanja Pasar');
@@ -42,17 +42,17 @@ class RecipeCalculatorTest extends TestCase
     public function test_scaling_meat_weight_updates_breakdown_and_totals(): void
     {
         $component500 = Livewire::test(RecipeCalculator::class)
-            ->assertSet('totalProportionalCost', 70040.0);
+            ->assertSet('totalProportionalCost', 79930.0);
 
         $component500->set('meatWeight', 1000)
-            ->assertSet('totalProportionalCost', 140080.0);
+            ->assertSet('totalProportionalCost', 159860.0);
     }
 
     public function test_own_meat_does_not_charge_for_meat(): void
     {
         Livewire::test(RecipeCalculator::class)
             ->set('startType', 'own_meat')
-            ->assertSet('totalProportionalCost', 10040.0)
+            ->assertSet('totalProportionalCost', 9930.0)
             ->assertSee('Bawa Sendiri');
     }
 
@@ -60,10 +60,10 @@ class RecipeCalculatorTest extends TestCase
     {
         Livewire::test(RecipeCalculator::class)
             ->assertSet('useGrinding', true)
-            ->assertSet('totalProportionalCost', 70040.0)
+            ->assertSet('totalProportionalCost', 79930.0)
             ->toggle('useGrinding')
             ->assertSet('useGrinding', false)
-            ->assertSet('totalProportionalCost', 62540.0);
+            ->assertSet('totalProportionalCost', 72430.0);
     }
 
     public function test_budget_mode_displays_error_when_budget_is_insufficient(): void
@@ -71,9 +71,9 @@ class RecipeCalculatorTest extends TestCase
         Livewire::test(RecipeCalculator::class)
             ->set('calculationMode', 'budget')
             ->set('budget', 50000)
-            ->assertSet('budgetError', 'Anggaran Anda belum mencukupi. Minimal butuh Rp 70.040 untuk racikan standar 500 gram.')
+            ->assertSet('budgetError', 'Anggaran Anda belum mencukupi. Minimal butuh Rp 79.930 untuk racikan standar 500 gram.')
             ->assertSee('Anggaran Belum Mencukupi')
-            ->assertSee('Minimal butuh Rp 70.040 untuk racikan standar 500 gram.')
+            ->assertSee('Minimal butuh Rp 79.930 untuk racikan standar 500 gram.')
             ->assertSet('breakdown', [])
             ->assertSet('totalProportionalCost', 0.0);
     }
@@ -84,9 +84,9 @@ class RecipeCalculatorTest extends TestCase
             ->set('calculationMode', 'budget')
             ->set('budget', 100000)
             ->assertSet('budgetError', null)
-            ->assertSet('meatWeight', 713)
+            ->assertSet('meatWeight', 625)
             ->assertDontSee('Anggaran Belum Mencukupi')
-            ->assertSee('713 g');
+            ->assertSee('625 g');
     }
 
     public function test_budget_mode_with_own_meat_has_lower_minimum_threshold(): void
@@ -96,7 +96,7 @@ class RecipeCalculatorTest extends TestCase
             ->set('calculationMode', 'budget')
             ->set('budget', 50000)
             ->assertSet('budgetError', null)
-            ->assertSet('meatWeight', 2490)
+            ->assertSet('meatWeight', 2517)
             ->assertDontSee('Anggaran Belum Mencukupi');
     }
 
@@ -149,7 +149,7 @@ class RecipeCalculatorTest extends TestCase
             'meat_weight' => 500.000,
             'preference' => 'seimbang',
             'grinding_fee' => 7500.00,
-            'total_price' => 84000.00, // Uang belanja pasar kemasan utuh (daging 500g @ Rp120/g + tapioka 500g pack + bawang + garam + selepan)
+            'total_price' => 93500.00, // Uang belanja pasar kemasan utuh (daging 500g @ Rp140/g + tapioka 500g pack + bawang + garam + selepan)
             'status' => 'pending',
         ]);
 
@@ -161,8 +161,8 @@ class RecipeCalculatorTest extends TestCase
             'order_id' => $order->id,
             'material_name' => 'Daging Sapi',
             'quantity' => 500.000,
-            'unit_price' => 120.00,
-            'subtotal' => 60000.00,
+            'unit_price' => 140.00,
+            'subtotal' => 70000.00,
         ]);
 
         // Tapioka: butuh 100g, beli kemasan utuh pack 500g = Rp 9.000
@@ -244,7 +244,7 @@ class RecipeCalculatorTest extends TestCase
         $this->assertDatabaseHas('orders', [
             'customer_name' => 'Attacker Tamper',
             'customer_phone' => '081234567890',
-            'total_price' => 84000.00,
+            'total_price' => 93500.00,
         ]);
     }
 

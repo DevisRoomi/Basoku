@@ -77,44 +77,34 @@
                                     $monogram .= strtoupper(mb_substr($w, 0, 1));
                                 }
 
-                                $hasPackage = !empty($material->package_size) && (float) $material->package_size > 0 && !empty($material->package_unit);
-                                $isGram = strtolower($material->unit) === 'gram';
+                                $hasPackage = !empty($material->package_weight) && (float) $material->package_weight > 0 && !empty($material->package_unit);
+                                $packagePrice = (float) ($material->package_price > 0 ? $material->package_price : (strtolower($material->unit) === 'kg' ? $material->price * 1000 : $material->price));
 
-                                // Clean Indonesian market price formatting without ',00'
-                                if ($isGram) {
-                                    if ($isDaging) {
-                                        $mainPriceFormatted = 'Rp ' . number_format($material->price * 1000, 0, ',', '.');
-                                        $mainUnitLabel = '/ kg';
-                                        $baseBadge = 'Rp ' . number_format($material->price, 0, ',', '.') . ' / ' . $material->unit;
-                                    } elseif ($isBumbu) {
-                                        if ($hasPackage && (float)$material->package_size < 1000) {
-                                            $mainPriceFormatted = 'Rp ' . number_format($material->price * $material->package_size, 0, ',', '.');
-                                            $mainUnitLabel = '/ bks (' . number_format($material->package_size, 0, ',', '.') . ' ' . $material->package_unit . ')';
-                                            $baseBadge = 'Rp ' . number_format($material->price, 0, ',', '.') . ' / ' . $material->unit;
-                                        } else {
-                                            $mainPriceFormatted = 'Rp ' . number_format($material->price * 100, 0, ',', '.');
-                                            $mainUnitLabel = '/ 100 gr';
-                                            $baseBadge = 'Rp ' . number_format($material->price, 0, ',', '.') . ' / ' . $material->unit;
-                                        }
-                                    } elseif ($isTepung) {
-                                        if ($hasPackage) {
-                                            $mainPriceFormatted = 'Rp ' . number_format($material->price * $material->package_size, 0, ',', '.');
-                                            $mainUnitLabel = '/ bks (' . number_format($material->package_size, 0, ',', '.') . ' ' . $material->package_unit . ')';
-                                            $baseBadge = 'Rp ' . number_format($material->price, 0, ',', '.') . ' / ' . $material->unit;
-                                        } else {
-                                            $mainPriceFormatted = 'Rp ' . number_format($material->price * 1000, 0, ',', '.');
-                                            $mainUnitLabel = '/ kg';
-                                            $baseBadge = 'Rp ' . number_format($material->price, 0, ',', '.') . ' / ' . $material->unit;
-                                        }
-                                    } else {
-                                        $mainPriceFormatted = 'Rp ' . number_format($material->price * 1000, 0, ',', '.');
-                                        $mainUnitLabel = '/ kg';
-                                        $baseBadge = 'Rp ' . number_format($material->price, 0, ',', '.') . ' / ' . $material->unit;
-                                    }
+                                // Format harga utama kemasan pasar (retail)
+                                $mainPriceFormatted = 'Rp ' . number_format($packagePrice, 0, ',', '.');
+
+                                $pkgUnitLower = strtolower($material->package_unit ?? $material->unit);
+                                if ($pkgUnitLower === 'kg') {
+                                    $mainUnitLabel = '/ kg';
+                                } elseif (in_array($pkgUnitLower, ['pack', 'bks', 'bungkus'])) {
+                                    $mainUnitLabel = '/ pack (' . number_format($material->package_weight, 0, ',', '.') . ' g)';
+                                } elseif ($pkgUnitLower === 'sachet') {
+                                    $mainUnitLabel = '/ sachet (' . number_format($material->package_weight, 0, ',', '.') . ' g)';
+                                } elseif ($pkgUnitLower === 'butir') {
+                                    $mainUnitLabel = '/ butir';
                                 } else {
-                                    $mainPriceFormatted = 'Rp ' . number_format($material->price, 0, ',', '.');
-                                    $mainUnitLabel = '/ ' . $material->unit;
-                                    $baseBadge = 'Rp ' . number_format($material->price, 0, ',', '.') . ' / ' . $material->unit;
+                                    $mainUnitLabel = '/ ' . ($material->package_unit ?? $material->unit);
+                                }
+
+                                // Badge harga dasar per gram atau per butir/sachet
+                                if ($pkgUnitLower === 'butir') {
+                                    $baseBadge = 'Rp ' . number_format($packagePrice, 0, ',', '.') . ' / butir';
+                                } elseif ($pkgUnitLower === 'sachet') {
+                                    $baseBadge = 'Rp ' . number_format($packagePrice, 0, ',', '.') . ' / sachet';
+                                } elseif ($material->price >= 1000) {
+                                    $baseBadge = 'Rp ' . number_format($packagePrice, 0, ',', '.') . ' / ' . $pkgUnitLower;
+                                } else {
+                                    $baseBadge = 'Rp ' . number_format($material->price, 0, ',', '.') . ' / g';
                                 }
                             @endphp
 
@@ -131,7 +121,7 @@
                                         </h4>
                                         <span class="text-[11px] text-[#5A534A] block mt-0.5 leading-normal">
                                             @if ($hasPackage)
-                                                Kemasan: {{ number_format($material->package_size, 0, ',', '.') }} {{ $material->package_unit }}
+                                                Kemasan fisik retail: {{ number_format($material->package_weight, 0, ',', '.') }} {{ $pkgUnitLower === 'butir' ? 'gram / butir' : ($pkgUnitLower === 'kg' ? 'gram (1 kg)' : 'gram') }}
                                             @else
                                                 Harga satuan terverifikasi pasar &bull; Satuan {{ $material->unit }}
                                             @endif
@@ -155,7 +145,7 @@
 
                                     <!-- Circular Sage '+' Button -->
                                     <a
-                                        href="#racikan-saya"
+                                        href="{{ route('calculator') }}"
                                         class="w-8 h-8 rounded-full bg-[#2D4235] hover:bg-[#D96B43] text-white flex items-center justify-center text-sm font-bold shadow-xs transition-colors shrink-0"
                                         title="Hitung di Kalkulator"
                                         aria-label="Racik {{ $material->name }}"

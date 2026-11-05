@@ -123,12 +123,12 @@ class ManageRecipesTest extends TestCase
     public function test_calculator_responds_dynamically_to_formula_ratio_changes(): void
     {
         // Kondisi awal (seimbang standar):
-        // 500g daging sapi (120/g = 60.000)
+        // 500g daging sapi (140/g = 70.000)
         // Tepung 100g (flour_ratio 0.2, 18/g = 1.800)
-        // Bawang 15g (40/g = 600), Garam 10g (14/g = 140)
-        // Selepan 7.500 -> Total: 70.040.0
+        // Bawang 15g (40/g = 600), Garam 10g (3/g = 30)
+        // Selepan 7.500 -> Total: 79.930.0
         Livewire::test(RecipeCalculator::class)
-            ->assertSet('totalProportionalCost', 70040.0);
+            ->assertSet('totalProportionalCost', 79930.0);
 
         // Ubah flour_ratio dari 0.2000 (100g) menjadi 0.3000 (150g -> 150*18 = 2.700, selisih +900)
         $formula = RecipeFormula::where('code', 'seimbang')->first();
@@ -138,7 +138,7 @@ class ManageRecipesTest extends TestCase
 
         // Kalkulator langsung merespons perubahan dari basis data
         Livewire::test(RecipeCalculator::class)
-            ->assertSet('totalProportionalCost', 70940.0);
+            ->assertSet('totalProportionalCost', 80830.0);
     }
 
     public function test_calculator_hides_simulation_warning_when_formula_is_not_simulation(): void

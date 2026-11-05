@@ -140,7 +140,7 @@
                             SP
                         </div>
                         <span class="block font-bold text-sm text-[#26221E]">Daging Sapi</span>
-                        <span class="block text-[11px] text-[#5A534A] mt-0.5">Sapi segar paha / gandik &bull; <strong class="text-[#D96B43]">Rp 120.000/kg</strong></span>
+                        <span class="block text-[11px] text-[#5A534A] mt-0.5">Sapi segar paha / gandik &bull; <strong class="text-[#D96B43]">Rp 140.000/kg</strong></span>
                     </button>
 
                     <!-- Daging Ayam -->
@@ -153,7 +153,7 @@
                             AY
                         </div>
                         <span class="block font-bold text-sm text-[#26221E]">Daging Ayam</span>
-                        <span class="block text-[11px] text-[#5A534A] mt-0.5">Dada ayam fillet bersih &bull; <strong class="text-[#D96B43]">Rp 45.000/kg</strong></span>
+                        <span class="block text-[11px] text-[#5A534A] mt-0.5">Dada ayam fillet bersih &bull; <strong class="text-[#D96B43]">Rp 40.000/kg</strong></span>
                     </button>
                 </div>
             </fieldset>
@@ -378,7 +378,7 @@
                         class="p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'sagu' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
                     >
                         <span class="block font-bold text-xs text-[#26221E]">Sagu Aren</span>
-                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Pack 500g (Rp 10.000)</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Pack 250g (Rp 5.000)</span>
                         <span class="block text-[9px] font-mono text-[#E5A93C] mt-1 font-semibold">Renyah Garing</span>
                     </button>
 
@@ -389,7 +389,7 @@
                         class="p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'terigu' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
                     >
                         <span class="block font-bold text-xs text-[#26221E]">Terigu</span>
-                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Kg / 1.000g (Rp 12.000)</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Kg / 1.000g (Rp 10.000)</span>
                         <span class="block text-[9px] font-mono text-[#5A534A] mt-1 font-semibold">Campuran Padat</span>
                     </button>
                 </div>
@@ -420,8 +420,8 @@
                         </div>
                         <div class="border-t border-[#26221E]/5 pt-3 flex items-center justify-between">
                             <div>
-                                <span class="text-xs font-bold text-[#26221E] block">Garam Halus (Pack 250g):</span>
-                                <span class="text-[10px] text-[#5A534A]">Garam dapur beryodium (Rp 3.500)</span>
+                                <span class="text-xs font-bold text-[#26221E] block">Garam Kasar (Pack 1.000g):</span>
+                                <span class="text-[10px] text-[#5A534A]">Garam dapur beryodium (Rp 3.000)</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <button type="button" wire:click="$set('ingredientSaltPacks', {{ max(0, $ingredientSaltPacks - 1) }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center">-</button>

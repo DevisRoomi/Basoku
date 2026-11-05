@@ -164,10 +164,10 @@ class RecipeCalculator extends Component
         }
 
         // Harga per gram dari database dengan fallback aman jika belum ada
-        $meatPricePerGram = (float) ($meatMaterial?->price ?? ($this->meatType === 'sapi' ? 120.0 : 45.0));
+        $meatPricePerGram = (float) ($meatMaterial?->price ?? ($this->meatType === 'sapi' ? 140.0 : 40.0));
         $flourPricePerGram = (float) ($flourMaterial?->price ?? 18.0);
         $garlicPricePerGram = (float) ($garlicMaterial?->price ?? 40.0);
-        $saltPricePerGram = (float) ($saltMaterial?->price ?? 14.0);
+        $saltPricePerGram = (float) ($saltMaterial?->price ?? 3.0);
 
         // Logika Mode Beli Bahan Saja (Tanpa Daging & Tanpa Jasa Giling)
         if ($this->startType === 'ingredients_only') {
@@ -187,8 +187,8 @@ class RecipeCalculator extends Component
             $garlicTotalGrams = $garlicPacks * $garlicPkgWeight;
             $garlicMarketCost = $garlicPacks * $garlicPkgPrice;
 
-            $saltPkgWeight = (float) ($saltMaterial?->package_weight ?? 250.0);
-            $saltPkgPrice = (float) ($saltMaterial?->package_price ?? 3500.0);
+            $saltPkgWeight = (float) ($saltMaterial?->package_weight ?? 1000.0);
+            $saltPkgPrice = (float) ($saltMaterial?->package_price ?? 3000.0);
             $saltPacks = max(0, (int) $this->ingredientSaltPacks);
             $saltTotalGrams = $saltPacks * $saltPkgWeight;
             $saltMarketCost = $saltPacks * $saltPkgPrice;
@@ -231,7 +231,7 @@ class RecipeCalculator extends Component
             if ($saltPacks > 0) {
                 $items[] = [
                     'material_id' => $saltMaterial?->id,
-                    'name' => $saltMaterial?->name ?? 'Garam Halus',
+                    'name' => $saltMaterial?->name ?? 'Garam Kasar',
                     'weight' => $saltTotalGrams,
                     'unit' => 'gram',
                     'price_per_gram' => $saltPricePerGram,
@@ -310,8 +310,8 @@ class RecipeCalculator extends Component
         $garlicPacks = (int) max(1, ceil($garlicNeeded / max(1.0, $garlicPkgWeight)));
         $garlicMarketCost = $garlicPacks * $garlicPkgPrice;
 
-        $saltPkgWeight = (float) ($saltMaterial?->package_weight ?? 250.0);
-        $saltPkgPrice = (float) ($saltMaterial?->package_price ?? 3500.0);
+        $saltPkgWeight = (float) ($saltMaterial?->package_weight ?? 1000.0);
+        $saltPkgPrice = (float) ($saltMaterial?->package_price ?? 3000.0);
         $saltPacks = (int) max(1, ceil($saltNeeded / max(1.0, $saltPkgWeight)));
         $saltMarketCost = $saltPacks * $saltPkgPrice;
 
@@ -375,7 +375,7 @@ class RecipeCalculator extends Component
         $saltExcess = max(0, ($saltPacks * $saltPkgWeight) - (int) round($saltNeeded));
         $items[] = [
             'material_id' => $saltMaterial?->id,
-            'name' => $saltMaterial?->name ?? 'Garam Halus',
+            'name' => $saltMaterial?->name ?? 'Garam Kasar',
             'weight' => $saltNeeded,
             'unit' => 'gram',
             'price_per_gram' => $saltPricePerGram,
