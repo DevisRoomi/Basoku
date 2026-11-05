@@ -67,16 +67,22 @@ class Dashboard extends Component
 
         $pendingRevenue = (float) Order::whereIn('status', ['pending', 'menunggu'])->sum('total_price');
 
-        // 4. Sebaran Preferensi Racikan Resep: Enak, Seimbang, Ekonomis
+        // 4. Sebaran Preferensi Racikan Resep: Enak, Seimbang, Ekonomis, Urat, Kustom, Bahan Saja
         $enakCount = Order::whereIn('preference', ['enak', 'Enak', 'ENAK'])->count();
         $seimbangCount = Order::whereIn('preference', ['seimbang', 'Seimbang', 'SEIMBANG'])->count();
         $ekonomisCount = Order::whereIn('preference', ['ekonomis', 'Ekonomis', 'EKONOMIS'])->count();
-        $totalPreferences = $enakCount + $seimbangCount + $ekonomisCount;
+        $uratCount = Order::whereIn('preference', ['urat', 'Urat', 'URAT'])->count();
+        $kustomCount = Order::whereIn('preference', ['kustom', 'Kustom', 'KUSTOM'])->count();
+        $katalogCount = Order::whereIn('preference', ['belanja_katalog', 'bahan_saja', 'Bahan Saja'])->count();
+        $totalPreferences = $enakCount + $seimbangCount + $ekonomisCount + $uratCount + $kustomCount + $katalogCount;
 
         $preferencePercentages = [
             'enak' => $totalPreferences > 0 ? round(($enakCount / $totalPreferences) * 100, 1) : 0.0,
             'seimbang' => $totalPreferences > 0 ? round(($seimbangCount / $totalPreferences) * 100, 1) : 0.0,
             'ekonomis' => $totalPreferences > 0 ? round(($ekonomisCount / $totalPreferences) * 100, 1) : 0.0,
+            'urat' => $totalPreferences > 0 ? round(($uratCount / $totalPreferences) * 100, 1) : 0.0,
+            'kustom' => $totalPreferences > 0 ? round(($kustomCount / $totalPreferences) * 100, 1) : 0.0,
+            'katalog' => $totalPreferences > 0 ? round(($katalogCount / $totalPreferences) * 100, 1) : 0.0,
         ];
 
         // 5. Pesanan Terbaru
@@ -115,11 +121,35 @@ class Dashboard extends Component
         }
 
         // 7. Struktur Data Chart.js
+        $chartLabels = ['Racikan Enak', 'Racikan Seimbang', 'Racikan Ekonomis'];
+        $chartData = [$enakCount, $seimbangCount, $ekonomisCount];
+        $chartColors = ['#8B231A', '#2D4235', '#D96B43'];
+        $chartHover = ['#701A13', '#1E2D24', '#BF5732'];
+
+        if ($uratCount > 0) {
+            $chartLabels[] = 'Bakso Urat';
+            $chartData[] = $uratCount;
+            $chartColors[] = '#78350F';
+            $chartHover[] = '#5A260C';
+        }
+        if ($kustomCount > 0) {
+            $chartLabels[] = 'Rasio Kustom';
+            $chartData[] = $kustomCount;
+            $chartColors[] = '#4338CA';
+            $chartHover[] = '#3730A3';
+        }
+        if ($katalogCount > 0) {
+            $chartLabels[] = 'Bahan Saja';
+            $chartData[] = $katalogCount;
+            $chartColors[] = '#059669';
+            $chartHover[] = '#047857';
+        }
+
         $preferenceChart = [
-            'labels' => ['Racikan Enak', 'Racikan Seimbang', 'Racikan Ekonomis'],
-            'data' => [$enakCount, $seimbangCount, $ekonomisCount],
-            'colors' => ['#8B231A', '#2D4235', '#D96B43'],
-            'hoverColors' => ['#701A13', '#1E2D24', '#BF5732'],
+            'labels' => $chartLabels,
+            'data' => $chartData,
+            'colors' => $chartColors,
+            'hoverColors' => $chartHover,
         ];
 
         $statusChart = [
@@ -143,6 +173,9 @@ class Dashboard extends Component
             'enakCount' => $enakCount,
             'seimbangCount' => $seimbangCount,
             'ekonomisCount' => $ekonomisCount,
+            'uratCount' => $uratCount,
+            'kustomCount' => $kustomCount,
+            'katalogCount' => $katalogCount,
             'totalPreferences' => $totalPreferences,
             'preferencePercentages' => $preferencePercentages,
             'recentOrders' => $recentOrders,

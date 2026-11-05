@@ -139,11 +139,23 @@
 
                                 <!-- Kolom 4: Mode Racikan -->
                                 <td class="py-4 px-6 space-y-1">
-                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ $order->start_type === 'start_from_zero' ? 'bg-[#C83B2B]/10 text-[#C83B2B] border border-[#C83B2B]/20' : 'bg-amber-100 text-amber-800 border border-amber-200' }}">
-                                        {{ $order->start_type === 'start_from_zero' ? 'Bahan Lengkap Toko' : 'Bawa Daging Sendiri' }}
+                                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ match($order->start_type) {
+                                        'start_from_zero' => 'bg-[#C83B2B]/10 text-[#C83B2B] border border-[#C83B2B]/20',
+                                        'ingredients_only' => 'bg-emerald-100 text-emerald-800 border border-emerald-200',
+                                        default => 'bg-amber-100 text-amber-800 border border-amber-200'
+                                    } }}">
+                                        {{ match($order->start_type) {
+                                            'start_from_zero' => 'Bahan Lengkap Toko',
+                                            'ingredients_only' => 'Bahan Saja (Katalog)',
+                                            default => 'Bawa Daging Sendiri'
+                                        } }}
                                     </span>
                                     <p class="text-[11px] text-[#161210]/70">
-                                        {{ (int) $order->meat_weight }}g daging &bull; Racikan: <span class="capitalize font-semibold text-[#161210]">{{ $order->preference }}</span>
+                                        @if ($order->start_type === 'ingredients_only')
+                                            Belanja retail pasar langsung
+                                        @else
+                                            {{ (int) $order->meat_weight }}g daging &bull; Racikan: <span class="capitalize font-semibold text-[#161210]">{{ str_replace('_', ' ', $order->preference) }}</span>
+                                        @endif
                                     </p>
                                 </td>
 
@@ -277,10 +289,18 @@
                         <div class="p-3.5 bg-white rounded-xl border border-[#161210]/10">
                             <span class="text-[10px] uppercase font-bold text-[#161210]/50 tracking-wider block">Spesifikasi Racikan</span>
                             <span class="font-bold text-[#161210] mt-0.5 block">
-                                {{ (int) $selectedOrder->meat_weight }}g Daging &bull; {{ ucfirst($selectedOrder->preference) }}
+                                @if ($selectedOrder->start_type === 'ingredients_only')
+                                    Belanja Bahan Mentah Pasar
+                                @else
+                                    {{ (int) $selectedOrder->meat_weight }}g Daging &bull; {{ ucfirst(str_replace('_', ' ', $selectedOrder->preference)) }}
+                                @endif
                             </span>
                             <span class="text-[10px] text-[#161210]/60 block mt-0.5">
-                                Mode: {{ $selectedOrder->start_type === 'start_from_zero' ? 'Beli Semua Bahan di Pasar' : 'Bawa Daging Sendiri' }}
+                                Mode: {{ match($selectedOrder->start_type) {
+                                    'start_from_zero' => 'Beli Semua Bahan di Pasar',
+                                    'ingredients_only' => 'Belanja Bahan Saja (Katalog)',
+                                    default => 'Bawa Daging Sendiri'
+                                } }}
                             </span>
                         </div>
                     </div>

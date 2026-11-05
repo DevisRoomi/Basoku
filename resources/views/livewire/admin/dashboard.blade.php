@@ -359,9 +359,9 @@
 
                                 <!-- Daging & Berat -->
                                 <td class="py-4 px-6 whitespace-nowrap text-[#5A534A]">
-                                    <span class="font-semibold text-[#26221E]">{{ number_format($order->meat_weight) }} gram</span>
+                                    <span class="font-semibold text-[#26221E]">{{ $order->start_type === 'ingredients_only' ? '-' : number_format($order->meat_weight).' gram' }}</span>
                                     <span class="block text-[10px]">
-                                        {{ $order->start_type === 'start_from_zero' ? 'Beli Pasar' : 'Daging Sendiri' }}
+                                        {{ $order->start_type === 'start_from_zero' ? 'Beli Pasar' : ($order->start_type === 'ingredients_only' ? 'Bahan Saja' : 'Daging Sendiri') }}
                                     </span>
                                 </td>
 
