@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-[#FFFDF9] py-10 sm:py-16">
+<div class="min-h-screen bg-[#FFFDF9] py-10 sm:py-16" wire:poll.15s>
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Header Navigasi Akun / Tab Menu -->
@@ -8,7 +8,10 @@
                     <span class="px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-[#C83B2B]/10 text-[#C83B2B] border border-[#C83B2B]/20">
                         Area Pelanggan
                     </span>
-                    <span class="text-xs text-[#161210]/60">Antrean & Transaksi</span>
+                    <span class="text-xs text-[#161210]/60 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Live Update Antrean (15 dtk)
+                    </span>
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-serif font-black text-[#161210] tracking-tight mt-1.5">
                     Pesanan & Antrean Saya

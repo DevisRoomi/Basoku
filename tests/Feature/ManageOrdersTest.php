@@ -177,4 +177,30 @@ class ManageOrdersTest extends TestCase
             ->assertSee('Order Completed')
             ->assertDontSee('Order Pending');
     }
+
+    public function test_admin_can_export_orders_to_csv(): void
+    {
+        Order::create([
+            'customer_name' => 'Pak Budi Ekspor',
+            'customer_phone' => '081234567890',
+            'pickup_at' => now()->addDay(),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 1000,
+            'flour_weight' => 200,
+            'preference' => 'enak',
+            'grinding_fee' => 15000,
+            'total_price' => 165000,
+            'status' => 'pending',
+        ]);
+
+        $component = Livewire::actingAs($this->admin)
+            ->test(ManageOrders::class)
+            ->call('exportCsv');
+
+        $response = $component->instance()->exportCsv();
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertStringContainsString('text/csv', $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('rekap-pesanan-basoku-', $response->headers->get('Content-Disposition'));
+    }
 }
