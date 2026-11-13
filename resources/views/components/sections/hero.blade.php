@@ -14,9 +14,11 @@
             muted
             loop
             playsinline
-            preload="auto"
+            preload="metadata"
+            poster="{{ asset('videos/basoku-hero-poster.webp') }}"
             aria-hidden="true"
         >
+            <source src="{{ asset('videos/basoku-hero-opt.mp4') }}" type="video/mp4">
             <source src="{{ asset('videos/basoku-hero.mp4') }}" type="video/mp4">
         </video>
 
