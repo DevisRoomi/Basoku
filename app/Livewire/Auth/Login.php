@@ -7,7 +7,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.auth')]
 #[Title('Masuk — Portal Admin BASOKU')]
 class Login extends Component
 {
