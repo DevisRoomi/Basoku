@@ -21,12 +21,12 @@
     </head>
     <body class="h-full bg-[#FAF6F0] text-[#161210] font-sans antialiased selection:bg-[#C83B2B] selection:text-[#FAF6F0]">
         
-        <div class="min-h-screen bg-[#FAF6F0] flex flex-col md:flex-row text-[#161210]">
-            <!-- Sidebar Reusable -->
+        <div class="min-h-screen h-screen bg-[#FAF6F0] flex flex-col md:flex-row text-[#161210] overflow-hidden">
+            <!-- Sidebar Reusable Sticky -->
             <x-admin-sidebar />
 
-            <!-- Area Konten Dinamis -->
-            <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            <!-- Area Konten Dinamis Scrollable Mandiri -->
+            <div class="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
                 {{ $slot }}
             </div>
         </div>

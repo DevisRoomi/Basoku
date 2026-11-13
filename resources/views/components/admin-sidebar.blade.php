@@ -1,5 +1,5 @@
-<aside class="w-full md:w-64 bg-[#161210] text-[#FAF6F0] flex flex-col justify-between shrink-0 shadow-2xl md:min-h-screen">
-    <div>
+<aside class="w-full md:w-64 bg-[#161210] text-[#FAF6F0] flex flex-col justify-between shrink-0 shadow-2xl md:h-screen md:sticky md:top-0 md:overflow-y-auto">
+    <div class="flex flex-col flex-1">
         <!-- Header Brand Admin -->
         <div class="px-6 py-6 border-b border-white/10 flex items-center justify-between">
             <a href="{{ route('admin.dashboard') }}" wire:navigate class="group flex items-center gap-2 focus:outline-none">
@@ -70,7 +70,7 @@
     </div>
 
     <!-- Profil Admin & Tombol Logout -->
-    <div class="p-4 border-t border-white/10 bg-black/20">
+    <div class="p-4 border-t border-white/10 bg-black/20 shrink-0 sticky bottom-0">
         <div class="flex items-center gap-3 px-2 py-2 mb-2">
             <div class="w-9 h-9 rounded-full bg-[#C83B2B] text-white font-bold flex items-center justify-center text-xs shrink-0 shadow">
                 {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
