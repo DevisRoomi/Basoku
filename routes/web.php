@@ -19,40 +19,7 @@ Route::view('/sejarah-bakso', 'bakso-history')->name('bakso.history');
 Route::view('/kalkulator', 'calculator-page')->name('calculator');
 Route::view('/daftar-harga', 'catalog-page')->name('catalog');
 
-// Gerbang Autentikasi Tamu (Guest Only)
-Route::get('/masuk', Login::class)->name('login')->middleware('guest');
-Route::redirect('/login', '/masuk');
-Route::get('/daftar', Register::class)->name('register')->middleware('guest');
-Route::redirect('/register', '/daftar');
-
-// Rute Terproteksi Autentikasi Pengguna & Admin
-Route::middleware(['auth'])->group(function () {
-    // 1. Laboratorium Resep & Riwayat Pesanan Pelanggan
-    Route::get('/racikan-saya', MyRecipeLab::class)->name('customer.recipes');
-    Route::redirect('/resep-saya', '/racikan-saya');
-    Route::get('/pesanan-saya', MyOrders::class)->name('customer.orders');
-    Route::redirect('/order-saya', '/pesanan-saya');
-
-    // 2. Panel Khusus Admin
-    Route::middleware(['admin'])->group(function () {
-        Route::get('/admin/dashboard', Dashboard::class)->name('admin.dashboard');
-        Route::get('/admin/analytics', Dashboard::class)->name('admin.analytics');
-        Route::get('/admin/bahan', ManageMaterials::class)->name('admin.materials');
-        Route::redirect('/admin/materials', '/admin/bahan');
-        Route::get('/admin/resep', ManageRecipes::class)->name('admin.recipes');
-        Route::redirect('/admin/recipes', '/admin/resep');
-        Route::get('/admin/pesanan', ManageOrders::class)->name('admin.orders');
-        Route::redirect('/admin/orders', '/admin/pesanan');
-        Route::redirect('/admin', '/admin/dashboard');
-        Route::redirect('/dashboard', '/admin/dashboard');
-    });
-
-    // 3. Logout Global
-    Route::post('/keluar', function () {
-        Auth::logout();
-        session()->invalidate();
-        session()->regenerateToken();
-
-        return redirect('/masuk');
-    })->name('logout');
-});
+// Rute Terpisah (Auth, Customer, Admin)
+require __DIR__ . '/auth.php';
+require __DIR__ . '/user.php';
+require __DIR__ . '/admin.php';
