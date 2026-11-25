@@ -180,17 +180,25 @@ class ManageOrdersTest extends TestCase
 
     public function test_admin_can_export_orders_to_csv(): void
     {
-        Order::create([
+        $order = Order::create([
             'customer_name' => 'Pak Budi Ekspor',
             'customer_phone' => '081234567890',
             'pickup_at' => now()->addDay(),
             'start_type' => 'start_from_zero',
             'meat_weight' => 1000,
-            'flour_weight' => 200,
             'preference' => 'enak',
             'grinding_fee' => 15000,
             'total_price' => 165000,
             'status' => 'pending',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'material_name' => 'Tepung Tapioka',
+            'quantity' => 250,
+            'unit' => 'gram',
+            'unit_price' => 18,
+            'subtotal' => 9000,
         ]);
 
         $component = Livewire::actingAs($this->admin)
@@ -202,5 +210,69 @@ class ManageOrdersTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertStringContainsString('text/csv', $response->headers->get('Content-Type'));
         $this->assertStringContainsString('rekap-pesanan-basoku-', $response->headers->get('Content-Disposition'));
+
+        ob_start();
+        $response->sendContent();
+        $csvContent = ob_get_clean();
+
+        $this->assertStringContainsString('Pak Budi Ekspor', $csvContent);
+        $this->assertStringContainsString(',1000,250,15000,165000,', $csvContent);
+    }
+
+    public function test_non_admin_cannot_invoke_manage_orders_livewire_actions_directly(): void
+    {
+        $customer = User::create([
+            'name' => 'Attacker Customer',
+            'email' => 'attacker@gmail.com',
+            'password' => bcrypt('password'),
+            'role' => 'customer',
+        ]);
+
+        Livewire::actingAs($customer)
+            ->test(ManageOrders::class)
+            ->assertForbidden();
+    }
+
+    public function test_admin_wa_url_normalizes_indonesian_phone_and_contains_status_message(): void
+    {
+        $order = Order::create([
+            'customer_name' => 'Bu Rina',
+            'customer_phone' => '0812-3456-7890',
+            'pickup_at' => now()->addDay(),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 1000,
+            'preference' => 'seimbang',
+            'grinding_fee' => 15000,
+            'total_price' => 170000,
+            'status' => 'completed',
+        ]);
+
+        $component = Livewire::actingAs($this->admin)->test(ManageOrders::class);
+        $waUrl = $component->instance()->getCustomerWaUrl($order);
+
+        $this->assertNotNull($waUrl);
+        $this->assertStringStartsWith('https://wa.me/6281234567890?text=', $waUrl);
+        $this->assertStringContainsString('SELESAI', urldecode($waUrl));
+        $this->assertStringContainsString('#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT), urldecode($waUrl));
+    }
+
+    public function test_admin_orders_table_paginates_large_order_lists(): void
+    {
+        for ($i = 1; $i <= 18; $i++) {
+            Order::create([
+                'customer_name' => sprintf('Pelanggan Urut %02d', $i),
+                'pickup_at' => now()->addDay(),
+                'start_type' => 'start_from_zero',
+                'meat_weight' => 500,
+                'preference' => 'seimbang',
+                'grinding_fee' => 7500,
+                'total_price' => 93500,
+                'status' => 'pending',
+            ]);
+        }
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageOrders::class)
+            ->assertViewHas('orders', fn ($orders) => $orders->count() === 15 && $orders->total() === 18);
     }
 }

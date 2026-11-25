@@ -8,6 +8,10 @@
         $initialNav = 'daftar-harga';
     } elseif (request()->is('racikan-saya*')) {
         $initialNav = 'racikan-saya';
+    } elseif (request()->is('pesanan-saya*')) {
+        $initialNav = 'pesanan-saya';
+    } elseif (request()->routeIs('orders.track')) {
+        $initialNav = 'lacak-pesanan';
     }
 @endphp
 
@@ -109,15 +113,19 @@
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             
             @php
+                $kioskOpenHour = (int) config('services.kiosk.open_hour', 4);
+                $kioskCloseHour = (int) config('services.kiosk.close_hour', 12);
                 $currentHourWib = (int) now()->timezone('Asia/Jakarta')->format('G');
-                $isKioskOpen = ($currentHourWib >= (int) config('services.kiosk.open_hour', 5) && $currentHourWib < (int) config('services.kiosk.close_hour', 12));
+                $isKioskOpen = ($currentHourWib >= $kioskOpenHour && $currentHourWib < $kioskCloseHour);
+                $kioskHoursLabel = sprintf('%02d.00–%02d.00 WIB', $kioskOpenHour, $kioskCloseHour);
+                $kioskOpenLabel = sprintf('%02d.00 WIB', $kioskOpenHour);
             @endphp
             <div class="flex items-center gap-3">
                 <a
                     href="{{ url('/') }}"
                     @click="activeNav = 'beranda'"
                     class="group flex items-center gap-3.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] rounded-2xl"
-                    aria-label="Beranda BASOKU"
+                    aria-label="BASOKU - Beranda"
                 >
                     <div class="w-10 h-10 rounded-full bg-[#2D4235] text-[#F4EFE6] font-serif font-bold text-lg flex items-center justify-center shadow-sm transition-transform group-hover:scale-105 shrink-0 border border-[#2D4235]/30">
                         B.
@@ -135,7 +143,7 @@
                 <!-- Live Kiosk Badge -->
                 <div class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide {{ $isKioskOpen ? 'bg-emerald-500/10 text-emerald-800 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-900 border border-amber-500/20' }}">
                     <span class="w-2 h-2 rounded-full {{ $isKioskOpen ? 'bg-emerald-600 animate-pulse' : 'bg-amber-600' }}"></span>
-                    <span>{{ $isKioskOpen ? 'Kios Buka (05.00–12.00 WIB)' : 'Kios Tutup (Buka 05.00 WIB)' }}</span>
+                    <span>{{ $isKioskOpen ? "Kios Buka ({$kioskHoursLabel})" : "Kios Tutup (Buka {$kioskOpenLabel})" }}</span>
                 </div>
             </div>
 
@@ -207,6 +215,15 @@
                         <span>Pesanan</span>
                         <span class="w-1.5 h-1.5 rounded-full bg-[#D96B43] animate-pulse"></span>
                     </a>
+                @elseif (! auth()->check())
+                    <a
+                        href="{{ route('orders.track') }}"
+                        @click="activeNav = 'lacak-pesanan'"
+                        class="rounded-full px-3.5 py-1.5 text-xs font-medium tracking-wide transition-colors"
+                        :class="activeNav === 'lacak-pesanan' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
+                    >
+                        Lacak
+                    </a>
                 @endif
             </div>
 
@@ -244,7 +261,7 @@
                 <a
                     href="{{ route('calculator') }}"
                     @click="activeNav = 'kalkulator'"
-                    class="inline-flex items-center justify-center gap-2 bg-[#D96B43] hover:bg-[#C25932] text-white px-6 py-2.5 rounded-full text-xs font-semibold shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+                    class="inline-flex items-center justify-center gap-2 bg-[#B84E26] hover:bg-[#9E3F1C] text-white px-6 py-2.5 rounded-full text-xs font-semibold shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98]"
                 >
                     <span>Mulai Racik</span>
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -258,7 +275,7 @@
                 <a
                     href="{{ route('calculator') }}"
                     @click="activeNav = 'kalkulator'"
-                    class="px-4 py-1.5 rounded-full bg-[#D96B43] text-white text-xs font-semibold shadow-xs"
+                    class="px-4 py-1.5 rounded-full bg-[#B84E26] text-white text-xs font-semibold shadow-xs"
                 >
                     Racik
                 </a>
@@ -268,8 +285,8 @@
                     type="button"
                     @click="mobileOpen = !mobileOpen"
                     @keydown.escape.window="mobileOpen = false"
-                    class="p-2 rounded-xl text-[#26221E]/80 hover:text-[#26221E] hover:bg-black/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] cursor-pointer"
-                    aria-label="Menu Navigasi"
+                    class="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-[#26221E]/80 hover:text-[#26221E] hover:bg-black/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] cursor-pointer"
+                    aria-label="Buka Menu Navigasi"
                     :aria-expanded="mobileOpen.toString()"
                     aria-controls="mobile-menu"
                 >
@@ -364,6 +381,15 @@
                 >
                     <span>Pesanan Saya</span>
                     <span class="w-2 h-2 rounded-full bg-[#D96B43]"></span>
+                </a>
+            @elseif (! auth()->check())
+                <a
+                    href="{{ route('orders.track') }}"
+                    @click="mobileOpen = false; activeNav = 'lacak-pesanan'"
+                    class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
+                    :class="activeNav === 'lacak-pesanan' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
+                >
+                    Lacak Pesanan
                 </a>
             @endif
 

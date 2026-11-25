@@ -65,7 +65,7 @@
                 <a
                     id="hero-cta-btn"
                     href="#racikan-saya"
-                    class="btn-magnetic px-6 py-2.5 rounded-full bg-[#D96B43] hover:bg-[#C25932] text-white font-medium text-xs shadow-md active:scale-[0.98] inline-flex items-center gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1C18]"
+                    class="btn-magnetic px-6 py-2.5 rounded-full bg-[#B84E26] hover:bg-[#9E3F1C] text-white font-medium text-xs shadow-md active:scale-[0.98] inline-flex items-center gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B84E26] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1C18]"
                 >
                     <span>Mulai Racik</span>
                     <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -111,7 +111,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-[#26221E] leading-tight">Daging & Bahan Pilihan</h4>
+                        <h2 class="text-sm font-bold text-[#26221E] leading-tight">Daging & Bahan Pilihan</h2>
                         <p class="text-xs text-[#5A534A] mt-0.5">Sapi & ayam segar pasar</p>
                     </div>
                 </div>
@@ -124,7 +124,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-[#26221E] leading-tight">Takaran Resep Presisi</h4>
+                        <h2 class="text-sm font-bold text-[#26221E] leading-tight">Takaran Resep Presisi</h2>
                         <p class="text-xs text-[#5A534A] mt-0.5">Akurasi gramasi bumbu & tepung</p>
                     </div>
                 </div>
@@ -137,7 +137,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-[#26221E] leading-tight">Jasa Selepan Higienis</h4>
+                        <h2 class="text-sm font-bold text-[#26221E] leading-tight">Jasa Selepan Higienis</h2>
                         <p class="text-xs text-[#5A534A] mt-0.5">Mesin giling los pasar bersih</p>
                     </div>
                 </div>
@@ -150,7 +150,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-[#26221E] leading-tight">Pesan Tanpa Antre</h4>
+                        <h2 class="text-sm font-bold text-[#26221E] leading-tight">Pesan Tanpa Antre</h2>
                         <p class="text-xs text-[#5A534A] mt-0.5">Kirim ke WhatsApp kios</p>
                     </div>
                 </div>

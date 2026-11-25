@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\MaterialCatalog;
+use App\Models\Material;
 use Database\Seeders\MaterialSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -44,16 +45,16 @@ class MaterialCatalogTest extends TestCase
 
     public function test_can_increment_and_decrement_cart_items_without_redirect(): void
     {
-        $material = \App\Models\Material::where('name', 'Tepung Tapioka')->first();
+        $material = Material::where('name', 'Tepung Tapioka')->first();
 
         Livewire::test(MaterialCatalog::class)
             ->call('incrementItem', $material->id)
-            ->assertSet('selectedItems.' . $material->id, 1)
+            ->assertSet('selectedItems.'.$material->id, 1)
             ->assertSee('Keranjang Belanja Bahan')
             ->call('incrementItem', $material->id)
-            ->assertSet('selectedItems.' . $material->id, 2)
+            ->assertSet('selectedItems.'.$material->id, 2)
             ->call('decrementItem', $material->id)
-            ->assertSet('selectedItems.' . $material->id, 1)
+            ->assertSet('selectedItems.'.$material->id, 1)
             ->call('decrementItem', $material->id)
             ->assertSet('selectedItems', []);
     }
@@ -76,7 +77,7 @@ class MaterialCatalogTest extends TestCase
 
     public function test_transfer_to_calculator_stores_session(): void
     {
-        $material = \App\Models\Material::where('name', 'Merica Bubuk Sachet')->first();
+        $material = Material::where('name', 'Merica Bubuk Sachet')->first();
 
         Livewire::test(MaterialCatalog::class)
             ->call('incrementItem', $material->id)
@@ -87,10 +88,10 @@ class MaterialCatalogTest extends TestCase
 
     public function test_direct_checkout_creates_order(): void
     {
-        $material = \App\Models\Material::where('name', 'Tepung Tapioka')->first();
-        $pickup = now()->addHours(2)->setTime(8, 0)->format('Y-m-d\TH:i');
+        $material = Material::where('name', 'Tepung Tapioka')->first();
+        $pickup = now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
 
-        Livewire::test(MaterialCatalog::class)
+        $test = Livewire::test(MaterialCatalog::class)
             ->call('incrementItem', $material->id)
             ->set('customerName', 'Siti Rahma')
             ->set('customerPhone', '08123456789')
@@ -104,5 +105,25 @@ class MaterialCatalogTest extends TestCase
             'customer_phone' => '08123456789',
             'start_type' => 'ingredients_only',
         ]);
+
+        $redirectUrl = $test->effects['redirect'] ?? '';
+        $this->assertStringContainsString(urlencode('#BSK-'), $redirectUrl);
+    }
+
+    public function test_direct_checkout_rejects_unavailable_materials(): void
+    {
+        $material = Material::where('name', 'Tepung Tapioka')->first();
+        $material->update(['is_available' => false]);
+        $pickup = now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
+
+        Livewire::test(MaterialCatalog::class)
+            ->set('selectedItems', [$material->id => 2])
+            ->set('customerName', 'Pembeli Test')
+            ->set('customerPhone', '08123456789')
+            ->set('pickupTime', $pickup)
+            ->call('processDirectCheckout')
+            ->assertHasErrors(['cart']);
+
+        $this->assertDatabaseMissing('orders', ['customer_name' => 'Pembeli Test']);
     }
 }

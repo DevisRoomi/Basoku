@@ -23,6 +23,7 @@ class ExampleTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('7°59\'31.5"S 113°14\'58.9"E', false);
+        $this->assertSame(1, substr_count($response->getContent(), '<h1'));
     }
 
     public function test_bakso_history_page_can_be_rendered(): void

@@ -3,21 +3,40 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('components.layouts.admin')]
 #[Title('Manajemen Pesanan — BASOKU Admin')]
 class ManageOrders extends Component
 {
+    use WithPagination;
+
     public bool $showDetailModal = false;
 
     public ?Order $selectedOrder = null;
 
     // Filter status tab: 'all', 'pending', 'processing', 'completed', 'cancelled'
     public string $statusFilter = 'all';
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    /**
+     * Pastikan pengguna memiliki peran admin pada setiap lifecycle request.
+     */
+    public function boot(): void
+    {
+        if (! Auth::check() || Auth::user()->role !== 'admin') {
+            abort(403, 'Akses khusus administrator BASOKU.');
+        }
+    }
 
     /**
      * Pastikan hanya admin yang dapat mengakses.
@@ -83,9 +102,9 @@ class ManageOrders extends Component
      */
     public function exportCsv()
     {
-        $fileName = 'rekap-pesanan-basoku-' . now()->format('Y-m-d-His') . '.csv';
+        $fileName = 'rekap-pesanan-basoku-'.now()->format('Y-m-d-His').'.csv';
 
-        $query = Order::with('orderItems')->orderBy('created_at', 'desc');
+        $query = Order::with('orderItems.material')->orderBy('created_at', 'desc');
         if ($this->statusFilter !== 'all') {
             $query->where('status', $this->statusFilter);
         }
@@ -103,7 +122,7 @@ class ManageOrders extends Component
             $handle = fopen('php://output', 'w');
 
             // BOM UTF-8 agar Excel mengenali encoding secara otomatis
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
 
             // Header kolom
             fputcsv($handle, [
@@ -122,8 +141,12 @@ class ManageOrders extends Component
             ]);
 
             foreach ($orders as $order) {
+                $flourWeight = (int) round($order->orderItems
+                    ->filter(fn ($item) => ($item->material?->category === 'tepung') || str_contains(strtolower((string) $item->material_name), 'tepung'))
+                    ->sum('quantity'));
+
                 fputcsv($handle, [
-                    '#BSK-' . str_pad($order->id, 5, '0', STR_PAD_LEFT),
+                    '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
                     $order->created_at ? $order->created_at->format('Y-m-d H:i') : '-',
                     $order->customer_name,
                     $order->customer_phone ?? '-',
@@ -134,7 +157,7 @@ class ManageOrders extends Component
                     },
                     $order->start_type === 'ingredients_only' ? '-' : ucfirst(str_replace('_', ' ', $order->preference)),
                     $order->start_type === 'ingredients_only' ? '0' : (int) $order->meat_weight,
-                    (int) $order->flour_weight,
+                    $flourWeight,
                     (int) $order->grinding_fee,
                     (int) $order->total_price,
                     match ($order->status) {
@@ -144,12 +167,44 @@ class ManageOrders extends Component
                         'cancelled' => 'Dibatalkan',
                         default => $order->status,
                     },
-                    $order->pickup_at ? \Carbon\Carbon::parse($order->pickup_at)->format('Y-m-d H:i') : '-',
+                    $order->pickup_at ? Carbon::parse($order->pickup_at)->format('Y-m-d H:i') : '-',
                 ]);
             }
 
             fclose($handle);
         }, 200, $headers);
+    }
+
+    /**
+     * Susun tautan WhatsApp ternormalisasi (format 62...) beserta template notifikasi status pesanan.
+     */
+    public function getCustomerWaUrl(Order $order): ?string
+    {
+        $digits = preg_replace('/[^0-9]/', '', (string) ($order->customer_phone ?? ''));
+        if (empty($digits)) {
+            return null;
+        }
+
+        if (str_starts_with($digits, '0')) {
+            $digits = '62'.substr($digits, 1);
+        } elseif (! str_starts_with($digits, '62')) {
+            $digits = '62'.$digits;
+        }
+
+        $orderCode = '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
+        $totalFormatted = 'Rp '.number_format((float) $order->total_price, 0, ',', '.');
+        $pickupText = $order->pickup_at
+            ? Carbon::parse($order->pickup_at)->format('d M Y, H:i').' WIB'
+            : 'sesuai jadwal';
+
+        $message = match ($order->status) {
+            'processing' => "Halo {$order->customer_name}, pesanan BASOKU Anda ({$orderCode}) sedang kami siapkan dan proses giling di los selepan. Total estimasi: {$totalFormatted}. Jadwal ambil: {$pickupText}.",
+            'completed' => "Halo {$order->customer_name}, pesanan BASOKU Anda ({$orderCode}) sudah SELESAI dan siap diambil di Kios BASOKU Pasar Klakah! Total pembayaran: {$totalFormatted}. Ditunggu kedatangannya ya.",
+            'cancelled' => "Halo {$order->customer_name}, menginformasikan bahwa pesanan BASOKU Anda ({$orderCode}) tercatat dibatalkan. Jika ada kekeliruan atau ingin memesan ulang, silakan balas pesan ini.",
+            default => "Halo {$order->customer_name}, terima kasih telah memesan di BASOKU ({$orderCode}). Mohon konfirmasi pesanan Anda (Total: {$totalFormatted}, Jadwal ambil: {$pickupText}) agar segera kami proses.",
+        };
+
+        return 'https://wa.me/'.$digits.'?text='.urlencode($message);
     }
 
     /**
@@ -172,15 +227,20 @@ class ManageOrders extends Component
             $query->where('status', $this->statusFilter);
         }
 
-        $orders = $query->get();
+        $orders = $query->paginate(15);
 
-        // Hitung total pesanan berdasarkan status untuk badge filter tab
+        // Hitung total pesanan berdasarkan status untuk badge filter tab secara teragregasi (1 query)
+        $statusCounts = Order::query()
+            ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
         $counts = [
-            'all' => Order::count(),
-            'pending' => Order::where('status', 'pending')->count(),
-            'processing' => Order::where('status', 'processing')->count(),
-            'completed' => Order::where('status', 'completed')->count(),
-            'cancelled' => Order::where('status', 'cancelled')->count(),
+            'all' => (int) $statusCounts->sum(),
+            'pending' => (int) ($statusCounts['pending'] ?? 0),
+            'processing' => (int) ($statusCounts['processing'] ?? 0),
+            'completed' => (int) ($statusCounts['completed'] ?? 0),
+            'cancelled' => (int) ($statusCounts['cancelled'] ?? 0),
         ];
 
         return view('livewire.admin.manage-orders', [

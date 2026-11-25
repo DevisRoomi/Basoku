@@ -63,7 +63,7 @@
                                         <span class="w-2.5 h-2.5 rounded-full bg-[#D96B43]"></span>
                                     </div>
                                     <span class="text-3xl font-serif font-bold text-[#26221E] block mb-1" style="font-family: 'Playfair Display', Georgia, serif;">
-                                        85% Daging
+                                        10% Tepung
                                     </span>
                                     <h3 class="text-sm font-bold text-[#2D4235] mb-2">Racikan Enak</h3>
                                     <p class="text-xs text-[#5A534A] leading-relaxed">
@@ -72,7 +72,7 @@
                                 </div>
                                 <div class="mt-6 pt-3 border-t border-[#26221E]/10 flex items-center justify-between text-[11px] font-mono text-[#5A534A]">
                                     <span>Rasio Daging-Tepung</span>
-                                    <span class="font-bold text-[#26221E]">5 : 1</span>
+                                    <span class="font-bold text-[#26221E]">10 : 1</span>
                                 </div>
                             </div>
 
@@ -84,7 +84,7 @@
                                         <span class="w-2.5 h-2.5 rounded-full bg-[#E5A93C]"></span>
                                     </div>
                                     <span class="text-3xl font-serif font-bold text-[#26221E] block mb-1" style="font-family: 'Playfair Display', Georgia, serif;">
-                                        Proporsi Pas
+                                        20% Tepung
                                     </span>
                                     <h3 class="text-sm font-bold text-[#2D4235] mb-2">Racikan Seimbang</h3>
                                     <p class="text-xs text-[#5A534A] leading-relaxed">
@@ -92,8 +92,8 @@
                                     </p>
                                 </div>
                                 <div class="mt-6 pt-3 border-t border-[#26221E]/10 flex items-center justify-between text-[11px] font-mono text-[#5A534A]">
-                                    <span>Standar Pasar</span>
-                                    <span class="font-bold text-[#26221E]">Favorit</span>
+                                    <span>Rasio Daging-Tepung</span>
+                                    <span class="font-bold text-[#26221E]">5 : 1</span>
                                 </div>
                             </div>
 
@@ -105,7 +105,7 @@
                                         <span class="w-2.5 h-2.5 rounded-full bg-[#2D4235]"></span>
                                     </div>
                                     <span class="text-3xl font-serif font-bold text-[#26221E] block mb-1" style="font-family: 'Playfair Display', Georgia, serif;">
-                                        Efisiensi
+                                        40% Tepung
                                     </span>
                                     <h3 class="text-sm font-bold text-[#2D4235] mb-2">Racikan Ekonomis</h3>
                                     <p class="text-xs text-[#5A534A] leading-relaxed">
@@ -113,8 +113,8 @@
                                     </p>
                                 </div>
                                 <div class="mt-6 pt-3 border-t border-[#26221E]/10 flex items-center justify-between text-[11px] font-mono text-[#5A534A]">
-                                    <span>Target Modal</span>
-                                    <span class="font-bold text-[#26221E]">Hemat</span>
+                                    <span>Rasio Daging-Tepung</span>
+                                    <span class="font-bold text-[#26221E]">5 : 2</span>
                                 </div>
                             </div>
 
@@ -268,6 +268,8 @@
                                 <img
                                     src="{{ asset('images/curated/bakso-asli.jpg') }}"
                                     alt="Dokumentasi Semangkuk Bakso Nusantara Asli"
+                                    width="600"
+                                    height="450"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                     loading="lazy"
                                 >
@@ -356,7 +358,7 @@
             <!-- 6. KALKULATOR RACIKAN INTERAKTIF                               -->
             <!-- ═══════════════════════════════════════════════════════════════ -->
             <section id="racikan-saya" class="my-16 sm:my-24 scroll-mt-20 motion-reveal">
-                <livewire:recipe-calculator />
+                <livewire:recipe-calculator :embedded="true" />
             </section>
 
         </div>

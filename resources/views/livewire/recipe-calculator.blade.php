@@ -9,9 +9,15 @@
                     Kalkulator Racikan &bull; Tradisi Pasar
                 </span>
             </div>
-            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#26221E] tracking-tight leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
-                Rancang Racikanmu
-            </h1>
+            @if ($embedded)
+                <h2 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#26221E] tracking-tight leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
+                    Rancang Racikanmu
+                </h2>
+            @else
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#26221E] tracking-tight leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
+                    Rancang Racikanmu
+                </h1>
+            @endif
             <p class="mt-4 text-[#5A534A] text-sm sm:text-base leading-relaxed font-normal">
                 Kalkulasi transparan kebutuhan bahan bakso pasar: tentukan berat daging atau batas anggaran belanja untuk estimasi belanja paling hemat dan presisi.
             </p>
@@ -140,7 +146,14 @@
                             SP
                         </div>
                         <span class="block font-bold text-sm text-[#26221E]">Daging Sapi</span>
-                        <span class="block text-[11px] text-[#5A534A] mt-0.5">Sapi segar paha / gandik &bull; <strong class="text-[#D96B43]">Rp 140.000/kg</strong></span>
+                        <span class="block text-[11px] text-[#5A534A] mt-0.5">
+                            Sapi segar paha / gandik &bull;
+                            @if (!($catalogPrices['beef_available'] ?? true))
+                                <strong class="text-[#8B231A]">Stok Habis</strong>
+                            @else
+                                <strong class="text-[#B84E26]">Rp {{ number_format($catalogPrices['beef_per_kg'] ?? 140000, 0, ',', '.') }}/kg</strong>
+                            @endif
+                        </span>
                     </button>
 
                     <!-- Daging Ayam -->
@@ -153,7 +166,14 @@
                             AY
                         </div>
                         <span class="block font-bold text-sm text-[#26221E]">Daging Ayam</span>
-                        <span class="block text-[11px] text-[#5A534A] mt-0.5">Dada ayam fillet bersih &bull; <strong class="text-[#D96B43]">Rp 40.000/kg</strong></span>
+                        <span class="block text-[11px] text-[#5A534A] mt-0.5">
+                            Dada ayam fillet bersih &bull;
+                            @if (!($catalogPrices['chicken_available'] ?? true))
+                                <strong class="text-[#8B231A]">Stok Habis</strong>
+                            @else
+                                <strong class="text-[#B84E26]">Rp {{ number_format($catalogPrices['chicken_per_kg'] ?? 40000, 0, ',', '.') }}/kg</strong>
+                            @endif
+                        </span>
                     </button>
                 </div>
             </fieldset>
@@ -256,14 +276,47 @@
                                 </svg>
                             </div>
 
-                            <!-- Live Digital Weight Reading & Subtext -->
-                            <div class="mt-2 text-center">
-                                <span class="text-2xl font-mono font-bold text-[#26221E] tabular-nums tracking-tight">
-                                    <span x-text="Number(weight).toLocaleString()">{{ number_format($meatWeight) }}</span> <span class="text-sm font-sans font-semibold text-[#D96B43]">gram</span>
+                            <!-- Live Digital Weight Reading & Manual Numeric Input -->
+                            <div class="mt-2 text-center space-y-2">
+                                <span class="text-2xl font-mono font-bold text-[#26221E] tabular-nums tracking-tight block">
+                                    <span x-text="Number(weight).toLocaleString()">{{ number_format($meatWeight) }}</span> <span class="text-sm font-sans font-semibold text-[#B84E26]">gram</span>
                                 </span>
                                 <span class="block text-[11px] font-mono text-[#5A534A]">
                                     (setara <span x-text="(weight / 1000).toFixed(2)">{{ number_format($meatWeight / 1000, 2) }}</span> kg daging)
                                 </span>
+
+                                <!-- Input Angka Manual untuk Presisi di Layar HP -->
+                                <div class="inline-flex items-center gap-1.5 pt-1">
+                                    <button
+                                        type="button"
+                                        @click="weight = Math.max(500, Number(weight) - 100); $wire.set('meatWeight', weight); playHaptic();"
+                                        aria-label="Kurangi 100 gram"
+                                        class="w-9 h-9 rounded-xl bg-[#FAF7F2] hover:bg-[#EAE3D5] border border-[#26221E]/15 text-[#26221E] font-mono font-bold text-sm cursor-pointer transition-colors"
+                                    >
+                                        &minus;
+                                    </button>
+                                    <div class="relative">
+                                        <label for="meatWeightNumber" class="sr-only">Ketik berat daging dalam gram</label>
+                                        <input
+                                            type="number"
+                                            id="meatWeightNumber"
+                                            min="500"
+                                            max="50000"
+                                            step="50"
+                                            wire:model.live.debounce.300ms="meatWeight"
+                                            x-model.number="weight"
+                                            class="w-28 text-center font-mono font-bold text-sm text-[#26221E] bg-[#FAF7F2] border border-[#26221E]/20 rounded-xl py-1.5 px-2 focus:outline-none focus:border-[#2D4235] tabular-nums"
+                                        >
+                                    </div>
+                                    <button
+                                        type="button"
+                                        @click="weight = Math.min(50000, Number(weight) + 100); $wire.set('meatWeight', weight); playHaptic();"
+                                        aria-label="Tambah 100 gram"
+                                        class="w-9 h-9 rounded-xl bg-[#FAF7F2] hover:bg-[#EAE3D5] border border-[#26221E]/15 text-[#26221E] font-mono font-bold text-sm cursor-pointer transition-colors"
+                                    >
+                                        +
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -275,6 +328,8 @@
                             </div>
                             <input
                                 type="range"
+                                id="meatWeightRange"
+                                aria-label="Atur berat daging dalam gram"
                                 min="500"
                                 max="5000"
                                 step="50"
@@ -356,8 +411,8 @@
                         class="p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'tapioka' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
                     >
                         <span class="block font-bold text-xs text-[#26221E]">Tapioka</span>
-                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Pack 500g (Rp 9.000)</span>
-                        <span class="block text-[9px] font-mono text-[#D96B43] mt-1 font-semibold">Kenyal Standar</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5">{{ $catalogPrices['tapioka_unit'] ?? 'Pack' }} {{ number_format($catalogPrices['tapioka_weight'] ?? 500, 0, ',', '.') }}g (Rp {{ number_format($catalogPrices['tapioka_price'] ?? 9000, 0, ',', '.') }})</span>
+                        <span class="block text-[9px] font-mono {{ ($catalogPrices['tapioka_available'] ?? true) ? 'text-[#B84E26]' : 'text-[#8B231A]' }} mt-1 font-semibold">{{ ($catalogPrices['tapioka_available'] ?? true) ? 'Kenyal Standar' : 'Stok Habis' }}</span>
                     </button>
 
                     <!-- ProBakso (Premix) -->
@@ -367,8 +422,8 @@
                         class="p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'probakso' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
                     >
                         <span class="block font-bold text-xs text-[#26221E]">ProBakso</span>
-                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Pack 250g (Rp 10.000)</span>
-                        <span class="block text-[9px] font-mono text-[#2D4235] mt-1 font-semibold">Premiks Pengenyal</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5">{{ $catalogPrices['probakso_unit'] ?? 'Pack' }} {{ number_format($catalogPrices['probakso_weight'] ?? 250, 0, ',', '.') }}g (Rp {{ number_format($catalogPrices['probakso_price'] ?? 10000, 0, ',', '.') }})</span>
+                        <span class="block text-[9px] font-mono {{ ($catalogPrices['probakso_available'] ?? true) ? 'text-[#2D4235]' : 'text-[#8B231A]' }} mt-1 font-semibold">{{ ($catalogPrices['probakso_available'] ?? true) ? 'Premiks Pengenyal' : 'Stok Habis' }}</span>
                     </button>
 
                     <!-- Sagu -->
@@ -378,8 +433,8 @@
                         class="p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'sagu' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
                     >
                         <span class="block font-bold text-xs text-[#26221E]">Sagu Aren</span>
-                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Pack 250g (Rp 5.000)</span>
-                        <span class="block text-[9px] font-mono text-[#E5A93C] mt-1 font-semibold">Renyah Garing</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5">{{ $catalogPrices['sagu_unit'] ?? 'Pack' }} {{ number_format($catalogPrices['sagu_weight'] ?? 250, 0, ',', '.') }}g (Rp {{ number_format($catalogPrices['sagu_price'] ?? 5000, 0, ',', '.') }})</span>
+                        <span class="block text-[9px] font-mono {{ ($catalogPrices['sagu_available'] ?? true) ? 'text-[#8B5E00]' : 'text-[#8B231A]' }} mt-1 font-semibold">{{ ($catalogPrices['sagu_available'] ?? true) ? 'Renyah Garing' : 'Stok Habis' }}</span>
                     </button>
 
                     <!-- Terigu -->
@@ -389,8 +444,8 @@
                         class="p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'terigu' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
                     >
                         <span class="block font-bold text-xs text-[#26221E]">Terigu</span>
-                        <span class="block text-[10px] text-[#5A534A] mt-0.5">Kg / 1.000g (Rp 10.000)</span>
-                        <span class="block text-[9px] font-mono text-[#5A534A] mt-1 font-semibold">Campuran Padat</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5">{{ $catalogPrices['terigu_unit'] ?? 'Kg' }} / {{ number_format($catalogPrices['terigu_weight'] ?? 1000, 0, ',', '.') }}g (Rp {{ number_format($catalogPrices['terigu_price'] ?? 10000, 0, ',', '.') }})</span>
+                        <span class="block text-[9px] font-mono {{ ($catalogPrices['terigu_available'] ?? true) ? 'text-[#5A534A]' : 'text-[#8B231A]' }} mt-1 font-semibold">{{ ($catalogPrices['terigu_available'] ?? true) ? 'Campuran Padat' : 'Stok Habis' }}</span>
                     </button>
                 </div>
 
@@ -409,8 +464,8 @@
                         </div>
                         <div class="border-t border-[#26221E]/5 pt-3 flex items-center justify-between">
                             <div>
-                                <span class="text-xs font-bold text-[#26221E] block">Bawang Putih Kupas (Pack 100g):</span>
-                                <span class="text-[10px] text-[#5A534A]">Bumbu pelengkap siap ulek</span>
+                                <span class="text-xs font-bold text-[#26221E] block">Bawang Putih Kupas (Pack {{ number_format($catalogPrices['garlic_weight'] ?? 100, 0, ',', '.') }}g):</span>
+                                <span class="text-[10px] text-[#5A534A]">Bumbu pelengkap siap ulek (Rp {{ number_format($catalogPrices['garlic_price'] ?? 4000, 0, ',', '.') }})</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <button type="button" wire:click="$set('ingredientGarlicPacks', {{ max(0, $ingredientGarlicPacks - 1) }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center">-</button>
@@ -420,8 +475,8 @@
                         </div>
                         <div class="border-t border-[#26221E]/5 pt-3 flex items-center justify-between">
                             <div>
-                                <span class="text-xs font-bold text-[#26221E] block">Garam Kasar (Pack 1.000g):</span>
-                                <span class="text-[10px] text-[#5A534A]">Garam dapur beryodium (Rp 3.000)</span>
+                                <span class="text-xs font-bold text-[#26221E] block">Garam Kasar (Pack {{ number_format($catalogPrices['salt_weight'] ?? 1000, 0, ',', '.') }}g):</span>
+                                <span class="text-[10px] text-[#5A534A]">Garam dapur beryodium (Rp {{ number_format($catalogPrices['salt_price'] ?? 3000, 0, ',', '.') }})</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <button type="button" wire:click="$set('ingredientSaltPacks', {{ max(0, $ingredientSaltPacks - 1) }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center">-</button>
@@ -594,11 +649,11 @@
                             $extraQty = $extraItems[$extraMat->id] ?? 0;
                             $pkgPrice = (float) ($extraMat->package_price ?? $extraMat->price);
                         @endphp
-                        <div class="p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 {{ $extraQty > 0 ? 'border-[#2D4235] bg-[#FAF7F2] shadow-xs' : 'border-[#26221E]/10 bg-white/80 hover:bg-white' }}">
+                        <div wire:key="extra-mat-{{ $extraMat->id }}" class="p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 {{ $extraQty > 0 ? 'border-[#2D4235] bg-[#FAF7F2] shadow-xs' : 'border-[#26221E]/10 bg-white/80 hover:bg-white' }}">
                             <div class="grow min-w-0">
                                 <div class="font-bold text-xs text-[#26221E] truncate">{{ $extraMat->name }}</div>
                                 <div class="text-[11px] font-mono text-[#5A534A] mt-0.5">
-                                    Rp {{ number_format($pkgPrice, 0, ',', '.') }} <span class="text-[10px]">/ {{ $extraMat->package_unit }} (@{{ number_format($extraMat->package_weight) }}g)</span>
+                                    Rp {{ number_format($pkgPrice, 0, ',', '.') }} <span class="text-[10px]">/ {{ $extraMat->package_unit }} ({{ '@'.number_format($extraMat->package_weight) }}g)</span>
                                 </div>
                             </div>
 
@@ -647,9 +702,9 @@
                             <span class="text-[10px] font-mono tracking-widest text-[#D8E0D3] uppercase block">
                                 RINGKASAN TAKARAN
                             </span>
-                            <h3 class="text-xl sm:text-2xl font-bold text-white tracking-tight" style="font-family: 'Playfair Display', Georgia, serif;">
+                            <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight" style="font-family: 'Playfair Display', Georgia, serif;">
                                 Rincian Belanja Resep
-                            </h3>
+                            </h2>
                         </div>
                         <span class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-xs text-[#F4EFE6]">
                             🧾
@@ -669,7 +724,7 @@
                     @endif
 
                     <!-- Info Parameter Singkat -->
-                    <div class="grid grid-cols-4 gap-1.5 p-3 rounded-2xl bg-black/15 border border-white/10 text-xs mb-6 text-center">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 rounded-2xl bg-black/15 border border-white/10 text-xs mb-6 text-center">
                         <div>
                             <span class="text-[#D8E0D3]/60 block text-[9px] uppercase font-mono">Daging</span>
                             <span class="font-semibold text-white truncate block text-[11px]">
@@ -702,6 +757,19 @@
                         </div>
                     </div>
 
+                    <!-- PERINGATAN JIKA BAHAN INTI SEDANG HABIS DI KIOS -->
+                    @if ($availabilityError)
+                        <div class="rounded-2xl bg-[#8B231A]/35 border border-amber-400/50 p-4 mb-5 text-xs text-[#F4EFE6] leading-relaxed flex items-start gap-3">
+                            <svg class="w-5 h-5 text-amber-300 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                            <div>
+                                <span class="font-bold text-amber-200 block mb-0.5">Stok Bahan Sedang Kosong</span>
+                                <span>{{ $availabilityError }}</span>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- KONTEN: JIKA ADA BUDGET ERROR TAMPILKAN KOTAK ERROR HANGAT -->
                     @if ($budgetError)
                         <div class="rounded-2xl bg-[#8B231A]/30 border border-[#8B231A] p-5 mb-6 text-sm text-[#F4EFE6] leading-relaxed">
@@ -712,7 +780,7 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h4 class="font-bold text-amber-200 text-sm mb-1">Anggaran Belum Mencukupi</h4>
+                                    <h3 class="font-bold text-amber-200 text-sm mb-1">Anggaran Belum Mencukupi</h3>
                                     <p class="text-xs text-[#F4EFE6]/80 leading-relaxed">
                                         {{ $budgetError }}
                                     </p>
@@ -749,14 +817,6 @@
                                                     <span class="text-emerald-300 text-[10px]">(sisa {{ $item['excess_grams'] }}g dibawa pulang)</span>
                                                 @endif
                                             </div>
-                                            @if (!empty($item['flour_packaging']))
-                                                <div class="mt-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-[#D8E0D3]/90 font-mono">
-                                                    <span class="text-[#D96B43] font-bold">Kemasan Pasar:</span> {{ $item['flour_packaging']['packaging_summary'] }}
-                                                    @if ($item['flour_packaging']['leftover_grams'] > 0)
-                                                        <span class="text-emerald-300 ml-1">({{ number_format($item['flour_packaging']['leftover_grams']) }}g sisa dapur)</span>
-                                                    @endif
-                                                </div>
-                                            @endif
                                         </div>
                                         <div class="text-right shrink-0">
                                             <span class="font-semibold text-xs tabular-nums font-mono {{ !empty($item['own_meat']) ? 'text-emerald-400' : 'text-white' }}">
@@ -798,6 +858,11 @@
                                     {{ \Illuminate\Support\Number::currency($totalMarketCost, 'IDR', 'id', precision: 0) }}
                                 </p>
                                 <p class="text-[11px] text-white/80 mt-1">Estimasi uang tunai yang harus disiapkan untuk beli kemasan utuh di pasar</p>
+                                @if ($calculationMode === 'budget' && $totalMarketCost > (float) $budget)
+                                    <p class="text-[11px] text-amber-200 mt-2 pt-2 border-t border-white/15 leading-relaxed">
+                                        Catatan anggaran: Nilai adonan terpakai sesuai batas Rp {{ number_format((float) $budget, 0, ',', '.') }}, namun pembelian kemasan utuh di pasar membutuhkan tunai Rp {{ number_format($totalMarketCost, 0, ',', '.') }} (sisa tepung &amp; bumbu dapat dibawa pulang).
+                                    </p>
+                                @endif
                             </div>
 
                         </div>
@@ -834,7 +899,7 @@
                         </button>
 
                         <!-- Tombol Pesan via WhatsApp -->
-                        @if ($budgetError)
+                        @if ($budgetError || $availabilityError)
                             <button
                                 type="button"
                                 disabled
@@ -990,7 +1055,7 @@
                             <p class="text-[11px] text-[#D96B43] mt-1 font-semibold">{{ $message }}</p>
                         @enderror
                         <p class="text-[11px] text-[#5A534A] mt-1">
-                            Kios buka pkl 05.00–12.00 WIB. Pengambilan minimal 1 jam setelah pemesanan agar racikan siap giling saat Anda tiba.
+                            Kios buka pkl {{ sprintf('%02d.00–%02d.00 WIB', config('services.kiosk.open_hour', 4), config('services.kiosk.close_hour', 12)) }}. Pengambilan minimal 1 jam setelah pemesanan agar racikan siap giling saat Anda tiba.
                         </p>
                     </div>
 

@@ -77,8 +77,8 @@ class CustomerOrderTest extends TestCase
         $this->actingAs($user1);
 
         Livewire::test(MyOrders::class)
-            ->assertSee('#BSK-' . str_pad($orderUser1->id, 5, '0', STR_PAD_LEFT))
-            ->assertDontSee('#BSK-' . str_pad($orderUser2->id, 5, '0', STR_PAD_LEFT));
+            ->assertSee('#BSK-'.str_pad($orderUser1->id, 5, '0', STR_PAD_LEFT))
+            ->assertDontSee('#BSK-'.str_pad($orderUser2->id, 5, '0', STR_PAD_LEFT));
     }
 
     public function test_customer_can_filter_orders_by_status(): void
@@ -116,12 +116,12 @@ class CustomerOrderTest extends TestCase
         Livewire::test(MyOrders::class)
             ->call('filterByStatus', 'pending')
             ->assertSet('statusFilter', 'pending')
-            ->assertSee('#BSK-' . str_pad($orderPending->id, 5, '0', STR_PAD_LEFT))
-            ->assertDontSee('#BSK-' . str_pad($orderCompleted->id, 5, '0', STR_PAD_LEFT))
+            ->assertSee('#BSK-'.str_pad($orderPending->id, 5, '0', STR_PAD_LEFT))
+            ->assertDontSee('#BSK-'.str_pad($orderCompleted->id, 5, '0', STR_PAD_LEFT))
             ->call('filterByStatus', 'completed')
             ->assertSet('statusFilter', 'completed')
-            ->assertSee('#BSK-' . str_pad($orderCompleted->id, 5, '0', STR_PAD_LEFT))
-            ->assertDontSee('#BSK-' . str_pad($orderPending->id, 5, '0', STR_PAD_LEFT));
+            ->assertSee('#BSK-'.str_pad($orderCompleted->id, 5, '0', STR_PAD_LEFT))
+            ->assertDontSee('#BSK-'.str_pad($orderPending->id, 5, '0', STR_PAD_LEFT));
     }
 
     public function test_customer_can_toggle_order_items_breakdown(): void

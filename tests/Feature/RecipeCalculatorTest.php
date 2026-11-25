@@ -3,7 +3,10 @@
 namespace Tests\Feature;
 
 use App\Livewire\RecipeCalculator;
+use App\Models\Material;
 use App\Models\Order;
+use App\Models\SavedRecipe;
+use App\Models\User;
 use Database\Seeders\MaterialSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -174,11 +177,12 @@ class RecipeCalculatorTest extends TestCase
             'subtotal' => 9000.00,
         ]);
 
-        // 3. Assert redirect to WhatsApp
+        // 3. Assert redirect to WhatsApp with unified #BSK- order prefix
         $test->assertRedirect();
         $redirectUrl = $test->effects['redirect'] ?? '';
         $this->assertStringContainsString('https://wa.me/6285122797969', $redirectUrl);
         $this->assertStringContainsString(urlencode('Pak Sukadi'), $redirectUrl);
+        $this->assertStringContainsString(urlencode('#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT)), $redirectUrl);
     }
 
     public function test_flour_packaging_market_rules(): void
@@ -289,22 +293,102 @@ class RecipeCalculatorTest extends TestCase
 
     public function test_calculator_loads_saved_recipe_from_query_parameter(): void
     {
-        $user = \App\Models\User::factory()->create();
-        $recipe = \App\Models\SavedRecipe::create([
+        $user = User::factory()->create();
+        $extraMat = Material::where('name', 'Telur Ayam')->first();
+        $recipe = SavedRecipe::create([
             'user_id' => $user->id,
-            'name' => 'Resep Bakso Spesial Urat',
+            'name' => 'Resep Bakso Ayam ProBakso Kustom',
             'meat_weight' => 1250,
             'start_type' => 'start_from_zero',
-            'preference' => 'urat',
+            'preference' => 'kustom',
+            'recipe_details' => [
+                ['name' => 'Daging Ayam', 'weight' => 1250, 'is_meat' => true],
+                ['name' => 'Tepung ProBakso', 'weight' => 375],
+                ['name' => 'Telur Ayam', 'material_id' => $extraMat->id, 'qty' => 2, 'weight' => 120, 'is_extra' => true],
+            ],
+            'estimated_total' => 150000,
+        ]);
+
+        Livewire::actingAs($user)
+            ->withQueryParams(['recipe_id' => $recipe->id])
+            ->test(RecipeCalculator::class)
+            ->assertSet('meatWeight', 1250)
+            ->assertSet('meatType', 'ayam')
+            ->assertSet('flourType', 'probakso')
+            ->assertSet('preference', 'kustom')
+            ->assertSet('customFlourRatio', 30)
+            ->assertSet('useGrinding', false)
+            ->assertSet('extraItems.'.$extraMat->id, 2)
+            ->assertSet('startType', 'start_from_zero');
+    }
+
+    public function test_calculator_blocks_loading_other_users_saved_recipe_idor(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $recipe = SavedRecipe::create([
+            'user_id' => $owner->id,
+            'name' => 'Resep Rahasia Pemilik',
+            'meat_weight' => 2750,
+            'start_type' => 'own_meat',
+            'preference' => 'enak',
             'recipe_details' => [],
             'estimated_total' => 150000,
         ]);
 
+        // Guest tidak boleh memuat resep milik pengguna lain
         Livewire::withQueryParams(['recipe_id' => $recipe->id])
             ->test(RecipeCalculator::class)
-            ->assertSet('meatWeight', 1250)
-            ->assertSet('preference', 'urat')
+            ->assertSet('meatWeight', 500)
+            ->assertSet('preference', 'seimbang')
             ->assertSet('startType', 'start_from_zero');
+
+        // User lain tidak boleh memuat resep milik $owner
+        Livewire::actingAs($otherUser)
+            ->withQueryParams(['recipe_id' => $recipe->id])
+            ->test(RecipeCalculator::class)
+            ->assertSet('meatWeight', 500)
+            ->assertSet('preference', 'seimbang')
+            ->assertSet('startType', 'start_from_zero');
+    }
+
+    public function test_switching_from_ingredients_only_back_to_meat_mode_restores_valid_meat_weight(): void
+    {
+        Livewire::test(RecipeCalculator::class)
+            ->set('startType', 'ingredients_only')
+            ->assertSet('meatWeight', 0)
+            ->assertSet('useGrinding', false)
+            ->set('startType', 'start_from_zero')
+            ->assertSet('meatWeight', 500)
+            ->assertSet('useGrinding', true);
+    }
+
+    public function test_calculator_blocks_checkout_when_selected_core_material_is_unavailable(): void
+    {
+        Material::where('name', 'Daging Sapi')->update(['is_available' => false]);
+        $pickupDate = now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
+
+        Livewire::test(RecipeCalculator::class)
+            ->set('startType', 'start_from_zero')
+            ->set('meatType', 'sapi')
+            ->assertSee('Stok Bahan Sedang Kosong')
+            ->call('openCheckout')
+            ->assertSet('showCheckoutModal', false)
+            ->set('customerName', 'Pak Ahmad')
+            ->set('customerPhone', '081234567890')
+            ->set('pickupTime', $pickupDate)
+            ->call('processCheckout')
+            ->assertHasErrors(['calculation']);
+
+        $this->assertDatabaseMissing('orders', ['customer_name' => 'Pak Ahmad']);
+    }
+
+    public function test_extra_materials_do_not_leak_raw_blade_syntax(): void
+    {
+        Livewire::test(RecipeCalculator::class)
+            ->assertDontSee('{{ number_format', false)
+            ->assertSee('@60g', false);
     }
 
     public function test_custom_flour_ratio_calculation(): void
@@ -333,27 +417,27 @@ class RecipeCalculatorTest extends TestCase
 
     public function test_calculator_loads_transferred_materials_from_session(): void
     {
-        $material = \App\Models\Material::where('name', 'Merica Bubuk Sachet')->first();
+        $material = Material::where('name', 'Merica Bubuk Sachet')->first();
         session(['selected_materials' => [$material->id => 3]]);
 
         Livewire::test(RecipeCalculator::class)
-            ->assertSet('extraItems.' . $material->id, 3)
+            ->assertSet('extraItems.'.$material->id, 3)
             ->assertSee('Merica Bubuk Sachet')
             ->assertSee('Pelengkap Kios');
     }
 
     public function test_calculator_can_increment_and_decrement_extra_materials(): void
     {
-        $material = \App\Models\Material::where('name', 'Telur Ayam')->first();
+        $material = Material::where('name', 'Telur Ayam')->first();
 
         Livewire::test(RecipeCalculator::class)
             ->call('incrementExtra', $material->id)
-            ->assertSet('extraItems.' . $material->id, 1)
+            ->assertSet('extraItems.'.$material->id, 1)
             ->assertSee('Telur Ayam')
             ->call('incrementExtra', $material->id)
-            ->assertSet('extraItems.' . $material->id, 2)
+            ->assertSet('extraItems.'.$material->id, 2)
             ->call('decrementExtra', $material->id)
-            ->assertSet('extraItems.' . $material->id, 1)
+            ->assertSet('extraItems.'.$material->id, 1)
             ->call('decrementExtra', $material->id)
             ->assertSet('extraItems', []);
     }

@@ -182,6 +182,7 @@
                     type="text"
                     wire:model="question"
                     placeholder="Tanyakan takaran resep atau tips selepan..."
+                    aria-label="Tulis pertanyaan konsultasi adonan bakso"
                     class="flex-1 px-4 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#26221E]/15 text-[#26221E] text-xs focus:outline-none focus:border-[#8B231A] focus:ring-1 focus:ring-[#8B231A] transition-all font-sans"
                     wire:loading.attr="disabled"
                     wire:target="sendMessage, askQuickPrompt"
@@ -192,6 +193,7 @@
                     type="submit"
                     wire:loading.attr="disabled"
                     wire:target="sendMessage, askQuickPrompt"
+                    aria-label="Kirim pesan konsultasi"
                     class="px-4 py-2.5 rounded-xl bg-[#8B231A] hover:bg-[#701A13] text-[#FAF7F2] font-bold text-xs shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 shrink-0 flex items-center justify-center gap-1"
                 >
                     <span>Kirim</span>

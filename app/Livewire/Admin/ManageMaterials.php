@@ -40,6 +40,16 @@ class ManageMaterials extends Component
     public string $selectedCategory = 'semua';
 
     /**
+     * Pastikan pengguna memiliki peran admin pada setiap lifecycle request.
+     */
+    public function boot(): void
+    {
+        if (! Auth::check() || Auth::user()->role !== 'admin') {
+            abort(403, 'Akses khusus administrator BASOKU.');
+        }
+    }
+
+    /**
      * Pastikan hanya admin yang dapat mengakses.
      */
     public function mount()

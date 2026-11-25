@@ -94,6 +94,8 @@
                             <img
                                 src="{{ asset('images/curated/daging-segar.jpg') }}"
                                 alt="Daging Sapi Segar Paha Pasar"
+                                width="800"
+                                height="320"
                                 class="w-full h-64 sm:h-80 object-cover object-center"
                                 loading="lazy"
                             >
@@ -169,6 +171,8 @@
                                 <img
                                     src="{{ asset('images/curated/bakso-asli.jpg') }}"
                                     alt="Semangkuk Bakso Nusantara Asli"
+                                    width="400"
+                                    height="224"
                                     class="w-full h-56 object-cover object-center"
                                     loading="lazy"
                                 >
@@ -180,6 +184,8 @@
                                 <img
                                     src="{{ asset('images/curated/bawang-goreng.jpg') }}"
                                     alt="Bawang Merah Goreng Renyah"
+                                    width="400"
+                                    height="224"
                                     class="w-full h-56 object-cover object-center"
                                     loading="lazy"
                                 >
@@ -278,6 +284,8 @@
                                 <img
                                     src="{{ asset('images/curated/tepung-tapioka.jpg') }}"
                                     alt="Tepung Tapioka Super"
+                                    width="400"
+                                    height="192"
                                     class="w-full h-48 object-cover object-center"
                                     loading="lazy"
                                 >
@@ -289,6 +297,8 @@
                                 <img
                                     src="{{ asset('images/curated/bawang-putih.jpg') }}"
                                     alt="Bawang Putih Kating"
+                                    width="400"
+                                    height="192"
                                     class="w-full h-48 object-cover object-center"
                                     loading="lazy"
                                 >

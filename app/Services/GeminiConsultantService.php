@@ -28,20 +28,15 @@ class GeminiConsultantService
         $model = config('services.gemini.model', 'gemini-1.5-flash');
         $endpoint = "{$baseUrl}/models/{$model}:generateContent?key={$apiKey}";
 
+        $contents = $this->buildConversationContents($question, $context['history'] ?? []);
+
         $payload = [
             'systemInstruction' => [
                 'parts' => [
                     ['text' => $this->getSystemPrompt()],
                 ],
             ],
-            'contents' => [
-                [
-                    'role' => 'user',
-                    'parts' => [
-                        ['text' => $question],
-                    ],
-                ],
-            ],
+            'contents' => $contents,
             'generationConfig' => [
                 'temperature' => 0.7,
                 'maxOutputTokens' => 800,
@@ -49,7 +44,9 @@ class GeminiConsultantService
         ];
 
         try {
-            $httpClient = Http::timeout(30)->withOptions(['force_ip_resolve' => 'v4']);
+            $httpClient = Http::timeout(30)
+                ->withHeaders(['x-goog-api-key' => $apiKey])
+                ->withOptions(['force_ip_resolve' => 'v4']);
             if (! config('services.gemini.verify_ssl', true)) {
                 $httpClient = $httpClient->withoutVerifying();
             }
@@ -78,6 +75,60 @@ class GeminiConsultantService
 
             return $this->getLocalFallback($question);
         }
+    }
+
+    /**
+     * Susun array multi-turn contents sesuai kontrak Gemini API (dimulai dengan role 'user', dibatasi 10 pesan terakhir).
+     *
+     * @param  array<int, array{role?: string, message?: string}>  $history
+     * @return array<int, array{role: string, parts: array<int, array{text: string}>}>
+     */
+    protected function buildConversationContents(string $question, array $history): array
+    {
+        $contents = [];
+        $recentHistory = array_slice($history, -10);
+
+        foreach ($recentHistory as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            $text = trim((string) ($entry['message'] ?? ''));
+            if ($text === '') {
+                continue;
+            }
+
+            $role = ($entry['role'] ?? '') === 'assistant' ? 'model' : 'user';
+
+            // Gemini API mewajibkan percakapan dimulai dengan role 'user' (lewati pesan sambutan awal asisten)
+            if (empty($contents) && $role === 'model') {
+                continue;
+            }
+
+            $contents[] = [
+                'role' => $role,
+                'parts' => [
+                    ['text' => $text],
+                ],
+            ];
+        }
+
+        // Pastikan pertanyaan terbaru selalu berada di akhir tanpa duplikasi
+        $lastEntry = end($contents);
+        $alreadyAppended = is_array($lastEntry)
+            && ($lastEntry['role'] ?? '') === 'user'
+            && ($lastEntry['parts'][0]['text'] ?? '') === trim($question);
+
+        if (! $alreadyAppended) {
+            $contents[] = [
+                'role' => 'user',
+                'parts' => [
+                    ['text' => trim($question)],
+                ],
+            ];
+        }
+
+        return $contents;
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Services\GeminiConsultantService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -200,5 +201,55 @@ class AiConsultantTest extends TestCase
             ->assertHasNoErrors()
             ->assertSee('Harga & Ketersediaan Es Batu di Kios BASOKU')
             ->assertSee('Rp2.000 – Rp5.000');
+    }
+
+    public function test_gemini_service_sends_multi_turn_conversation_history(): void
+    {
+        Config::set('services.gemini.key', 'test-dummy-api-key');
+        Config::set('services.gemini.model', 'gemini-1.5-flash');
+
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::sequence()
+                ->push(['candidates' => [['content' => ['parts' => [['text' => 'Gunakan 150-200g es batu per 1 kg daging.']]]]]], 200)
+                ->push(['candidates' => [['content' => ['parts' => [['text' => 'Karena panas gesekan mesin selepan merusak protein miosin.']]]]]], 200),
+        ]);
+
+        Livewire::test(AiConsultant::class)
+            ->set('question', 'Berapa takaran es batu untuk 1 kg daging?')
+            ->call('sendMessage')
+            ->set('question', 'Kenapa wajib pakai es batu?')
+            ->call('sendMessage')
+            ->assertHasNoErrors()
+            ->assertSee('protein miosin');
+
+        $requests = Http::recorded();
+        $this->assertCount(2, $requests);
+
+        $secondPayload = $requests[1][0]->data();
+        $this->assertCount(3, $secondPayload['contents']);
+        $this->assertSame('user', $secondPayload['contents'][0]['role']);
+        $this->assertSame('Berapa takaran es batu untuk 1 kg daging?', $secondPayload['contents'][0]['parts'][0]['text']);
+        $this->assertSame('model', $secondPayload['contents'][1]['role']);
+        $this->assertSame('Gunakan 150-200g es batu per 1 kg daging.', $secondPayload['contents'][1]['parts'][0]['text']);
+        $this->assertSame('user', $secondPayload['contents'][2]['role']);
+        $this->assertSame('Kenapa wajib pakai es batu?', $secondPayload['contents'][2]['parts'][0]['text']);
+    }
+
+    public function test_ai_consultant_rate_limits_excessive_messages(): void
+    {
+        Config::set('services.gemini.key', null);
+        RateLimiter::clear('ai-consultant|127.0.0.1');
+
+        $component = Livewire::test(AiConsultant::class);
+
+        for ($i = 1; $i <= 10; $i++) {
+            $component->set('question', "Pertanyaan uji ke {$i}")
+                ->call('sendMessage')
+                ->assertHasNoErrors();
+        }
+
+        $component->set('question', 'Pertanyaan ke 11 harus ditahan')
+            ->call('sendMessage')
+            ->assertHasErrors(['question']);
     }
 }

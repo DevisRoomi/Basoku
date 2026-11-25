@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Customer\MyRecipeLab;
 use App\Livewire\RecipeCalculator;
@@ -203,5 +204,39 @@ class CustomerRecipeTest extends TestCase
         $this->assertDatabaseMissing('saved_recipes', [
             'id' => $recipe->id,
         ]);
+    }
+
+    public function test_guest_draft_persists_through_login_and_restores_in_calculator(): void
+    {
+        $customer = User::create([
+            'name' => 'Pelanggan Draft',
+            'email' => 'draft@example.com',
+            'password' => bcrypt('password123'),
+            'role' => 'customer',
+        ]);
+
+        Livewire::test(RecipeCalculator::class)
+            ->set('meatType', 'ayam')
+            ->set('meatWeight', 1500)
+            ->set('flourType', 'probakso')
+            ->set('preference', 'enak')
+            ->call('openSaveModal')
+            ->assertRedirect('/masuk');
+
+        $this->assertTrue(session()->has('calculator_draft'));
+
+        Livewire::test(Login::class)
+            ->set('email', 'draft@example.com')
+            ->set('password', 'password123')
+            ->call('authenticate')
+            ->assertRedirect('/kalkulator');
+
+        Livewire::actingAs($customer)
+            ->test(RecipeCalculator::class)
+            ->assertSet('meatType', 'ayam')
+            ->assertSet('meatWeight', 1500)
+            ->assertSet('flourType', 'probakso')
+            ->assertSet('preference', 'enak')
+            ->assertSet('showSaveModal', true);
     }
 }

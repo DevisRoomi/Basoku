@@ -28,7 +28,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1 text-xs">
                     <div class="bg-white border border-[#26221E]/10 rounded-2xl p-3.5">
                         <span class="text-[10px] font-mono uppercase text-[#5A534A] block">Jam Operasional Pasar</span>
-                        <span class="font-bold text-[#26221E] text-sm block mt-0.5">Setiap Hari &bull; 04.00 – 12.00 WIB</span>
+                        <span class="font-bold text-[#26221E] text-sm block mt-0.5">Setiap Hari &bull; {{ sprintf('%02d.00 – %02d.00 WIB', config('services.kiosk.open_hour', 4), config('services.kiosk.close_hour', 12)) }}</span>
                         <span class="text-[11px] text-[#5A534A] mt-0.5 block">Subuh hingga tengah hari</span>
                     </div>
                     <div class="bg-white border border-[#26221E]/10 rounded-2xl p-3.5">
@@ -41,7 +41,7 @@
                             <span class="text-[10px] font-mono uppercase text-[#5A534A] block">Format GPS Desimal</span>
                             <span class="font-mono font-bold text-xs text-[#26221E]">-7.992083, 113.249694</span>
                         </div>
-                        <span class="text-[11px] font-mono text-[#D96B43] bg-[#D96B43]/10 px-2.5 py-1 rounded-md">Navigasi Terverifikasi</span>
+                        <span class="text-[11px] font-mono text-[#A93E18] bg-[#A93E18]/10 px-2.5 py-1 rounded-md">Navigasi Terverifikasi</span>
                     </div>
                 </div>
 
@@ -108,6 +108,7 @@
                     <li><a href="{{ url('/') }}#cara-kerja" class="hover:text-[#D96B43] transition-colors">Cara Kerja</a></li>
                     <li><a href="{{ route('calculator') }}" class="hover:text-[#D96B43] transition-colors">Kalkulator</a></li>
                     <li><a href="{{ route('catalog') }}" class="hover:text-[#D96B43] transition-colors">Daftar Harga</a></li>
+                    <li><a href="{{ route('orders.track') }}" class="hover:text-[#D96B43] transition-colors">Lacak Pesanan</a></li>
                 </ul>
             </div>
 
@@ -133,7 +134,7 @@
         </div>
 
         <!-- Baris Bawah: Hak Cipta -->
-        <div class="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#5A534A]/80 border-t border-[#26221E]/10">
+        <div class="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#3B362F] border-t border-[#26221E]/10">
             <p>
                 &copy; {{ date('Y') }} <strong>BASOKU</strong>. Hak Cipta Dilindungi.
             </p>

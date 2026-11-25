@@ -7,8 +7,8 @@
             </svg>
             <span>Kembali ke Beranda</span>
         </a>
-        <span class="text-xs font-mono font-bold text-[#D96B43] uppercase tracking-wider">
-            Pintu Masuk Admin
+        <span class="text-xs font-mono font-bold text-[#B84E26] uppercase tracking-wider">
+            Pelanggan &amp; Pintu Masuk Admin
         </span>
     </div>
 
@@ -37,7 +37,7 @@
                     wire:model="email"
                     autocomplete="email"
                     autofocus
-                    placeholder="admin@basoku.com"
+                    placeholder="nama@email.com"
                     class="w-full rounded-2xl border-2 border-[#26221E]/10 bg-white px-4 py-3 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/30 focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
                 >
                 @error('email')
@@ -92,9 +92,9 @@
                 <button
                     type="submit"
                     wire:loading.attr="disabled"
-                    class="w-full py-3.5 px-6 rounded-full bg-[#D96B43] hover:bg-[#C25932] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                    class="w-full py-3.5 px-6 rounded-full bg-[#B84E26] hover:bg-[#9E3F1C] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                    <span wire:loading.remove>Masuk ke Dasbor</span>
+                    <span wire:loading.remove>Masuk Sekarang</span>
                     <span wire:loading class="flex items-center gap-2">
                         <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

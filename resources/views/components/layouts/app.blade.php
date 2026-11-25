@@ -4,9 +4,12 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="{{ $description ?? 'Platform pintar kalkulator racikan bakso pasar dan pemesanan instan via WhatsApp. Hitung komposisi daging, tepung, dan bumbu secara presisi.' }}">
+        <meta name="theme-color" content="#8B231A">
 
         <title>{{ $title ?? 'BASOKU — Asisten Racikan & Belanja Bakso Pasar' }}</title>
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}">
+        <link rel="manifest" href="{{ asset('manifest.json') }}">
 
         <!-- Fonts -->
         @fonts
@@ -25,5 +28,12 @@
         @livewire('ai-consultant')
 
         @livewireScripts
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js').catch(() => {});
+                });
+            }
+        </script>
     </body>
 </html>

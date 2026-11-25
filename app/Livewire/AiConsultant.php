@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Services\GeminiConsultantService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Component;
 
 class AiConsultant extends Component
@@ -87,6 +88,15 @@ class AiConsultant extends Component
             'question.min' => 'Pertanyaan minimal terdiri dari 3 karakter.',
             'question.max' => 'Pertanyaan maksimal 500 karakter.',
         ]);
+
+        $throttleKey = 'ai-consultant|'.request()->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 10)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            $this->addError('question', "Terlalu banyak pertanyaan dalam waktu singkat. Mohon tunggu {$seconds} detik sebelum bertanya lagi.");
+
+            return;
+        }
+        RateLimiter::hit($throttleKey, 300);
 
         $this->isOpen = true;
         $userPrompt = trim($this->question);

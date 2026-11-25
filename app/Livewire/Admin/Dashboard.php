@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -14,6 +15,16 @@ use Livewire\Component;
 class Dashboard extends Component
 {
     public string $currentTab = 'beranda';
+
+    /**
+     * Pastikan pengguna memiliki peran admin pada setiap lifecycle request.
+     */
+    public function boot(): void
+    {
+        if (! Auth::check() || Auth::user()->role !== 'admin') {
+            abort(403, 'Akses khusus administrator BASOKU.');
+        }
+    }
 
     /**
      * Pastikan pengguna memiliki peran admin.
@@ -50,30 +61,34 @@ class Dashboard extends Component
      */
     public function render(): View
     {
+        // Ambil seluruh data pesanan ringan dalam 1 query untuk kalkulasi agregat in-memory (mengurangi 26 query -> 2 query)
+        $orders = Order::all(['id', 'status', 'total_price', 'preference', 'created_at']);
+
         // 1. Total seluruh pesanan masuk
-        $totalOrders = Order::count();
+        $totalOrders = $orders->count();
 
         // 2. Omzet Valid: HANYA dari status 'diproses' atau 'selesai' (termasuk alias 'processing' & 'completed')
-        // Pesanan 'menunggu', 'pending', 'batal', 'cancelled' secara ketat DIABAIKAN.
         $validStatuses = ['diproses', 'selesai', 'processing', 'completed'];
-        $validRevenue = (float) Order::whereIn('status', $validStatuses)->sum('total_price');
-        $validOrdersCount = Order::whereIn('status', $validStatuses)->count();
+        $validOrders = $orders->whereIn('status', $validStatuses);
+        $validRevenue = (float) $validOrders->sum('total_price');
+        $validOrdersCount = $validOrders->count();
 
         // 3. Status breakdown untuk visibilitas operasional
-        $processingCount = Order::whereIn('status', ['processing', 'diproses'])->count();
-        $completedCount = Order::whereIn('status', ['completed', 'selesai'])->count();
-        $pendingCount = Order::whereIn('status', ['pending', 'menunggu'])->count();
-        $cancelledCount = Order::whereIn('status', ['cancelled', 'batal'])->count();
+        $processingCount = $orders->whereIn('status', ['processing', 'diproses'])->count();
+        $completedCount = $orders->whereIn('status', ['completed', 'selesai'])->count();
+        $pendingOrders = $orders->whereIn('status', ['pending', 'menunggu']);
+        $pendingCount = $pendingOrders->count();
+        $cancelledCount = $orders->whereIn('status', ['cancelled', 'batal'])->count();
 
-        $pendingRevenue = (float) Order::whereIn('status', ['pending', 'menunggu'])->sum('total_price');
+        $pendingRevenue = (float) $pendingOrders->sum('total_price');
 
         // 4. Sebaran Preferensi Racikan Resep: Enak, Seimbang, Ekonomis, Urat, Kustom, Bahan Saja
-        $enakCount = Order::whereIn('preference', ['enak', 'Enak', 'ENAK'])->count();
-        $seimbangCount = Order::whereIn('preference', ['seimbang', 'Seimbang', 'SEIMBANG'])->count();
-        $ekonomisCount = Order::whereIn('preference', ['ekonomis', 'Ekonomis', 'EKONOMIS'])->count();
-        $uratCount = Order::whereIn('preference', ['urat', 'Urat', 'URAT'])->count();
-        $kustomCount = Order::whereIn('preference', ['kustom', 'Kustom', 'KUSTOM'])->count();
-        $katalogCount = Order::whereIn('preference', ['belanja_katalog', 'bahan_saja', 'Bahan Saja'])->count();
+        $enakCount = $orders->filter(fn ($o) => in_array(strtolower(trim((string) $o->preference)), ['enak']))->count();
+        $seimbangCount = $orders->filter(fn ($o) => in_array(strtolower(trim((string) $o->preference)), ['seimbang']))->count();
+        $ekonomisCount = $orders->filter(fn ($o) => in_array(strtolower(trim((string) $o->preference)), ['ekonomis']))->count();
+        $uratCount = $orders->filter(fn ($o) => in_array(strtolower(trim((string) $o->preference)), ['urat']))->count();
+        $kustomCount = $orders->filter(fn ($o) => in_array(strtolower(trim((string) $o->preference)), ['kustom']))->count();
+        $katalogCount = $orders->filter(fn ($o) => in_array(strtolower(trim((string) $o->preference)), ['belanja_katalog', 'bahan_saja']))->count();
         $totalPreferences = $enakCount + $seimbangCount + $ekonomisCount + $uratCount + $kustomCount + $katalogCount;
 
         $preferencePercentages = [
@@ -91,7 +106,7 @@ class Dashboard extends Component
             ->take(8)
             ->get();
 
-        // 6. Tren Bulanan (6 Bulan Terakhir)
+        // 6. Tren Bulanan (6 Bulan Terakhir) - Dihitung in-memory tanpa query loop
         $monthlyTrend = [];
         $indonesianMonths = [
             1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
@@ -104,14 +119,17 @@ class Dashboard extends Component
             $month = (int) $point->format('n');
             $monthLabel = ($indonesianMonths[$month] ?? $point->format('M')).' '.$point->format('y');
 
-            $orderVolume = Order::whereYear('created_at', $year)
-                ->whereMonth('created_at', $month)
-                ->count();
+            $monthOrders = $orders->filter(function ($order) use ($year, $month) {
+                if (! $order->created_at) {
+                    return false;
+                }
+                $createdAt = Carbon::parse($order->created_at);
 
-            $monthValidRevenue = (float) Order::whereYear('created_at', $year)
-                ->whereMonth('created_at', $month)
-                ->whereIn('status', $validStatuses)
-                ->sum('total_price');
+                return (int) $createdAt->format('Y') === $year && (int) $createdAt->format('n') === $month;
+            });
+
+            $orderVolume = $monthOrders->count();
+            $monthValidRevenue = (float) $monthOrders->whereIn('status', $validStatuses)->sum('total_price');
 
             $monthlyTrend[] = [
                 'label' => $monthLabel,

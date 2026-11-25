@@ -33,6 +33,16 @@ class ManageRecipes extends Component
     public ?string $description = '';
 
     /**
+     * Pastikan pengguna memiliki peran admin pada setiap lifecycle request.
+     */
+    public function boot(): void
+    {
+        if (! Auth::check() || Auth::user()->role !== 'admin') {
+            abort(403, 'Akses khusus administrator BASOKU.');
+        }
+    }
+
+    /**
      * Otorisasi role admin.
      */
     public function mount(): mixed

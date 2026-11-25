@@ -11,16 +11,14 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.app')]
-#[Title('Pesanan Saya | BASOKU')]
+#[Layout('components.layouts.app')]
+#[Title('Pesanan & Antrean Saya — BASOKU')]
 class MyOrders extends Component
 {
     use WithPagination;
 
     #[Url]
     public string $statusFilter = 'all';
-
-    public string $searchQuery = '';
 
     public ?int $selectedOrderId = null;
 
@@ -39,37 +37,33 @@ class MyOrders extends Component
     {
         $userId = Auth::id();
 
-        $query = Order::query()->with('orderItems');
-
-        if ($userId) {
-            $query->where('user_id', $userId);
-        } else {
-            // Guest lookup mode: must search by phone or order ID
-            if (! empty($this->searchQuery)) {
-                $trimmed = trim($this->searchQuery);
-                $cleanPhone = preg_replace('/[^0-9]/', '', $trimmed);
-
-                $query->where(function ($q) use ($trimmed, $cleanPhone) {
-                    $q->where('id', (int) str_replace('#BSK-', '', $trimmed))
-                      ->orWhere('customer_phone', 'like', "%{$cleanPhone}%")
-                      ->orWhere('customer_name', 'like', "%{$trimmed}%");
-                });
-            } else {
-                $query->whereRaw('1 = 0'); // Empty until search
-            }
-        }
+        $query = Order::query()
+            ->with('orderItems')
+            ->where('user_id', $userId);
 
         if ($this->statusFilter !== 'all') {
-            $query->where('status', $this->statusFilter);
+            $statusMap = [
+                'pending' => ['pending', 'menunggu'],
+                'processing' => ['processing', 'diproses'],
+                'completed' => ['completed', 'selesai'],
+                'cancelled' => ['cancelled', 'batal'],
+            ];
+            $query->whereIn('status', $statusMap[$this->statusFilter] ?? [$this->statusFilter]);
         }
 
         $orders = $query->latest()->paginate(8);
 
+        $statusCounts = Order::query()
+            ->where('user_id', $userId)
+            ->selectRaw('LOWER(status) as status_key, count(*) as total')
+            ->groupBy('status_key')
+            ->pluck('total', 'status_key');
+
         $counts = [
-            'all' => $userId ? Order::where('user_id', $userId)->count() : 0,
-            'pending' => $userId ? Order::where('user_id', $userId)->whereIn('status', ['pending', 'menunggu'])->count() : 0,
-            'processing' => $userId ? Order::where('user_id', $userId)->whereIn('status', ['processing', 'diproses'])->count() : 0,
-            'completed' => $userId ? Order::where('user_id', $userId)->whereIn('status', ['completed', 'selesai'])->count() : 0,
+            'all' => (int) $statusCounts->sum(),
+            'pending' => (int) (($statusCounts['pending'] ?? 0) + ($statusCounts['menunggu'] ?? 0)),
+            'processing' => (int) (($statusCounts['processing'] ?? 0) + ($statusCounts['diproses'] ?? 0)),
+            'completed' => (int) (($statusCounts['completed'] ?? 0) + ($statusCounts['selesai'] ?? 0)),
         ];
 
         return view('livewire.customer.my-orders', [

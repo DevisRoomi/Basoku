@@ -435,7 +435,7 @@
                             class="w-full px-4 py-2.5 rounded-xl bg-white border border-[#26221E]/20 text-sm focus:outline-hidden focus:border-[#2D4235]"
                         />
                         <p class="text-[11px] text-[#5A534A] mt-1 font-mono">
-                            Jam operasional: 05.00 – 12.00 WIB (min. 1 jam dari pemesanan).
+                            Jam operasional: {{ sprintf('%02d.00 – %02d.00 WIB', config('services.kiosk.open_hour', 4), config('services.kiosk.close_hour', 12)) }} (min. 1 jam dari pemesanan).
                         </p>
                         @error('pickupTime')
                             <p class="text-xs text-[#D96B43] mt-1">{{ $message }}</p>

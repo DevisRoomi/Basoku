@@ -168,11 +168,12 @@ class ManageMaterialsTest extends TestCase
         Livewire::test(MaterialCatalog::class)
             ->assertSee('180');
 
-        // 3. Verify that public RecipeCalculator uses the new price in calculation
+        // 3. Verify that public RecipeCalculator uses the new price dynamically in UI and calculation
         Livewire::test(RecipeCalculator::class)
             ->set('startType', 'start_from_zero')
             ->set('meatType', 'sapi')
             ->set('meatWeight', 500)
-            ->assertSet('meatWeight', 500);
+            ->assertSee('Rp 180.000/kg')
+            ->assertSet('totalProportionalCost', 99930.0);
     }
 }

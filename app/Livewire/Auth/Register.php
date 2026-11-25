@@ -5,6 +5,7 @@ namespace App\Livewire\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -26,6 +27,14 @@ class Register extends Component
      */
     public function register()
     {
+        $throttleKey = 'register|'.request()->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            $this->addError('email', "Terlalu banyak pendaftaran dari perangkat ini. Harap tunggu {$seconds} detik sebelum mencoba kembali.");
+
+            return;
+        }
+
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -39,6 +48,8 @@ class Register extends Component
             'password.min' => 'Kata sandi minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
         ]);
+
+        RateLimiter::hit($throttleKey, 300);
 
         $user = User::create([
             'name' => trim($this->name),

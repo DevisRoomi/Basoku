@@ -1,9 +1,20 @@
-// Service Worker Minimalis BASOKU — Offline Shell Cache (Rp 0)
-const CACHE_NAME = 'basoku-shell-v1';
+// Service Worker Minimalis BASOKU — Offline Shell Cache
+const CACHE_NAME = 'basoku-shell-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
   '/favicon.svg'
+];
+
+const BYPASS_PREFIXES = [
+  '/livewire',
+  '/admin',
+  '/masuk',
+  '/daftar',
+  '/keluar',
+  '/racikan-saya',
+  '/pesanan-saya',
+  '/lacak-pesanan'
 ];
 
 self.addEventListener('install', (event) => {
@@ -28,21 +39,20 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Network-first with cache fallback
+// Network-first with safe cache fallback for public/static GET requests
 self.addEventListener('fetch', (event) => {
-  // Hanya tangani GET requests
   if (event.request.method !== 'GET') return;
 
-  // Lewati livewire internal requests dan admin endpoints agar data selalu segar
   const url = new URL(event.request.url);
-  if (url.pathname.startsWith('/livewire') || url.pathname.startsWith('/admin')) {
+  if (url.origin !== self.location.origin) return;
+
+  if (BYPASS_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
     return;
   }
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Cache salinan jika request berhasil dan bertipe basic
         if (response.status === 200 && response.type === 'basic') {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -56,7 +66,6 @@ self.addEventListener('fetch', (event) => {
           if (cachedResponse) {
             return cachedResponse;
           }
-          // Fallback offline jika kebetulan request navigasi HTML
           if (event.request.headers.get('accept')?.includes('text/html')) {
             return caches.match('/');
           }

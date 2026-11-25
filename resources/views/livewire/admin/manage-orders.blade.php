@@ -103,11 +103,15 @@
                     </thead>
                     <tbody class="divide-y divide-[#161210]/5 text-xs font-medium text-[#161210]">
                         @forelse ($orders as $order)
-                            <tr class="hover:bg-[#FAF6F0]/40 transition-colors">
+                            @php
+                                $orderCode = '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
+                                $waUrl = $this->getCustomerWaUrl($order);
+                            @endphp
+                            <tr wire:key="admin-order-{{ $order->id }}" class="hover:bg-[#FAF6F0]/40 transition-colors">
                                 <!-- Kolom 1: ID & Waktu Pemesanan -->
                                 <td class="py-4 px-6">
                                     <span class="font-extrabold text-[#161210] font-mono text-xs">
-                                        #{{ str_pad($order->id, 4, '0', STR_PAD_LEFT) }}
+                                        {{ $orderCode }}
                                     </span>
                                     <span class="block text-[10px] text-[#161210]/50 mt-0.5">
                                         {{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '-' }}
@@ -132,8 +136,8 @@
                                     <p class="font-bold text-sm text-[#161210]">
                                         {{ $order->customer_name }}
                                     </p>
-                                    @if ($order->customer_phone)
-                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $order->customer_phone) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-emerald-700 hover:text-emerald-900 mt-0.5">
+                                    @if ($order->customer_phone && $waUrl)
+                                        <a href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-emerald-700 hover:text-emerald-900 mt-0.5">
                                             <span>📱 {{ $order->customer_phone }}</span>
                                         </a>
                                     @endif
@@ -187,7 +191,9 @@
                                     <div class="relative inline-block text-left">
                                         <select
                                             wire:change="updateStatus({{ $order->id }}, $event.target.value)"
-                                            class="text-xs font-bold rounded-xl py-1.5 pl-3 pr-8 border cursor-pointer focus:outline-none transition-colors appearance-none {{ match($order->status) {
+                                            wire:loading.attr="disabled"
+                                            aria-label="Ubah status pesanan #{{ $order->id }}"
+                                            class="text-xs font-bold rounded-xl py-1.5 pl-3 pr-8 border cursor-pointer focus:outline-none transition-colors appearance-none disabled:opacity-50 {{ match($order->status) {
                                                 'pending' => 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100',
                                                 'processing' => 'bg-blue-50 text-blue-800 border-blue-300 hover:bg-blue-100',
                                                 'completed' => 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100',
@@ -205,17 +211,30 @@
 
                                 <!-- Kolom 7: Aksi -->
                                 <td class="py-4 px-6 text-right whitespace-nowrap">
-                                    <button
-                                        type="button"
-                                        wire:click="viewOrder({{ $order->id }})"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FAF6F0] hover:bg-[#161210] hover:text-white text-[#161210] font-semibold text-xs border border-[#161210]/10 transition-colors cursor-pointer"
-                                    >
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                        <span>Lihat Rincian</span>
-                                    </button>
+                                    <div class="inline-flex items-center gap-1.5">
+                                        @if ($waUrl)
+                                            <a
+                                                href="{{ $waUrl }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-800 font-semibold text-xs border border-emerald-200 transition-colors"
+                                                title="Kirim notifikasi status via WhatsApp ke pelanggan"
+                                            >
+                                                <span>WA</span>
+                                            </a>
+                                        @endif
+                                        <button
+                                            type="button"
+                                            wire:click="viewOrder({{ $order->id }})"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FAF6F0] hover:bg-[#161210] hover:text-white text-[#161210] font-semibold text-xs border border-[#161210]/10 transition-colors cursor-pointer"
+                                        >
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            <span>Lihat Rincian</span>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -229,10 +248,17 @@
                 </table>
             </div>
 
-            <!-- Footer Tabel Informatif -->
-            <div class="px-6 py-4 bg-[#FAF6F0]/40 border-t border-[#161210]/10 flex flex-col sm:flex-row items-center justify-between text-xs text-[#161210]/60 gap-2">
-                <span>Menampilkan <strong>{{ $orders->count() }}</strong> pesanan.</span>
-                <span class="italic text-[11px]">*Pembaruan status di sini membantu sinkronisasi pencatatan pesanan di kios pasar.</span>
+            <!-- Footer Tabel Informatif & Paginasi -->
+            <div class="px-6 py-4 bg-[#FAF6F0]/40 border-t border-[#161210]/10 space-y-3 text-xs text-[#161210]/60">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
+                    <span>Menampilkan <strong>{{ $orders->count() }}</strong> dari total <strong>{{ $orders->total() }}</strong> pesanan.</span>
+                    <span class="italic text-[11px]">*Pembaruan status di sini membantu sinkronisasi pencatatan pesanan di kios pasar.</span>
+                </div>
+                @if ($orders->hasPages())
+                    <div class="pt-2 border-t border-[#161210]/10">
+                        {{ $orders->links() }}
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -240,6 +266,13 @@
 
     <!-- MODAL RINCIAN PESANAN (DETAIL MODAL) -->
     @if ($showDetailModal && $selectedOrder)
+        @php
+            $selectedWaUrl = $this->getCustomerWaUrl($selectedOrder);
+            $selectedCode = '#BSK-'.str_pad((string) $selectedOrder->id, 5, '0', STR_PAD_LEFT);
+            $materialOnlyItems = $selectedOrder->orderItems->reject(
+                fn ($item) => str_contains(strtolower((string) $item->material_name), 'selepan')
+            );
+        @endphp
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-[#161210]/80 backdrop-blur-sm animate-fade-in">
             <div
                 class="bg-[#FAF6F0] rounded-2xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl border border-[#161210]/10 relative z-10 max-h-[90vh] flex flex-col"
@@ -250,7 +283,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-mono font-extrabold text-[#C83B2B] bg-[#C83B2B]/10 px-2 py-0.5 rounded border border-[#C83B2B]/20">
-                                #{{ str_pad($selectedOrder->id, 4, '0', STR_PAD_LEFT) }}
+                                {{ $selectedCode }}
                             </span>
                             <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded {{ match($selectedOrder->status) {
                                 'pending' => 'bg-amber-100 text-amber-800',
@@ -271,9 +304,9 @@
                         <h2 class="text-xl sm:text-2xl font-bold text-[#161210] mt-1" style="font-family: 'Playfair Display', Georgia, serif;">
                             Pesanan: {{ $selectedOrder->customer_name }}
                         </h2>
-                        @if ($selectedOrder->customer_phone)
+                        @if ($selectedOrder->customer_phone && $selectedWaUrl)
                             <p class="text-xs text-[#161210]/70 mt-1">
-                                Kontak WhatsApp: <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $selectedOrder->customer_phone) }}" target="_blank" rel="noopener noreferrer" class="font-mono font-bold text-emerald-700 hover:underline">📱 {{ $selectedOrder->customer_phone }}</a>
+                                Kontak WhatsApp: <a href="{{ $selectedWaUrl }}" target="_blank" rel="noopener noreferrer" class="font-mono font-bold text-emerald-700 hover:underline">📱 {{ $selectedOrder->customer_phone }}</a>
                             </p>
                         @endif
                     </div>
@@ -367,7 +400,7 @@
                         <div class="flex justify-between text-[#161210]/70">
                             <span>Subtotal Bahan Baku Pasar:</span>
                             <span class="font-bold text-[#161210]">
-                                {{ \Illuminate\Support\Number::currency($selectedOrder->orderItems->sum('subtotal'), 'IDR', 'id', precision: 0) }}
+                                {{ \Illuminate\Support\Number::currency($materialOnlyItems->sum('subtotal'), 'IDR', 'id', precision: 0) }}
                             </span>
                         </div>
                         <div class="flex justify-between text-[#161210]/70">
@@ -391,28 +424,32 @@
                             <button
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'pending')"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors {{ $selectedOrder->status === 'pending' ? 'bg-amber-600 text-white font-bold' : 'bg-white text-amber-800 border border-amber-300 hover:bg-amber-50' }}"
+                                wire:loading.attr="disabled"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedOrder->status === 'pending' ? 'bg-amber-600 text-white font-bold' : 'bg-white text-amber-800 border border-amber-300 hover:bg-amber-50' }}"
                             >
                                 Menunggu
                             </button>
                             <button
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'processing')"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors {{ $selectedOrder->status === 'processing' ? 'bg-blue-600 text-white font-bold' : 'bg-white text-blue-800 border border-blue-300 hover:bg-blue-50' }}"
+                                wire:loading.attr="disabled"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedOrder->status === 'processing' ? 'bg-blue-600 text-white font-bold' : 'bg-white text-blue-800 border border-blue-300 hover:bg-blue-50' }}"
                             >
                                 Diproses
                             </button>
                             <button
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'completed')"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors {{ $selectedOrder->status === 'completed' ? 'bg-emerald-600 text-white font-bold' : 'bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-50' }}"
+                                wire:loading.attr="disabled"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedOrder->status === 'completed' ? 'bg-emerald-600 text-white font-bold' : 'bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-50' }}"
                             >
                                 Selesai
                             </button>
                             <button
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'cancelled')"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors {{ $selectedOrder->status === 'cancelled' ? 'bg-rose-600 text-white font-bold' : 'bg-white text-rose-800 border border-rose-300 hover:bg-rose-50' }}"
+                                wire:loading.attr="disabled"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedOrder->status === 'cancelled' ? 'bg-rose-600 text-white font-bold' : 'bg-white text-rose-800 border border-rose-300 hover:bg-rose-50' }}"
                             >
                                 Dibatalkan
                             </button>
@@ -423,16 +460,28 @@
 
                 <!-- Footer Modal -->
                 <div class="pt-4 mt-4 border-t border-[#161210]/10 flex flex-wrap items-center justify-between gap-2 shrink-0">
-                    <button
-                        type="button"
-                        onclick="window.print()"
-                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2D4235] hover:bg-[#1E2D24] text-white font-semibold text-xs transition-colors cursor-pointer shadow-xs active:scale-[0.98]"
-                    >
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                        </svg>
-                        <span>Cetak Struk Kios (Thermal)</span>
-                    </button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button
+                            type="button"
+                            onclick="window.print()"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2D4235] hover:bg-[#1E2D24] text-white font-semibold text-xs transition-colors cursor-pointer shadow-xs active:scale-[0.98]"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            <span>Cetak Struk Kios (Thermal)</span>
+                        </button>
+                        @if ($selectedWaUrl)
+                            <a
+                                href="{{ $selectedWaUrl }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                            >
+                                <span>Kirim Notifikasi WA</span>
+                            </a>
+                        @endif
+                    </div>
                     <button
                         type="button"
                         wire:click="closeModal"
@@ -474,14 +523,14 @@
 
             <div style="font-size: 11px; border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 8px;">
                 <div style="font-weight: bold; margin-bottom: 4px;">RINCIAN KOMPONEN:</div>
-                @foreach ($selectedOrder->orderItems as $item)
+                @foreach ($materialOnlyItems as $item)
                     <div style="margin-bottom: 3px;">
                         <div style="display: flex; justify-content: space-between;">
                             <span>{{ $item->material_name }}</span>
                             <span style="font-weight: bold;">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
                         </div>
                         <div style="font-size: 9px; color: #333;">
-                            {{ (float) $item->quantity }} {{ $item->unit }} @ Rp {{ number_format($item->unit_price, 0, ',', '.') }}
+                            {{ (float) $item->quantity }} {{ $item->unit }} &times; Rp {{ number_format($item->unit_price, 0, ',', '.') }}
                         </div>
                     </div>
                 @endforeach
