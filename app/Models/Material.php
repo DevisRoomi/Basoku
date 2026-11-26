@@ -25,6 +25,7 @@ class Material extends Model
     protected $fillable = [
         'name',
         'category',
+        'selling_mode',
         'unit',
         'package_unit',
         'package_weight',
@@ -32,6 +33,42 @@ class Material extends Model
         'price',
         'is_available',
     ];
+
+    /**
+     * Apakah bahan dijual timbang bebas / curah (bisa beli pas sesuai takaran resep).
+     */
+    public function isLoose(): bool
+    {
+        return ($this->selling_mode ?? 'kemasan') === 'curah';
+    }
+
+    /**
+     * Apakah bahan wajib dibeli dalam kelipatan kemasan utuh (pack/bungkus segel).
+     */
+    public function isPackaged(): bool
+    {
+        return ($this->selling_mode ?? 'kemasan') === 'kemasan';
+    }
+
+    /**
+     * Apakah bahan dijual per satuan bijian/sachet (telur, merica sachet, sobaso, masako).
+     */
+    public function isUnitBased(): bool
+    {
+        return ($this->selling_mode ?? 'kemasan') === 'satuan';
+    }
+
+    /**
+     * Label ramah bahasa Indonesia untuk mode jual bahan di pasar.
+     */
+    public function sellingModeLabel(): string
+    {
+        return match ($this->selling_mode ?? 'kemasan') {
+            'curah' => 'Timbang Bebas',
+            'satuan' => 'Eceran Satuan',
+            default => 'Kemasan Utuh',
+        };
+    }
 
     /**
      * Get the attributes that should be cast.

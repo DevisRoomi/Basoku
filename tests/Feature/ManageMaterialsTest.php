@@ -174,6 +174,67 @@ class ManageMaterialsTest extends TestCase
             ->set('meatType', 'sapi')
             ->set('meatWeight', 500)
             ->assertSee('Rp 180.000/kg')
-            ->assertSet('totalProportionalCost', 99930.0);
+            ->assertSet('totalProportionalCost', 99960.0);
+    }
+
+    public function test_admin_materials_displays_accurate_units_and_updates_selling_mode(): void
+    {
+        $garlic = Material::where('name', 'Bawang Putih Kupas')->first();
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageMaterials::class)
+            ->assertSee('Timbang Bebas')
+            ->assertSee('Kemasan Utuh')
+            ->assertSee('Eceran Satuan')
+            ->assertDontSee('Rp 2.500 / g')
+            ->assertDontSee('Rp 4.500 / g')
+            ->call('openEditModal', $garlic->id)
+            ->assertSet('selling_mode', 'curah')
+            ->set('selling_mode', 'kemasan')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('materials', [
+            'id' => $garlic->id,
+            'selling_mode' => 'kemasan',
+        ]);
+    }
+
+    public function test_updating_package_price_and_weight_auto_calculates_base_price_and_normalizes_commas(): void
+    {
+        $salt = Material::where('name', 'Garam Kasar')->first();
+
+        // 1. Mode curah / kemasan: Rp 3.000 / 250g => Rp 12/g otomatis
+        Livewire::actingAs($this->admin)
+            ->test(ManageMaterials::class)
+            ->call('openEditModal', $salt->id)
+            ->set('package_weight', '250')
+            ->set('package_price', '3000')
+            ->assertSet('price', 12.0)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('materials', [
+            'id' => $salt->id,
+            'package_price' => 3000.00,
+            'price' => 12.00,
+        ]);
+
+        // 2. Mode satuan: harga dasar otomatis sama dengan harga kemasan penuh (mendukung koma desimal)
+        $egg = Material::where('name', 'Telur Ayam')->first();
+        Livewire::actingAs($this->admin)
+            ->test(ManageMaterials::class)
+            ->call('openEditModal', $egg->id)
+            ->set('selling_mode', 'satuan')
+            ->set('package_price', '2750,5')
+            ->assertSet('price', 2750.5)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('materials', [
+            'id' => $egg->id,
+            'package_price' => 2750.50,
+            'price' => 2750.50,
+        ]);
     }
 }

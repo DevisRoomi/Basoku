@@ -126,4 +126,18 @@ class MaterialCatalogTest extends TestCase
 
         $this->assertDatabaseMissing('orders', ['customer_name' => 'Pembeli Test']);
     }
+
+    public function test_catalog_orders_categories_logically_and_groups_pelengkap_together(): void
+    {
+        Livewire::test(MaterialCatalog::class)
+            ->assertSeeInOrder([
+                'Kategori: Daging',
+                'Kategori: Tepung',
+                'Kategori: Bumbu',
+                'Kategori: Pelengkap & Tambahan',
+            ])
+            ->assertSee('Telur Ayam')
+            ->assertSee('Pengenyal Sobaso')
+            ->assertSee('Penyedap Masako');
+    }
 }

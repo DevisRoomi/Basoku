@@ -82,13 +82,21 @@ class ManageRecipes extends Component
         $this->recipeId = $formula->id;
         $this->code = $formula->code;
         $this->name = $formula->name;
-        $this->meat_ratio = (float) $formula->meat_ratio;
-        $this->flour_ratio = (float) $formula->flour_ratio;
-        $this->spice_ratio = (float) $formula->spice_ratio;
+        $this->meat_ratio = (string) (float) $formula->meat_ratio;
+        $this->flour_ratio = (string) (float) $formula->flour_ratio;
+        $this->spice_ratio = (string) (float) $formula->spice_ratio;
         $this->is_simulation = (bool) $formula->is_simulation;
         $this->description = $formula->description;
 
         $this->showModal = true;
+    }
+
+    /**
+     * Normalisasi input angka desimal agar menerima koma (",") maupun titik (".").
+     */
+    protected function normalizeDecimal(mixed $value): string
+    {
+        return str_replace(',', '.', trim((string) $value));
     }
 
     /**
@@ -120,6 +128,10 @@ class ManageRecipes extends Component
      */
     public function save(): void
     {
+        $this->meat_ratio = $this->normalizeDecimal($this->meat_ratio);
+        $this->flour_ratio = $this->normalizeDecimal($this->flour_ratio);
+        $this->spice_ratio = $this->normalizeDecimal($this->spice_ratio);
+
         $this->validate([
             'name' => ['required', 'string', 'max:100'],
             'meat_ratio' => ['required', 'numeric', 'min:0.1', 'max:5'],

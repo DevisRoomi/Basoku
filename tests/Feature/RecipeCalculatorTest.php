@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\RecipeCalculator;
 use App\Models\Material;
 use App\Models\Order;
+use App\Models\RecipeFormula;
 use App\Models\SavedRecipe;
 use App\Models\User;
 use Database\Seeders\MaterialSeeder;
@@ -25,11 +26,14 @@ class RecipeCalculatorTest extends TestCase
     public function test_calculator_renders_initial_state_with_simulation_formula(): void
     {
         Livewire::test(RecipeCalculator::class)
+            ->assertSet('preference', 'kustom')
+            ->assertSet('customFlourRatio', 20)
             ->assertSee('Hitung Berdasarkan Berat')
             ->assertSee('Sesuaikan Anggaran')
             ->assertSee('Mulai dari Nol')
             ->assertSee('Sapi')
             ->assertSee('500 g')
+            ->assertSee('Kustom Bebas')
             ->assertSee('Seimbang')
             ->assertSee('Pakai Jasa')
             ->assertSee('SIMULASI: Formula resep dan takaran kemasan sedang menunggu konfirmasi toko.')
@@ -45,17 +49,17 @@ class RecipeCalculatorTest extends TestCase
     public function test_scaling_meat_weight_updates_breakdown_and_totals(): void
     {
         $component500 = Livewire::test(RecipeCalculator::class)
-            ->assertSet('totalProportionalCost', 79930.0);
+            ->assertSet('totalProportionalCost', 79960.0);
 
         $component500->set('meatWeight', 1000)
-            ->assertSet('totalProportionalCost', 159860.0);
+            ->assertSet('totalProportionalCost', 159920.0);
     }
 
     public function test_own_meat_does_not_charge_for_meat(): void
     {
         Livewire::test(RecipeCalculator::class)
             ->set('startType', 'own_meat')
-            ->assertSet('totalProportionalCost', 9930.0)
+            ->assertSet('totalProportionalCost', 9960.0)
             ->assertSee('Bawa Sendiri');
     }
 
@@ -63,10 +67,10 @@ class RecipeCalculatorTest extends TestCase
     {
         Livewire::test(RecipeCalculator::class)
             ->assertSet('useGrinding', true)
-            ->assertSet('totalProportionalCost', 79930.0)
+            ->assertSet('totalProportionalCost', 79960.0)
             ->toggle('useGrinding')
             ->assertSet('useGrinding', false)
-            ->assertSet('totalProportionalCost', 72430.0);
+            ->assertSet('totalProportionalCost', 72460.0);
     }
 
     public function test_budget_mode_displays_error_when_budget_is_insufficient(): void
@@ -74,9 +78,9 @@ class RecipeCalculatorTest extends TestCase
         Livewire::test(RecipeCalculator::class)
             ->set('calculationMode', 'budget')
             ->set('budget', 50000)
-            ->assertSet('budgetError', 'Anggaran Anda belum mencukupi. Minimal butuh Rp 79.930 untuk racikan standar 500 gram.')
+            ->assertSet('budgetError', 'Anggaran Anda belum mencukupi. Minimal butuh Rp 79.960 untuk racikan standar 500 gram.')
             ->assertSee('Anggaran Belum Mencukupi')
-            ->assertSee('Minimal butuh Rp 79.930 untuk racikan standar 500 gram.')
+            ->assertSee('Minimal butuh Rp 79.960 untuk racikan standar 500 gram.')
             ->assertSet('breakdown', [])
             ->assertSet('totalProportionalCost', 0.0);
     }
@@ -99,7 +103,7 @@ class RecipeCalculatorTest extends TestCase
             ->set('calculationMode', 'budget')
             ->set('budget', 50000)
             ->assertSet('budgetError', null)
-            ->assertSet('meatWeight', 2517)
+            ->assertSet('meatWeight', 2510)
             ->assertDontSee('Anggaran Belum Mencukupi');
     }
 
@@ -152,7 +156,7 @@ class RecipeCalculatorTest extends TestCase
             'meat_weight' => 500.000,
             'preference' => 'seimbang',
             'grinding_fee' => 7500.00,
-            'total_price' => 93500.00, // Uang belanja pasar kemasan utuh (daging 500g @ Rp140/g + tapioka 500g pack + bawang + garam + selepan)
+            'total_price' => 88000.00, // Daging 70rb + Tapioka 1 pack 9rb + Bawang curah 1rb + Garam curah 500 + Selepan 7,5rb
             'status' => 'pending',
         ]);
 
@@ -248,7 +252,7 @@ class RecipeCalculatorTest extends TestCase
         $this->assertDatabaseHas('orders', [
             'customer_name' => 'Attacker Tamper',
             'customer_phone' => '081234567890',
-            'total_price' => 93500.00,
+            'total_price' => 88000.00,
         ]);
     }
 
@@ -341,7 +345,7 @@ class RecipeCalculatorTest extends TestCase
         Livewire::withQueryParams(['recipe_id' => $recipe->id])
             ->test(RecipeCalculator::class)
             ->assertSet('meatWeight', 500)
-            ->assertSet('preference', 'seimbang')
+            ->assertSet('preference', 'kustom')
             ->assertSet('startType', 'start_from_zero');
 
         // User lain tidak boleh memuat resep milik $owner
@@ -349,7 +353,7 @@ class RecipeCalculatorTest extends TestCase
             ->withQueryParams(['recipe_id' => $recipe->id])
             ->test(RecipeCalculator::class)
             ->assertSet('meatWeight', 500)
-            ->assertSet('preference', 'seimbang')
+            ->assertSet('preference', 'kustom')
             ->assertSet('startType', 'start_from_zero');
     }
 
@@ -440,5 +444,128 @@ class RecipeCalculatorTest extends TestCase
             ->assertSet('extraItems.'.$material->id, 1)
             ->call('decrementExtra', $material->id)
             ->assertSet('extraItems', []);
+    }
+
+    public function test_ingredients_only_mode_does_not_force_flour_and_blocks_empty_checkout(): void
+    {
+        $egg = Material::where('name', 'Telur Ayam')->first();
+        $pepper = Material::where('name', 'Merica Bubuk Sachet')->first();
+
+        // 1. Pindah ke Beli Bahan Saja -> tepung tidak dipaksa (0 item) & checkout diblokir sampai pilih bahan
+        $component = Livewire::test(RecipeCalculator::class)
+            ->set('startType', 'ingredients_only')
+            ->assertSet('ingredientFlourPacks', 0)
+            ->assertSet('breakdown', [])
+            ->assertSet('totalMarketCost', 0.0)
+            ->assertSee('Belum Ada Bahan Dipilih')
+            ->call('openCheckout')
+            ->assertSet('showCheckoutModal', false);
+
+        // 2. Pilih hanya Telur Ayam & Merica Bubuk tanpa tepung -> breakdown hanya berisi 2 item tersebut
+        $component->call('incrementExtra', $egg->id)
+            ->call('incrementExtra', $pepper->id)
+            ->assertSet('totalMarketCost', 3500.0)
+            ->assertSee('Telur Ayam')
+            ->assertSee('Merica Bubuk Sachet')
+            ->call('openCheckout')
+            ->assertSet('showCheckoutModal', true);
+
+        $itemNames = collect($component->get('breakdown'))->pluck('name')->all();
+        $this->assertEqualsCanonicalizing(['Telur Ayam', 'Merica Bubuk Sachet'], $itemNames);
+    }
+
+    public function test_calculator_step_5_displays_live_ratios_from_admin_database(): void
+    {
+        RecipeFormula::updateOrCreate(
+            ['code' => 'enak'],
+            [
+                'name' => 'Racikan Enak (Spesial Daging)',
+                'meat_ratio' => 1.0,
+                'flour_ratio' => 0.2,
+                'spice_ratio' => 0.05,
+                'is_simulation' => false,
+                'description' => 'Rasio admin 5 banding 1.',
+            ]
+        );
+
+        Livewire::test(RecipeCalculator::class)
+            ->assertSee('20% Tepung')
+            ->assertSee('Daging 5 : 1 Tepung')
+            ->assertSee('1 kg daging + 200g tepung')
+            ->assertSee('Rasio admin 5 banding 1.');
+    }
+
+    public function test_custom_flour_ratio_supports_up_to_450_percent_and_persists_in_wa_and_saved_recipe(): void
+    {
+        $user = User::factory()->create();
+        $pickupDate = now()->addDays(2)->setTime(8, 0)->format('Y-m-d\TH:i');
+
+        // 1. 1 kg daging + 350% tepung (cilok / bakso aci 1:3,5) -> 3.500g tepung (7 pack @500g)
+        $component = Livewire::actingAs($user)
+            ->test(RecipeCalculator::class)
+            ->set('meatWeight', 1000)
+            ->set('preference', 'kustom')
+            ->set('customFlourRatio', 350)
+            ->assertSee('1 kg daging + 3,5 kg tepung')
+            ->assertSee('Bakso Aci / Cilok Daging');
+
+        $tapioka = collect($component->get('breakdown'))->firstWhere('name', 'Tepung Tapioka');
+        $this->assertEquals(3500.0, (float) $tapioka['weight']);
+        $this->assertEquals(63000.0, (float) $tapioka['market_cost']); // 7 pack * Rp 9.000
+
+        // 2. Pastikan default nama simpan resep menyertakan angka % kustom
+        $component->call('openSaveModal');
+        $this->assertStringContainsString('Kustom 350%', (string) $component->get('recipeName'));
+        $component->call('saveRecipe')->assertHasNoErrors();
+
+        $saved = SavedRecipe::where('user_id', $user->id)->latest('id')->firstOrFail();
+
+        // 3. Reload saved recipe -> rasio 350% tidak terpotong di 50%
+        Livewire::actingAs($user)
+            ->withQueryParams(['recipe_id' => $saved->id])
+            ->test(RecipeCalculator::class)
+            ->assertSet('preference', 'kustom')
+            ->assertSet('customFlourRatio', 350);
+
+        // 4. Pesan WA memuat rasio kustom aktual (Kustom (350% Tepung))
+        $checkout = Livewire::actingAs($user)
+            ->test(RecipeCalculator::class)
+            ->set('meatWeight', 1000)
+            ->set('preference', 'kustom')
+            ->set('customFlourRatio', 350)
+            ->call('openCheckout')
+            ->set('customerName', 'Pedagang Cilok')
+            ->set('customerPhone', '081234567890')
+            ->set('pickupTime', $pickupDate)
+            ->call('processCheckout')
+            ->assertHasNoErrors();
+
+        $redirectUrl = $checkout->effects['redirect'] ?? '';
+        $this->assertStringContainsString('Kustom (350% Tepung)', urldecode($redirectUrl));
+    }
+
+    public function test_curah_seasonings_round_cash_without_forcing_whole_packs_while_flour_stays_packaged(): void
+    {
+        $component = Livewire::test(RecipeCalculator::class)
+            ->set('meatWeight', 500);
+
+        $breakdown = collect($component->get('breakdown'));
+        $tapioka = $breakdown->firstWhere('name', 'Tepung Tapioka');
+        $garlic = $breakdown->firstWhere('name', 'Bawang Putih Kupas');
+        $salt = $breakdown->firstWhere('name', 'Garam Kasar');
+
+        // Tepung tetap wajib kemasan utuh (1 Pack @500g = Rp 9.000, sisa 400g)
+        $this->assertSame(9000.0, (float) $tapioka['market_cost']);
+        $this->assertSame(400, (int) $tapioka['excess_grams']);
+
+        // Bawang Putih Kupas curah (15g @ Rp40 = Rp600 -> bulat tunai Rp 1.000, tanpa sisa pack)
+        $this->assertSame(1000.0, (float) $garlic['market_cost']);
+        $this->assertSame(0, (int) $garlic['excess_grams']);
+        $this->assertSame('Timbang pas los', $garlic['package_info']);
+
+        // Garam Kasar curah (10g @ Rp6 = Rp60 -> minimal tunai Rp 500, tanpa paksa 1kg)
+        $this->assertSame(500.0, (float) $salt['market_cost']);
+        $this->assertSame(0, (int) $salt['excess_grams']);
+        $this->assertSame('Timbang pas los', $salt['package_info']);
     }
 }

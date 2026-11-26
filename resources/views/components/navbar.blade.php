@@ -148,10 +148,10 @@
                 </div>
             </div>
 
-            <!-- Center: Desktop Navigation Links (Conversion-First & Zero Wrapping) -->
+            <!-- Center: Desktop Navigation Links (Single-Page Commerce Hub & Zero Wrapping) -->
             <div class="hidden lg:flex items-center gap-1 bg-[#FAF7F2] border border-[#26221E]/10 rounded-full px-2 py-1.5 shadow-xs shrink-0">
                 <a
-                    href="{{ url('/') }}"
+                    href="{{ request()->is('/') ? '#hero' : url('/') }}"
                     @click="activeNav = 'beranda'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                     class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                     :class="activeNav === 'beranda' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
@@ -159,7 +159,7 @@
                     Beranda
                 </a>
                 <a
-                    href="{{ route('calculator') }}"
+                    href="{{ request()->is('/') ? '#racikan-saya' : url('/#racikan-saya') }}"
                     @click="activeNav = 'kalkulator'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                     class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                     :class="activeNav === 'kalkulator' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
@@ -167,7 +167,7 @@
                     Kalkulator
                 </a>
                 <a
-                    href="{{ route('catalog') }}"
+                    href="{{ request()->is('/') ? '#daftar-harga' : url('/#daftar-harga') }}"
                     @click="activeNav = 'daftar-harga'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                     class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                     :class="activeNav === 'daftar-harga' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
@@ -175,7 +175,7 @@
                     Daftar Harga
                 </a>
                 <a
-                    href="{{ url('/') }}#cara-kerja"
+                    href="{{ request()->is('/') ? '#cara-kerja' : url('/#cara-kerja') }}"
                     @click="activeNav = '#cara-kerja'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                     class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                     :class="activeNav === '#cara-kerja' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
@@ -183,7 +183,7 @@
                     Cara Kerja
                 </a>
                 <a
-                    href="{{ url('/') }}#lokasi-kios"
+                    href="{{ request()->is('/') ? '#lokasi-kios' : url('/#lokasi-kios') }}"
                     @click="activeNav = '#lokasi-kios'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                     class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                     :class="activeNav === '#lokasi-kios' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
@@ -260,8 +260,8 @@
 
                 <!-- Terracotta Primary CTA: Mulai Racik -->
                 <a
-                    href="{{ route('calculator') }}"
-                    @click="activeNav = 'kalkulator'"
+                    href="{{ request()->is('/') ? '#racikan-saya' : url('/#racikan-saya') }}"
+                    @click="activeNav = 'kalkulator'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                     class="inline-flex items-center justify-center gap-1.5 bg-[#B84E26] hover:bg-[#9E3F1C] text-white px-4 xl:px-5 py-2.5 rounded-full text-xs font-semibold shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98] whitespace-nowrap shrink-0"
                 >
                     <span>Mulai Racik</span>
@@ -274,8 +274,8 @@
             <!-- Mobile Hamburger Button -->
             <div class="flex lg:hidden items-center gap-2">
                 <a
-                    href="{{ route('calculator') }}"
-                    @click="activeNav = 'kalkulator'"
+                    href="{{ request()->is('/') ? '#racikan-saya' : url('/#racikan-saya') }}"
+                    @click="activeNav = 'kalkulator'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                     class="px-4 py-1.5 rounded-full bg-[#B84E26] text-white text-xs font-semibold shadow-xs"
                 >
                     Racik
@@ -317,7 +317,7 @@
             class="mt-3 bg-[#FAF7F2] border border-[#26221E]/10 rounded-2xl p-5 shadow-xl flex flex-col gap-2.5 lg:hidden"
         >
             <a
-                href="{{ url('/') }}"
+                href="{{ request()->is('/') ? '#hero' : url('/') }}"
                 @click="mobileOpen = false; activeNav = 'beranda'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                 class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === 'beranda' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
@@ -325,7 +325,7 @@
                 Beranda
             </a>
             <a
-                href="{{ route('calculator') }}"
+                href="{{ request()->is('/') ? '#racikan-saya' : url('/#racikan-saya') }}"
                 @click="mobileOpen = false; activeNav = 'kalkulator'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                 class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === 'kalkulator' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
@@ -333,7 +333,7 @@
                 Kalkulator
             </a>
             <a
-                href="{{ route('catalog') }}"
+                href="{{ request()->is('/') ? '#daftar-harga' : url('/#daftar-harga') }}"
                 @click="mobileOpen = false; activeNav = 'daftar-harga'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                 class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === 'daftar-harga' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
@@ -341,7 +341,7 @@
                 Daftar Harga
             </a>
             <a
-                href="{{ url('/') }}#cara-kerja"
+                href="{{ request()->is('/') ? '#cara-kerja' : url('/#cara-kerja') }}"
                 @click="mobileOpen = false; activeNav = '#cara-kerja'; isClicking = true; setTimeout(() => isClicking = false, 800)"
                 class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === '#cara-kerja' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"

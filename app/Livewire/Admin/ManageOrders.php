@@ -16,12 +16,40 @@ class ManageOrders extends Component
 {
     use WithPagination;
 
+    /**
+     * Peta alias status Inggris & Indonesia agar filter, tab, dan ekspor selalu sinkron.
+     *
+     * @var array<string, array<int, string>>
+     */
+    private const STATUS_ALIASES = [
+        'pending' => ['pending', 'menunggu'],
+        'processing' => ['processing', 'diproses'],
+        'completed' => ['completed', 'selesai'],
+        'cancelled' => ['cancelled', 'batal', 'dibatalkan'],
+    ];
+
     public bool $showDetailModal = false;
 
     public ?Order $selectedOrder = null;
 
     // Filter status tab: 'all', 'pending', 'processing', 'completed', 'cancelled'
     public string $statusFilter = 'all';
+
+    /**
+     * Normalisasi status pesanan (mendukung nilai lama bahasa Indonesia dan standar Inggris).
+     */
+    public function normalizeStatus(?string $status): string
+    {
+        $clean = strtolower(trim((string) $status));
+
+        foreach (self::STATUS_ALIASES as $canonical => $aliases) {
+            if (in_array($clean, $aliases, true)) {
+                return $canonical;
+            }
+        }
+
+        return $clean !== '' ? $clean : 'pending';
+    }
 
     public function updatedStatusFilter(): void
     {
@@ -106,7 +134,7 @@ class ManageOrders extends Component
 
         $query = Order::with('orderItems.material')->orderBy('created_at', 'desc');
         if ($this->statusFilter !== 'all') {
-            $query->where('status', $this->statusFilter);
+            $query->whereIn('status', self::STATUS_ALIASES[$this->statusFilter] ?? [$this->statusFilter]);
         }
         $orders = $query->get();
 
@@ -160,7 +188,7 @@ class ManageOrders extends Component
                     $flourWeight,
                     (int) $order->grinding_fee,
                     (int) $order->total_price,
-                    match ($order->status) {
+                    match ($this->normalizeStatus($order->status)) {
                         'pending' => 'Menunggu Konfirmasi',
                         'processing' => 'Sedang Diproses',
                         'completed' => 'Selesai',
@@ -197,7 +225,7 @@ class ManageOrders extends Component
             ? Carbon::parse($order->pickup_at)->format('d M Y, H:i').' WIB'
             : 'sesuai jadwal';
 
-        $message = match ($order->status) {
+        $message = match ($this->normalizeStatus($order->status)) {
             'processing' => "Halo {$order->customer_name}, pesanan BASOKU Anda ({$orderCode}) sedang kami siapkan dan proses giling di los selepan. Total estimasi: {$totalFormatted}. Jadwal ambil: {$pickupText}.",
             'completed' => "Halo {$order->customer_name}, pesanan BASOKU Anda ({$orderCode}) sudah SELESAI dan siap diambil di Kios BASOKU Pasar Klakah! Total pembayaran: {$totalFormatted}. Ditunggu kedatangannya ya.",
             'cancelled' => "Halo {$order->customer_name}, menginformasikan bahwa pesanan BASOKU Anda ({$orderCode}) tercatat dibatalkan. Jika ada kekeliruan atau ingin memesan ulang, silakan balas pesan ini.",
@@ -224,7 +252,7 @@ class ManageOrders extends Component
         $query = Order::with('orderItems')->orderBy('created_at', 'desc');
 
         if ($this->statusFilter !== 'all') {
-            $query->where('status', $this->statusFilter);
+            $query->whereIn('status', self::STATUS_ALIASES[$this->statusFilter] ?? [$this->statusFilter]);
         }
 
         $orders = $query->paginate(15);
@@ -235,12 +263,21 @@ class ManageOrders extends Component
             ->groupBy('status')
             ->pluck('count', 'status');
 
+        $countAliases = function (string $canonical) use ($statusCounts): int {
+            $total = 0;
+            foreach (self::STATUS_ALIASES[$canonical] ?? [$canonical] as $alias) {
+                $total += (int) ($statusCounts[$alias] ?? 0);
+            }
+
+            return $total;
+        };
+
         $counts = [
             'all' => (int) $statusCounts->sum(),
-            'pending' => (int) ($statusCounts['pending'] ?? 0),
-            'processing' => (int) ($statusCounts['processing'] ?? 0),
-            'completed' => (int) ($statusCounts['completed'] ?? 0),
-            'cancelled' => (int) ($statusCounts['cancelled'] ?? 0),
+            'pending' => $countAliases('pending'),
+            'processing' => $countAliases('processing'),
+            'completed' => $countAliases('completed'),
+            'cancelled' => $countAliases('cancelled'),
         ];
 
         return view('livewire.admin.manage-orders', [

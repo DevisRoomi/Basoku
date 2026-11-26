@@ -92,10 +92,10 @@
                     $flourPct = round($formula->flour_ratio * 100, 1);
                     $spicePct = round($formula->spice_ratio * 100, 1);
 
-                    // Simulasi kebutuhan per 500g daging
-                    $simTapiocaGram = 500 * $formula->flour_ratio;
-                    $simGarlicGram = 500 * ($formula->spice_ratio * 0.6);
-                    $simSaltGram = 500 * ($formula->spice_ratio * 0.4);
+                    // Simulasi kebutuhan per 1 kg daging (acuan standar pasar)
+                    $simTapiocaGram = 1000 * $formula->flour_ratio;
+                    $simGarlicGram = 1000 * ($formula->spice_ratio * 0.6);
+                    $simSaltGram = 1000 * ($formula->spice_ratio * 0.4);
                 @endphp
 
                 <div class="bg-[#FAF7F2] rounded-3xl p-6 sm:p-7 border border-[#26221E]/10 shadow-sm flex flex-col justify-between hover:border-[#8B231A]/30 transition-all duration-200">
@@ -113,13 +113,13 @@
 
                             <!-- Status Badge -->
                             @if ($formula->is_simulation)
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap shrink-0">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
                                     Simulasi
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 whitespace-nowrap shrink-0">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
                                     Resmi Toko
                                 </span>
                             @endif
@@ -150,10 +150,10 @@
                                     <span class="font-mono font-bold text-[#D96B43]">{{ number_format($formula->flour_ratio, 4) }} ({{ $flourPct }}%)</span>
                                 </div>
                                 <div class="w-full bg-[#E5DFD5] h-2 rounded-full overflow-hidden">
-                                    <div class="bg-[#D96B43] h-2 rounded-full" style="width: {{ min(100, $flourPct * 2) }}%"></div>
+                                    <div class="bg-[#D96B43] h-2 rounded-full" style="width: {{ min(100, max(6, round($flourPct / 2))) }}%"></div>
                                 </div>
-                                <span class="text-[10px] text-[#5A534A]/80 mt-0.5 block">
-                                    Acuan 500g daging: ~{{ number_format($simTapiocaGram, 0) }}g tepung
+                                <span class="text-[10.5px] text-[#5A534A] mt-1 block">
+                                    Acuan 1 kg daging: <strong class="font-semibold text-[#26221E] font-mono">{{ \App\Models\RecipeFormula::formatPerKgExample((float) $formula->flour_ratio) }}</strong> <span class="font-mono text-[#5A534A]">(Daging {{ $formula->formattedMeatFlourRatio() }} Tepung)</span>
                                 </span>
                             </div>
 
@@ -164,10 +164,10 @@
                                     <span class="font-mono font-bold text-[#2D4235]">{{ number_format($formula->spice_ratio, 4) }} ({{ $spicePct }}%)</span>
                                 </div>
                                 <div class="w-full bg-[#E5DFD5] h-2 rounded-full overflow-hidden">
-                                    <div class="bg-[#2D4235] h-2 rounded-full" style="width: {{ min(100, $spicePct * 10) }}%"></div>
+                                    <div class="bg-[#2D4235] h-2 rounded-full" style="width: {{ min(100, max(6, $spicePct * 5)) }}%"></div>
                                 </div>
-                                <span class="text-[10px] text-[#5A534A]/80 mt-0.5 block">
-                                    Bawang putih: ~{{ number_format($simGarlicGram, 1) }}g, Garam: ~{{ number_format($simSaltGram, 1) }}g
+                                <span class="text-[10.5px] text-[#5A534A] mt-1 block">
+                                    Per 1 kg daging &mdash; Bawang putih: <strong class="font-semibold text-[#26221E] font-mono">{{ number_format($simGarlicGram, 1, ',', '.') }}g</strong> &bull; Garam: <strong class="font-semibold text-[#26221E] font-mono">{{ number_format($simSaltGram, 1, ',', '.') }}g</strong>
                                 </span>
                             </div>
                         </div>
@@ -233,8 +233,23 @@
                     </button>
                 </div>
 
-                <!-- Form Input -->
-                <form wire:submit="save" class="mt-5 space-y-4 text-xs">
+                <!-- Form Input (Bebas Ketik Desimal Koma/Titik + Simulasi Instan 0ms) -->
+                <form
+                    wire:submit="save"
+                    x-data="{
+                        flourVal: @js((string) $flour_ratio),
+                        spiceVal: @js((string) $spice_ratio),
+                        parseDec(v) {
+                            const n = parseFloat(String(v ?? '').replace(',', '.'));
+                            return Number.isFinite(n) && n >= 0 ? n : 0;
+                        },
+                        setFlourPreset(v) {
+                            this.flourVal = String(v);
+                            $wire.set('flour_ratio', String(v), false);
+                        }
+                    }"
+                    class="mt-5 space-y-4 text-xs"
+                >
                     <!-- Nama Formula -->
                     <div>
                         <label for="formula-name" class="block font-bold text-[#26221E] mb-1">
@@ -258,13 +273,15 @@
                                 Rasio Daging (Acuan)
                             </label>
                             <input
-                                type="number"
-                                step="0.0001"
+                                type="text"
+                                inputmode="decimal"
+                                autocomplete="off"
                                 id="meat-ratio"
-                                wire:model.live="meat_ratio"
+                                wire:model="meat_ratio"
+                                placeholder="1 atau 1,0"
                                 class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#26221E]/15 text-[#26221E] focus:outline-none focus:border-[#8B231A] font-mono"
                             />
-                            <span class="text-[10px] text-[#5A534A] mt-0.5 block">Default: 1.0000 (100%)</span>
+                            <span class="text-[10px] text-[#5A534A] mt-0.5 block">Default: 1 (100% acuan daging)</span>
                             @error('meat_ratio') <span class="text-red-600 text-[11px] mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
@@ -274,13 +291,26 @@
                                 Rasio Tepung Tapioka
                             </label>
                             <input
-                                type="number"
-                                step="0.0001"
+                                type="text"
+                                inputmode="decimal"
+                                autocomplete="off"
                                 id="flour-ratio"
-                                wire:model.live="flour_ratio"
+                                wire:model="flour_ratio"
+                                x-model="flourVal"
+                                placeholder="Contoh: 0,2 atau 0.2"
                                 class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#26221E]/15 text-[#26221E] focus:outline-none focus:border-[#8B231A] font-mono"
                             />
-                            <span class="text-[10px] text-[#5A534A] mt-0.5 block">0.2000 = 20% daging</span>
+                            <div class="flex flex-wrap items-center gap-1 mt-1.5">
+                                @foreach ([['0.1', '10%'], ['0.2', '20%'], ['0.4', '40%'], ['1', '100%'], ['2', '200%']] as [$presetVal, $presetLabel])
+                                    <button
+                                        type="button"
+                                        @click="setFlourPreset('{{ $presetVal }}')"
+                                        class="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-semibold border border-[#26221E]/15 bg-white hover:bg-[#8B231A] hover:text-white hover:border-[#8B231A] text-[#5A534A] transition-colors cursor-pointer"
+                                    >
+                                        {{ $presetLabel }}
+                                    </button>
+                                @endforeach
+                            </div>
                             @error('flour_ratio') <span class="text-red-600 text-[11px] mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
@@ -290,13 +320,16 @@
                                 Rasio Bumbu Total
                             </label>
                             <input
-                                type="number"
-                                step="0.0001"
+                                type="text"
+                                inputmode="decimal"
+                                autocomplete="off"
                                 id="spice-ratio"
-                                wire:model.live="spice_ratio"
+                                wire:model="spice_ratio"
+                                x-model="spiceVal"
+                                placeholder="Contoh: 0,05 atau 0.08"
                                 class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#26221E]/15 text-[#26221E] focus:outline-none focus:border-[#8B231A] font-mono"
                             />
-                            <span class="text-[10px] text-[#5A534A] mt-0.5 block">0.0500 = 5% daging</span>
+                            <span class="text-[10px] text-[#5A534A] mt-0.5 block">Bisa ketik koma (0,05) atau titik (0.05) = 5%</span>
                             @error('spice_ratio') <span class="text-red-600 text-[11px] mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
@@ -319,27 +352,27 @@
                         </div>
                     </div>
 
-                    <!-- Live Estimation Box -->
-                    @php
-                        $flourVal = (float) ($flour_ratio ?: 0);
-                        $spiceVal = (float) ($spice_ratio ?: 0);
-                        $tapiocaEst = 500 * $flourVal;
-                        $garlicEst = 500 * ($spiceVal * 0.6);
-                        $saltEst = 500 * ($spiceVal * 0.4);
-                    @endphp
+                    <!-- Live Estimation Box (Acuan 1 kg Daging, Instan di Browser Tanpa Memutus Ketikan) -->
                     <div class="p-3.5 rounded-2xl bg-black/5 border border-black/5 space-y-1 text-[11px]">
-                        <span class="font-bold text-[#26221E] block">Simulasi Takaran 500g Daging:</span>
+                        <span class="font-bold text-[#26221E] block">Simulasi Takaran per 1 kg Daging:</span>
                         <div class="text-[#5A534A] flex justify-between">
                             <span>Tepung Tapioka:</span>
-                            <span class="font-mono font-bold text-[#26221E]">{{ number_format($tapiocaEst, 1) }} gram ({{ round($flourVal * 100, 1) }}%)</span>
+                            <span class="font-mono font-bold text-[#26221E]">
+                                <span x-text="Math.round(1000 * parseDec(flourVal)).toLocaleString('id-ID')">{{ number_format(1000 * (float) $flour_ratio, 0, ',', '.') }}</span> gram
+                                (<span x-text="Math.round(parseDec(flourVal) * 1000) / 10">{{ round((float) $flour_ratio * 100, 1) }}</span>%)
+                            </span>
                         </div>
                         <div class="text-[#5A534A] flex justify-between">
                             <span>Bawang Putih (60% bumbu):</span>
-                            <span class="font-mono font-bold text-[#26221E]">{{ number_format($garlicEst, 1) }} gram</span>
+                            <span class="font-mono font-bold text-[#26221E]">
+                                <span x-text="(1000 * parseDec(spiceVal) * 0.6).toFixed(1)">{{ number_format(1000 * (float) $spice_ratio * 0.6, 1) }}</span> gram
+                            </span>
                         </div>
                         <div class="text-[#5A534A] flex justify-between">
                             <span>Garam Kasar (40% bumbu):</span>
-                            <span class="font-mono font-bold text-[#26221E]">{{ number_format($saltEst, 1) }} gram</span>
+                            <span class="font-mono font-bold text-[#26221E]">
+                                <span x-text="(1000 * parseDec(spiceVal) * 0.4).toFixed(1)">{{ number_format(1000 * (float) $spice_ratio * 0.4, 1) }}</span> gram
+                            </span>
                         </div>
                     </div>
 

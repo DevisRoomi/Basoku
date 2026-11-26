@@ -289,8 +289,19 @@ class MaterialCatalog extends Component
                 }
             }
 
-            $materials = $query->orderBy('category')->orderBy('name')->get();
-            $groupedMaterials = $materials->groupBy('category');
+            $categoryOrder = [
+                'daging' => 1,
+                'tepung' => 2,
+                'bumbu' => 3,
+                'pelengkap' => 4,
+            ];
+
+            $materials = $query->orderBy('name')->get();
+            $groupedMaterials = $materials
+                ->groupBy(fn (Material $material) => in_array(strtolower($material->category), ['pengikat', 'tambahan', 'penyedap'], true)
+                    ? 'pelengkap'
+                    : strtolower($material->category))
+                ->sortBy(fn ($items, string $cat) => $categoryOrder[$cat] ?? 99);
 
             // Hitung total belanja keranjang saat ini
             $activeItems = array_filter($this->selectedItems, fn ($qty) => $qty > 0);

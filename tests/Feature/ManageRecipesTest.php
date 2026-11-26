@@ -125,10 +125,11 @@ class ManageRecipesTest extends TestCase
         // Kondisi awal (seimbang standar):
         // 500g daging sapi (140/g = 70.000)
         // Tepung 100g (flour_ratio 0.2, 18/g = 1.800)
-        // Bawang 15g (40/g = 600), Garam 10g (3/g = 30)
-        // Selepan 7.500 -> Total: 79.930.0
+        // Bawang 15g (40/g = 600), Garam 10g (6/g = 60)
+        // Selepan 7.500 -> Total: 79.960.0
         Livewire::test(RecipeCalculator::class)
-            ->assertSet('totalProportionalCost', 79930.0);
+            ->set('preference', 'seimbang')
+            ->assertSet('totalProportionalCost', 79960.0);
 
         // Ubah flour_ratio dari 0.2000 (100g) menjadi 0.3000 (150g -> 150*18 = 2.700, selisih +900)
         $formula = RecipeFormula::where('code', 'seimbang')->first();
@@ -138,13 +139,15 @@ class ManageRecipesTest extends TestCase
 
         // Kalkulator langsung merespons perubahan dari basis data
         Livewire::test(RecipeCalculator::class)
-            ->assertSet('totalProportionalCost', 80830.0);
+            ->set('preference', 'seimbang')
+            ->assertSet('totalProportionalCost', 80860.0);
     }
 
     public function test_calculator_hides_simulation_warning_when_formula_is_not_simulation(): void
     {
         // 1. Saat is_simulation = true, tampilkan peringatan simulasi
         Livewire::test(RecipeCalculator::class)
+            ->set('preference', 'seimbang')
             ->assertSee('SIMULASI: Formula resep dan takaran kemasan sedang menunggu konfirmasi toko.');
 
         // 2. Ubah is_simulation menjadi false
@@ -155,6 +158,7 @@ class ManageRecipesTest extends TestCase
 
         // 3. Label simulasi hilang, digantikan oleh lencana resmi terverifikasi
         Livewire::test(RecipeCalculator::class)
+            ->set('preference', 'seimbang')
             ->assertDontSee('SIMULASI: Formula resep dan takaran kemasan sedang menunggu konfirmasi toko.')
             ->assertSee('RESMI: Formula resep terverifikasi langsung oleh kios selepan BASOKU.');
     }
@@ -178,6 +182,30 @@ class ManageRecipesTest extends TestCase
             'code' => 'seimbang',
             'flour_ratio' => 0.2000,
             'is_simulation' => true,
+        ]);
+    }
+
+    public function test_admin_can_update_ratios_using_indonesian_comma_decimals_and_no_tilde_rendered(): void
+    {
+        $admin = $this->getAdminUser();
+        $formula = RecipeFormula::where('code', 'enak')->first();
+
+        Livewire::actingAs($admin)
+            ->test(ManageRecipes::class)
+            ->assertDontSee('~', false)
+            ->call('openEditModal', $formula->id)
+            ->set('meat_ratio', '1,0')
+            ->set('flour_ratio', '0,2')
+            ->set('spice_ratio', '0,08')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('showModal', false);
+
+        $this->assertDatabaseHas('recipe_formulas', [
+            'code' => 'enak',
+            'meat_ratio' => 1.0000,
+            'flour_ratio' => 0.2000,
+            'spice_ratio' => 0.0800,
         ]);
     }
 }

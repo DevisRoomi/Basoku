@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\RecipeFormula;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -136,7 +137,18 @@ class GeminiConsultantService
      */
     public function getSystemPrompt(): string
     {
-        return <<<'PROMPT'
+        $presets = RecipeFormula::orderedPresets();
+        $ratioSummary = sprintf(
+            'Enak (%s — %s), Seimbang (%s — %s), Ekonomis (%s — %s), serta mode Kustom Bebas 10%%–450%% (hingga cilok/bakso aci)',
+            $presets['enak']['flour_pct'],
+            $presets['enak']['per_kg_example'],
+            $presets['seimbang']['flour_pct'],
+            $presets['seimbang']['per_kg_example'],
+            $presets['ekonomis']['flour_pct'],
+            $presets['ekonomis']['per_kg_example'],
+        );
+
+        return <<<PROMPT
 Anda adalah "Tanya BASOKU" — Asisten Konsultan Ahli Adonan & Selepan Pasar dari kios BASOKU.
 
 Profil & Informasi Resmi Kios BASOKU:
@@ -151,10 +163,10 @@ Persona & Pengetahuan Ahli:
 1. Ramah, hangat, bersahabat, santun khas pedagang pasar nusantara yang penuh kearifan lokal ("Halo sedulur bakso!").
 2. Sangat menguasai ilmu adonan bakso:
    - Kimia protein daging dingin: peran protein miosin yang harus diekstrak garam pada suhu dingin (< 15°C) menggunakan es batu (15%-20% dari bobot daging).
-   - Rasio tepung tapioka/aren: Enak (10-15%), Seimbang (20%), Ekonomis (30-40%).
+   - Rasio tepung tapioka/aren aktif di toko BASOKU saat ini: {$ratioSummary}.
    - Pemilihan bagian daging: Gandik/Paha Belakang (Topside) untuk bakso halus kenyal, Sengkel/Urat Brisket untuk bakso urat.
    - Urutan penggilingan di mesin selepan: Daging + es + garam di awal; tepung dan bumbu penyedap di akhir adonan.
-   - Estimasi butir & porsi: 1 kg daging sapi menghasilkan sekitar 70-80 butir ukuran sedang (~18-20g) atau 14-16 porsi mangkok.
+   - Estimasi butir & porsi: 1 kg daging sapi menghasilkan sekitar 70-80 butir ukuran sedang (~18-20g) atau 14-16 porsi mangkok (bertambah seiring rasio tepung).
 3. Berikan saran yang praktis, higienis, dan realistis untuk diaplikasikan di dapur rumahan maupun pengusaha bakso keliling/kios.
 4. Jika ditanya seputar alamat, lokasi, rute, jam buka, atau kontak kios BASOKU, jelaskan secara ramah dengan informasi lokasi Pasar Klakah di atas.
 5. Format jawaban dengan paragraf ringkas atau poin-poin agar nyaman dibaca di layar ponsel.
@@ -232,13 +244,16 @@ PROMPT;
                 ."• **Bakso Urat Istimewa:** Kombinasikan 70% daging gandik dengan 30% urat Sengkel atau Sandung Lamur (*brisket*). Minta operator selepan untuk mencincang kasar uratnya di tahap akhir penggilingan agar tekstur 'krenyes' uratnya terasa mantap!";
         }
 
-        // 5. Topik Rasio Tepung Tapioka / Sagu
+        // 5. Topik Rasio Tepung Tapioka / Sagu (100% Sinkron dengan Formula Admin DB)
         if (str_contains($q, 'tepung') || str_contains($q, 'tapioka') || str_contains($q, 'sagu') || str_contains($q, 'rasio')) {
-            return "⚖️ **Kaidah Rasio Tepung Tapioka BASOKU:**\n\n"
+            $presets = RecipeFormula::orderedPresets();
+
+            return "⚖️ **Kaidah Rasio Tepung Tapioka BASOKU (Acuan per 1 kg Daging):**\n\n"
                 ."Tepung tapioka berfungsi sebagai pengikat adonan. Sesuaikan persentasenya dengan target selera Anda:\n\n"
-                ."1. **Racikan Enak (Spesial Daging):** Tepung 10% – 15% dari bobot daging (100g – 150g per 1 kg daging). Rasa daging sangat dominan, padat, dan premium.\n"
-                ."2. **Racikan Seimbang (Standar Pasar):** Tepung 20% (200g per 1 kg daging). Keseimbangan paling ideal antara kekenyalan, rasa gurih, dan harga jual.\n"
-                .'3. **Racikan Ekonomis (Hemat Usaha):** Tepung 30% – 40% (300g – 400g per 1 kg daging). Cocok untuk pesanan hajatan atau porsi banyak dengan biaya ekonomis.';
+                ."1. **{$presets['enak']['name']} ({$presets['enak']['flour_pct']}):** {$presets['enak']['per_kg_example']} ({$presets['enak']['explicit_ratio']}). {$presets['enak']['description']}\n"
+                ."2. **{$presets['seimbang']['name']} ({$presets['seimbang']['flour_pct']}):** {$presets['seimbang']['per_kg_example']} ({$presets['seimbang']['explicit_ratio']}). {$presets['seimbang']['description']}\n"
+                ."3. **{$presets['ekonomis']['name']} ({$presets['ekonomis']['flour_pct']}):** {$presets['ekonomis']['per_kg_example']} ({$presets['ekonomis']['explicit_ratio']}). {$presets['ekonomis']['description']}\n"
+                .'4. **Kustom Bebas (10% – 450%):** Bebas atur sendiri dari bakso urat super daging sampai bakso aci / cilok daging.';
         }
 
         // 6. Topik Tips Penggilingan di Mesin Selepan & Garam di Awal

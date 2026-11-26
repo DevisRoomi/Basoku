@@ -17,9 +17,9 @@
             </h2>
 
             <!-- Decorative Flourish Divider -->
-            <div class="flex items-center justify-center gap-3 my-4">
+            <div class="flex items-center justify-center gap-3 my-4" aria-hidden="true">
                 <span class="w-16 h-[1px] bg-[#26221E]/20"></span>
-                <span class="text-xs text-[#D96B43]">✦</span>
+                <span class="text-xs text-[#B84E26]">✦</span>
                 <span class="w-16 h-[1px] bg-[#26221E]/20"></span>
             </div>
 
@@ -79,17 +79,33 @@
             @forelse ($groupedMaterials as $category => $items)
                 @php
                     $catLower = strtolower($category);
-                    $isDaging = str_contains($catLower, 'daging');
-                    $isTepung = str_contains($catLower, 'tepung');
-                    $isBumbu = str_contains($catLower, 'bumbu');
-
-                    $categoryMonogram = $isDaging ? 'DG' : ($isTepung ? 'TP' : 'BM');
-
-                    $categoryDesc = $isDaging
-                        ? 'Daging sapi paha/gandik segar dan dada ayam fillet bersih siap giling'
-                        : ($isTepung
-                            ? 'Tepung tapioka kualitas super untuk tekstur kenyal dan renyah sempurna'
-                            : 'Bawang putih kupas pilihan, garam kasar, dan rempah aromatik');
+                    $categoryMeta = match (true) {
+                        str_contains($catLower, 'daging') => [
+                            'monogram' => 'DG',
+                            'title' => 'Daging',
+                            'desc' => 'Daging sapi paha/gandik segar dan dada ayam fillet bersih siap giling',
+                        ],
+                        str_contains($catLower, 'tepung') => [
+                            'monogram' => 'TP',
+                            'title' => 'Tepung',
+                            'desc' => 'Tepung tapioka, premiks pengenyal, terigu, dan sagu untuk tekstur adonan pas',
+                        ],
+                        str_contains($catLower, 'bumbu') => [
+                            'monogram' => 'BM',
+                            'title' => 'Bumbu',
+                            'desc' => 'Bawang putih kupas pilihan, garam kasar, bawang goreng, dan rempah aromatik',
+                        ],
+                        $catLower === 'pelengkap' => [
+                            'monogram' => 'PL',
+                            'title' => 'Pelengkap & Tambahan',
+                            'desc' => 'Telur pengikat adonan, pengenyal bakso, dan penyedap rasa pasar',
+                        ],
+                        default => [
+                            'monogram' => strtoupper(mb_substr($catLower, 0, 2)),
+                            'title' => ucfirst($category),
+                            'desc' => 'Bahan baku pendukung adonan bakso pilihan pasar',
+                        ],
+                    };
                 @endphp
 
                 <div class="space-y-6">
@@ -97,23 +113,23 @@
                     <!-- Category Header Bar (Pure Editorial Header) -->
                     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-4 border-b border-[#26221E]/15">
                         <div class="flex items-center gap-3.5">
-                            <div class="w-10 h-10 rounded-2xl bg-[#2D4235] text-[#F4EFE6] flex items-center justify-center font-mono font-bold text-xs shadow-xs">
-                                {{ $categoryMonogram }}
+                            <div class="w-10 h-10 rounded-2xl bg-[#2D4235] text-[#F4EFE6] flex items-center justify-center font-mono font-bold text-xs shadow-xs shrink-0">
+                                {{ $categoryMeta['monogram'] }}
                             </div>
                             <div>
                                 <h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-[#26221E]" style="font-family: 'Playfair Display', Georgia, serif;">
-                                    Kategori: {{ ucfirst($category) }}
+                                    Kategori: {{ $categoryMeta['title'] }}
                                 </h3>
-                                <p class="text-xs text-[#5A534A] mt-0.5">{{ $categoryDesc }}</p>
+                                <p class="text-xs text-[#5A534A] mt-0.5">{{ $categoryMeta['desc'] }}</p>
                             </div>
                         </div>
 
-                        <span class="text-xs font-mono font-medium px-3.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#2D4235] border border-[#26221E]/10 self-start sm:self-auto">
+                        <span class="text-xs font-mono font-medium px-3.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#2D4235] border border-[#26221E]/10 self-start sm:self-auto shrink-0">
                             {{ count($items) }} Bahan Baku
                         </span>
                     </div>
 
-                    <!-- Items Grid (Minimalist Apothecary / Specialty Market Cards) -->
+                    <!-- Items Grid (Modern Vertical-Split Market Cards) -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         @foreach ($items as $material)
                             @php
@@ -142,76 +158,86 @@
                                     $mainUnitLabel = '/ ' . ($material->package_unit ?? $material->unit);
                                 }
 
-                                // Badge harga dasar per gram atau per butir/sachet
-                                if ($pkgUnitLower === 'butir') {
-                                    $baseBadge = 'Rp ' . number_format($packagePrice, 0, ',', '.') . ' / butir';
-                                } elseif ($pkgUnitLower === 'sachet') {
-                                    $baseBadge = 'Rp ' . number_format($packagePrice, 0, ',', '.') . ' / sachet';
-                                } elseif ($material->price >= 1000) {
+                                // Badge harga dasar per gram atau per butir/sachet sesuai mode jual
+                                if ($material->isUnitBased() || $pkgUnitLower === 'butir' || $pkgUnitLower === 'sachet') {
                                     $baseBadge = 'Rp ' . number_format($packagePrice, 0, ',', '.') . ' / ' . $pkgUnitLower;
                                 } else {
                                     $baseBadge = 'Rp ' . number_format($material->price, 0, ',', '.') . ' / g';
                                 }
+
+                                $sellingModeBadgeClass = match ($material->selling_mode ?? 'kemasan') {
+                                    'curah' => 'bg-sky-50 text-sky-900 border-sky-200',
+                                    'satuan' => 'bg-violet-50 text-violet-900 border-violet-200',
+                                    default => 'bg-amber-50 text-amber-900 border-amber-200',
+                                };
+
+                                $currentQty = $selectedItems[$material->id] ?? 0;
                             @endphp
 
-                            <div class="bg-[#FAF7F2] border border-[#26221E]/12 hover:border-[#2D4235]/40 rounded-2xl p-5 flex items-center justify-between gap-4 shadow-xs hover:shadow-md transition-all duration-200 group">
-                                
-                                <!-- Left: Typographic Monogram Square + Ingredient Specs (No Truncate) -->
-                                <div class="flex items-center gap-3.5 min-w-0">
-                                    <div class="w-12 h-12 rounded-xl bg-[#EAE3D5] text-[#2D4235] font-serif font-bold text-base flex items-center justify-center shrink-0 border border-[#2D4235]/15 group-hover:bg-[#2D4235] group-hover:text-white transition-colors">
-                                        {{ $monogram }}
-                                    </div>
-                                    <div class="min-w-0">
-                                        <h4 class="font-bold text-sm sm:text-base text-[#26221E] group-hover:text-[#D96B43] transition-colors leading-snug">
-                                            {{ $material->name }}
-                                        </h4>
-                                        <span class="text-[11px] text-[#5A534A] block mt-0.5 leading-normal">
-                                            @if ($hasPackage)
-                                                Kemasan fisik retail: {{ number_format($material->package_weight, 0, ',', '.') }} {{ $pkgUnitLower === 'butir' ? 'gram / butir' : ($pkgUnitLower === 'kg' ? 'gram (1 kg)' : 'gram') }}
-                                            @else
-                                                Harga satuan terverifikasi pasar &bull; Satuan {{ $material->unit }}
-                                            @endif
+                            <div class="bg-[#FAF7F2] border border-[#26221E]/12 hover:border-[#2D4235]/40 rounded-2xl p-5 flex flex-col justify-between gap-4 shadow-xs hover:shadow-md transition-all duration-200 group">
+                                <!-- Top & Middle: Monogram, Full-Width Title, Selling Mode Pill, Clean Spec -->
+                                <div class="space-y-3">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="w-10 h-10 rounded-xl bg-[#EAE3D5] text-[#2D4235] font-serif font-bold text-sm flex items-center justify-center shrink-0 border border-[#2D4235]/15 group-hover:bg-[#2D4235] group-hover:text-white transition-colors">
+                                                {{ $monogram }}
+                                            </div>
+                                            <h4 class="font-bold text-[15px] text-[#26221E] group-hover:text-[#B84E26] transition-colors leading-snug">
+                                                {{ $material->name }}
+                                            </h4>
+                                        </div>
+
+                                        <span class="shrink-0 px-2 py-0.5 rounded-md border text-[9.5px] font-mono font-bold uppercase tracking-wider {{ $sellingModeBadgeClass }}">
+                                            {{ $material->sellingModeLabel() }}
                                         </span>
                                     </div>
+
+                                    <p class="text-xs text-[#5A534A] leading-relaxed">
+                                        @if ($hasPackage)
+                                            @if ($material->isLoose())
+                                                Acuan {{ number_format($material->package_weight, 0, ',', '.') }}g &bull; bisa timbang pas di kalkulator
+                                            @else
+                                                Kemasan fisik retail: {{ number_format($material->package_weight, 0, ',', '.') }} {{ $pkgUnitLower === 'butir' ? 'gram / butir' : ($pkgUnitLower === 'kg' ? 'gram (1 kg)' : 'gram') }}
+                                            @endif
+                                        @else
+                                            Harga satuan terverifikasi pasar &bull; Satuan {{ $material->unit }}
+                                        @endif
+                                    </p>
                                 </div>
 
-                                <!-- Right: Clean Price + Base Unit Badge + Action Button -->
-                                <div class="text-right shrink-0 flex items-center gap-3">
-                                    <div class="text-right">
-                                        <div class="flex items-baseline justify-end gap-1">
-                                            <span class="text-sm sm:text-base font-bold text-[#26221E] tabular-nums font-mono">
+                                <!-- Bottom Footer: Price Info Left + Interactive Action Button Right -->
+                                <div class="pt-3.5 border-t border-[#26221E]/10 flex items-end justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <div class="flex items-baseline flex-wrap gap-x-1.5">
+                                            <span class="text-base sm:text-lg font-bold text-[#26221E] tabular-nums font-mono">
                                                 {{ $mainPriceFormatted }}
                                             </span>
-                                            <span class="text-[10px] font-mono text-[#5A534A]">{{ $mainUnitLabel }}</span>
+                                            <span class="text-[11px] font-mono text-[#5A534A]">{{ $mainUnitLabel }}</span>
                                         </div>
-                                        <span class="inline-block mt-0.5 text-[10px] font-mono text-[#5A534A] bg-[#EAE3D5]/80 px-2 py-0.5 rounded border border-[#26221E]/10">
+                                        <span class="inline-block mt-1 text-[10px] font-mono text-[#5A534A] bg-[#EAE3D5]/80 px-2 py-0.5 rounded border border-[#26221E]/10">
                                             {{ $baseBadge }}
                                         </span>
                                     </div>
 
                                     <!-- Interactive Quantity Stepper / Add Button -->
-                                    @php
-                                        $currentQty = $selectedItems[$material->id] ?? 0;
-                                    @endphp
-
                                     @if ($currentQty > 0)
-                                        <div class="flex items-center gap-1 bg-[#FAF7F2] border border-[#2D4235] rounded-full p-0.5 shadow-xs shrink-0">
+                                        <div class="flex items-center gap-1 bg-white border border-[#2D4235] rounded-full p-0.5 shadow-xs shrink-0">
                                             <button
                                                 type="button"
                                                 wire:click="decrementItem({{ $material->id }})"
-                                                class="w-6 h-6 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] flex items-center justify-center font-bold text-xs transition-colors"
+                                                class="w-7 h-7 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
                                                 title="Kurangi 1"
                                                 aria-label="Kurangi {{ $material->name }}"
                                             >
                                                 -
                                             </button>
-                                            <span class="font-mono font-bold text-xs px-1.5 text-[#2D4235] tabular-nums">
+                                            <span class="font-mono font-bold text-xs px-2 text-[#2D4235] tabular-nums">
                                                 {{ $currentQty }}
                                             </span>
                                             <button
                                                 type="button"
                                                 wire:click="incrementItem({{ $material->id }})"
-                                                class="w-6 h-6 rounded-full bg-[#2D4235] hover:bg-[#1F3025] text-white flex items-center justify-center font-bold text-xs transition-colors"
+                                                class="w-7 h-7 rounded-full bg-[#2D4235] hover:bg-[#1F3025] text-white flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
                                                 title="Tambah 1"
                                                 aria-label="Tambah {{ $material->name }}"
                                             >
@@ -222,7 +248,7 @@
                                         <button
                                             type="button"
                                             wire:click="incrementItem({{ $material->id }})"
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#2D4235] hover:bg-[#D96B43] text-white text-xs font-semibold shadow-xs transition-all active:scale-95 shrink-0"
+                                            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#2D4235] hover:bg-[#B84E26] text-white text-xs font-semibold shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
                                             title="Pilih Bahan"
                                             aria-label="Pilih {{ $material->name }}"
                                         >
@@ -231,7 +257,6 @@
                                         </button>
                                     @endif
                                 </div>
-
                             </div>
                         @endforeach
                     </div>
@@ -266,12 +291,12 @@
                     <div class="flex flex-wrap items-center gap-4 pt-2">
                         <div class="bg-[#FAF7F2] px-5 py-2.5 rounded-2xl border border-[#26221E]/10 shadow-xs">
                             <span class="text-[10px] uppercase font-mono text-[#5A534A] block">Tarif Tetap</span>
-                            <span class="text-lg font-bold font-mono text-[#26221E] tabular-nums">Rp 15.000</span>
+                            <span class="text-lg font-bold font-mono text-[#26221E] tabular-nums">Rp {{ number_format((float) config('services.kiosk.grinding_fee_per_kg', 15000), 0, ',', '.') }}</span>
                             <span class="text-xs text-[#5A534A]">/ kg daging</span>
                         </div>
 
                         <a
-                            href="{{ route('calculator') }}"
+                            href="{{ request()->is('/') ? '#racikan-saya' : route('calculator') }}"
                             class="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-[#2D4235] hover:bg-[#1F3025] text-white font-semibold text-xs sm:text-sm shadow-md transition-all active:scale-[0.98]"
                         >
                             <span>Gunakan di Kalkulator</span>
@@ -317,14 +342,14 @@
     @if ($totalSelectedPacks > 0)
         <aside
             aria-label="Keranjang Belanja Bahan"
-            class="fixed bottom-5 inset-x-4 sm:inset-x-auto sm:right-8 sm:max-w-xl z-40 bg-[#26221E] text-[#F4EFE6] px-5 py-4 rounded-3xl shadow-2xl border border-[#D96B43]/30 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in slide-in-from-bottom duration-300"
+            class="fixed bottom-20 sm:bottom-5 inset-x-4 sm:inset-x-auto sm:right-24 sm:max-w-xl z-40 bg-[#26221E] text-[#F4EFE6] px-5 py-4 rounded-3xl shadow-2xl border border-[#D96B43]/30 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in slide-in-from-bottom duration-300"
         >
             <div class="flex items-center gap-3 w-full sm:w-auto">
-                <div class="w-10 h-10 rounded-2xl bg-[#D96B43] text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
+                <div class="w-10 h-10 rounded-2xl bg-[#B84E26] text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
                     {{ $totalSelectedPacks }}
                 </div>
                 <div>
-                    <div class="text-xs text-[#EAE3D5]/80">Bahan Terpilih di Katalog</div>
+                    <div class="text-xs text-[#EAE3D5]/85">Bahan Terpilih di Katalog</div>
                     <div class="text-sm sm:text-base font-bold font-mono text-white tabular-nums">
                         Rp {{ number_format($totalSelectedCost, 0, ',', '.') }}
                     </div>
@@ -332,7 +357,7 @@
                 <button
                     type="button"
                     wire:click="clearCart"
-                    class="ml-auto sm:ml-2 text-xs text-[#EAE3D5]/60 hover:text-white underline underline-offset-2"
+                    class="ml-auto sm:ml-2 text-xs text-[#EAE3D5]/75 hover:text-white underline underline-offset-2 cursor-pointer"
                     title="Kosongkan pilihan"
                 >
                     Reset
@@ -344,7 +369,7 @@
                 <button
                     type="button"
                     wire:click="transferToCalculator"
-                    class="flex-1 sm:flex-none px-4 py-2.5 rounded-full bg-[#FAF7F2] hover:bg-[#EAE3D5] text-[#26221E] font-semibold text-xs transition-all active:scale-95 shadow-xs flex items-center justify-center gap-1.5"
+                    class="flex-1 sm:flex-none px-4 py-2.5 rounded-full bg-[#FAF7F2] hover:bg-[#EAE3D5] text-[#26221E] font-semibold text-xs transition-all active:scale-95 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                     title="Bawa bahan ke Kalkulator Racikan"
                 >
                     <span>⚖️ Ke Kalkulator</span>
@@ -354,7 +379,7 @@
                 <button
                     type="button"
                     wire:click="openDirectCheckout"
-                    class="flex-1 sm:flex-none px-4 py-2.5 rounded-full bg-[#D96B43] hover:bg-[#c45a34] text-white font-semibold text-xs transition-all active:scale-95 shadow-xs flex items-center justify-center gap-1.5"
+                    class="flex-1 sm:flex-none px-4 py-2.5 rounded-full bg-[#B84E26] hover:bg-[#9C3F1C] text-white font-semibold text-xs transition-all active:scale-95 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                     title="Langsung Pesan Bahan via WhatsApp"
                 >
                     <span>🛒 Pesan Langsung</span>

@@ -61,6 +61,10 @@ class Register extends Component
         Auth::login($user);
         session()->regenerate();
 
+        if (session()->has('calculator_draft')) {
+            return $this->redirect('/kalkulator', navigate: true);
+        }
+
         return $this->redirect('/racikan-saya', navigate: true);
     }
 

@@ -72,26 +72,27 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-[#161210]/10 bg-[#FAF6F0]/60 text-[11px] font-bold uppercase tracking-wider text-[#161210]/70">
-                            <th scope="col" class="py-4 px-6">Nama Bahan</th>
-                            <th scope="col" class="py-4 px-6">Kategori</th>
-                            <th scope="col" class="py-4 px-6">Satuan</th>
-                            <th scope="col" class="py-4 px-6">Berat/Kemasan</th>
-                            <th scope="col" class="py-4 px-6 text-right">Harga Kemasan</th>
-                            <th scope="col" class="py-4 px-6 text-center">Status</th>
-                            <th scope="col" class="py-4 px-6 text-right">Aksi</th>
+                            <th scope="col" class="py-4 px-5">Nama Bahan</th>
+                            <th scope="col" class="py-4 px-4">Kategori</th>
+                            <th scope="col" class="py-4 px-4">Mode Jual</th>
+                            <th scope="col" class="py-4 px-4">Satuan</th>
+                            <th scope="col" class="py-4 px-4">Berat Acuan</th>
+                            <th scope="col" class="py-4 px-5 text-right">Harga Jual</th>
+                            <th scope="col" class="py-4 px-4 text-center">Status</th>
+                            <th scope="col" class="py-4 px-5 text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#161210]/5 text-xs font-medium text-[#161210]">
                         @forelse ($materials as $material)
                             <tr class="hover:bg-[#FAF6F0]/40 transition-colors">
                                 <!-- Kolom 1: Nama Bahan -->
-                                <td class="py-4 px-6 font-bold text-sm">
+                                <td class="py-4 px-5 font-bold text-sm">
                                     {{ $material->name }}
                                 </td>
 
                                 <!-- Kolom 2: Kategori -->
-                                <td class="py-4 px-6">
-                                    <span class="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider {{ match($material->category) {
+                                <td class="py-4 px-4">
+                                    <span class="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider whitespace-nowrap {{ match($material->category) {
                                         'daging' => 'bg-rose-100 text-rose-800 border border-rose-200',
                                         'tepung' => 'bg-amber-100 text-amber-800 border border-amber-200',
                                         'bumbu' => 'bg-emerald-100 text-emerald-800 border border-emerald-200',
@@ -101,13 +102,24 @@
                                     </span>
                                 </td>
 
-                                <!-- Kolom 3: Satuan (Pack/Kg/Bungkus) -->
-                                <td class="py-4 px-6 text-[#161210]/70 font-semibold">
+                                <!-- Kolom 3: Mode Jual Pasar -->
+                                <td class="py-4 px-4">
+                                    <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap {{ match($material->selling_mode ?? 'kemasan') {
+                                        'curah' => 'bg-sky-50 text-sky-800 border border-sky-200',
+                                        'satuan' => 'bg-violet-50 text-violet-800 border border-violet-200',
+                                        default => 'bg-orange-50 text-orange-800 border border-orange-200'
+                                    } }}">
+                                        {{ $material->sellingModeLabel() }}
+                                    </span>
+                                </td>
+
+                                <!-- Kolom 4: Satuan (Pack/Kg/Sachet/Butir) -->
+                                <td class="py-4 px-4 text-[#161210]/70 font-semibold whitespace-nowrap">
                                     {{ $material->package_unit ?? $material->unit }}
                                 </td>
 
-                                <!-- Kolom 4: Berat per Kemasan -->
-                                <td class="py-4 px-6 font-mono text-[#161210]/80">
+                                <!-- Kolom 5: Berat per Kemasan / Acuan -->
+                                <td class="py-4 px-4 font-mono text-[#161210]/80 whitespace-nowrap">
                                     @if ($material->package_weight)
                                         {{ number_format($material->package_weight, 0, ',', '.') }} g
                                     @else
@@ -115,32 +127,35 @@
                                     @endif
                                 </td>
 
-                                <!-- Kolom 5: Harga Kemasan (Utuh) & Harga Gram Dasar -->
-                                <td class="py-4 px-6 text-right font-extrabold text-[#C83B2B] text-sm">
-                                    @if ($material->package_price)
+                                <!-- Kolom 6: Harga Jual & Harga Dasar yang Akurat Sesuai Mode -->
+                                <td class="py-4 px-5 text-right font-extrabold text-[#C83B2B] text-sm whitespace-nowrap">
+                                    @if ($material->isUnitBased())
+                                        {{ \Illuminate\Support\Number::currency($material->package_price ?? $material->price, 'IDR', 'id', precision: 0) }}
+                                        <span class="text-[10px] font-normal text-[#161210]/55 block">/ {{ $material->package_unit ?? $material->unit }}</span>
+                                    @elseif ($material->package_price)
                                         {{ \Illuminate\Support\Number::currency($material->package_price, 'IDR', 'id', precision: 0) }}
-                                        <span class="text-[10px] font-normal text-[#161210]/50 block">({{ \Illuminate\Support\Number::currency($material->price, 'IDR', 'id', precision: 0) }} / g)</span>
+                                        <span class="text-[10px] font-normal text-[#161210]/55 block">({{ \Illuminate\Support\Number::currency($material->price, 'IDR', 'id', precision: 0) }} / g)</span>
                                     @else
                                         {{ \Illuminate\Support\Number::currency($material->price, 'IDR', 'id', precision: 0) }}
-                                        <span class="text-[10px] font-normal text-[#161210]/50">/ {{ $material->unit }}</span>
+                                        <span class="text-[10px] font-normal text-[#161210]/55">/ {{ $material->unit }}</span>
                                     @endif
                                 </td>
 
-                                <!-- Kolom 6: Status Ketersediaan (Clickable) -->
-                                <td class="py-4 px-6 text-center">
+                                <!-- Kolom 7: Status Ketersediaan (Clickable) -->
+                                <td class="py-4 px-4 text-center">
                                     <button
                                         type="button"
                                         wire:click="toggleAvailability({{ $material->id }})"
                                         title="Klik untuk ubah status ketersediaan"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-transform active:scale-95 {{ $material->is_available ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100' }}"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-transform active:scale-95 whitespace-nowrap {{ $material->is_available ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100' }}"
                                     >
                                         <span class="w-1.5 h-1.5 rounded-full {{ $material->is_available ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
                                         {{ $material->is_available ? 'Tersedia' : 'Habis' }}
                                     </button>
                                 </td>
 
-                                <!-- Kolom 6: Aksi -->
-                                <td class="py-4 px-6 text-right space-x-2">
+                                <!-- Kolom 8: Aksi -->
+                                <td class="py-4 px-5 text-right space-x-2">
                                     <button
                                         type="button"
                                         wire:click="openEditModal({{ $material->id }})"
@@ -155,7 +170,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="py-12 text-center text-xs text-[#161210]/50">
+                                <td colspan="8" class="py-12 text-center text-xs text-[#161210]/50">
                                     Belum ada data bahan baku pada kategori ini.
                                 </td>
                             </tr>
@@ -202,7 +217,38 @@
                 </div>
 
                 <!-- Isi Formulir Modal -->
-                <form wire:submit.prevent="save" class="mt-6 space-y-4">
+                <form
+                    wire:submit.prevent="save"
+                    x-data="{
+                        sellingMode: @entangle('selling_mode'),
+                        packageWeight: @entangle('package_weight'),
+                        packagePrice: @entangle('package_price'),
+                        basePrice: @entangle('price'),
+                        manualOverride: @entangle('manualPriceOverride'),
+                        parseNum(val) {
+                            if (val === null || val === undefined) return NaN;
+                            const cleaned = String(val).trim().replace(/\s+/g, '').replace(',', '.');
+                            return cleaned === '' ? NaN : parseFloat(cleaned);
+                        },
+                        recalcBasePrice() {
+                            if (this.manualOverride) return;
+                            const pkgP = this.parseNum(this.packagePrice);
+                            const pkgW = this.parseNum(this.packageWeight);
+                            if (isNaN(pkgP) || pkgP <= 0) return;
+                            if (this.sellingMode === 'satuan') {
+                                this.basePrice = Math.round(pkgP * 100) / 100;
+                            } else if (!isNaN(pkgW) && pkgW > 0) {
+                                this.basePrice = Math.round((pkgP / pkgW) * 100) / 100;
+                            }
+                        },
+                        formatIdr(val) {
+                            const n = this.parseNum(val);
+                            if (isNaN(n)) return '0';
+                            return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(n);
+                        }
+                    }"
+                    class="mt-6 space-y-4"
+                >
                     <!-- Field 1: Nama Bahan -->
                     <div>
                         <label for="material-name" class="block text-xs font-bold uppercase tracking-wider text-[#161210] mb-1.5">
@@ -262,6 +308,27 @@
                         </div>
                     </div>
 
+                    <!-- Field 2b: Mode Jual di Pasar -->
+                    <div>
+                        <label for="material-selling-mode" class="block text-xs font-bold uppercase tracking-wider text-[#161210] mb-1.5">
+                            Mode Jual Pasar <span class="text-[#C83B2B]">*</span>
+                        </label>
+                        <select
+                            id="material-selling-mode"
+                            wire:model.live="selling_mode"
+                            x-model="sellingMode"
+                            @change="recalcBasePrice()"
+                            class="w-full rounded-xl border-2 border-[#161210]/10 bg-white px-3 py-2.5 text-xs sm:text-sm font-medium text-[#161210] focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all cursor-pointer"
+                        >
+                            <option value="curah">Timbang Bebas / Curah (bisa beli pas takaran resep)</option>
+                            <option value="kemasan">Kemasan Utuh / Wajib Pack (kelipatan 1 pack utuh)</option>
+                            <option value="satuan">Eceran Satuan (per butir / per sachet)</option>
+                        </select>
+                        @error('selling_mode')
+                            <p class="text-[11px] text-[#C83B2B] mt-1 font-medium">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Field 3: Berat Kemasan & Harga Kemasan Pasar Utuh (2 Kolom) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- Berat per Kemasan (Gram) -->
@@ -271,12 +338,14 @@
                             </label>
                             <div class="relative">
                                 <input
-                                    type="number"
-                                    step="any"
+                                    type="text"
+                                    inputmode="decimal"
                                     id="material-package-weight"
-                                    wire:model="package_weight"
+                                    wire:model.live.debounce.250ms="package_weight"
+                                    x-model="packageWeight"
+                                    @input="recalcBasePrice()"
                                     placeholder="250, 500, atau 1000"
-                                    class="w-full rounded-xl border-2 border-[#161210]/10 bg-white px-3 py-2.5 text-xs sm:text-sm font-semibold text-[#161210] focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
+                                    class="w-full rounded-xl border-2 border-[#161210]/10 bg-white px-3 py-2.5 pr-8 text-xs sm:text-sm font-semibold text-[#161210] focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
                                 >
                                 <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-bold text-[#161210]/40">
                                     g
@@ -297,10 +366,12 @@
                                     Rp
                                 </span>
                                 <input
-                                    type="number"
-                                    step="any"
+                                    type="text"
+                                    inputmode="decimal"
                                     id="material-package-price"
-                                    wire:model="package_price"
+                                    wire:model.live.debounce.250ms="package_price"
+                                    x-model="packagePrice"
+                                    @input="recalcBasePrice()"
                                     placeholder="Contoh: 10000 atau 9000"
                                     class="w-full rounded-xl border-2 border-[#161210]/10 bg-white pl-9 pr-3 py-2.5 text-xs sm:text-sm font-semibold text-[#161210] focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
                                 >
@@ -311,30 +382,55 @@
                         </div>
                     </div>
 
-                    <!-- Field 4: Harga Dasar Acuan (Per Gram/Satuan) -->
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
+                    <!-- Field 4: Harga Dasar Acuan (Otomatis dari Kemasan, Bisa Override Manual) -->
+                    <div class="rounded-xl border border-[#161210]/10 bg-white p-3.5 space-y-2.5">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
                             <label for="material-price" class="block text-xs font-bold uppercase tracking-wider text-[#161210]">
                                 Harga Dasar Acuan (Rp) <span class="text-[#C83B2B]">*</span>
                             </label>
-                            <span class="text-[11px] text-[#161210]/50 font-mono">Satuan: {{ $unit }}</span>
+                            <label class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#161210]/70 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    wire:model.live="manualPriceOverride"
+                                    x-model="manualOverride"
+                                    @change="if (!manualOverride) recalcBasePrice()"
+                                    class="w-3.5 h-3.5 rounded text-[#C83B2B] focus:ring-[#C83B2B]/30 border-[#161210]/25"
+                                >
+                                <span>Atur manual</span>
+                            </label>
                         </div>
+
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-xs font-bold text-[#161210]/40">
                                 Rp
                             </span>
                             <input
-                                type="number"
-                                step="any"
+                                type="text"
+                                inputmode="decimal"
                                 id="material-price"
                                 wire:model="price"
-                                placeholder="Contoh: 40 (per gram) atau 140"
-                                class="w-full rounded-xl border-2 border-[#161210]/10 bg-white pl-11 pr-4 py-2.5 text-xs sm:text-sm font-semibold text-[#161210] placeholder:text-[#161210]/30 focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
+                                x-model="basePrice"
+                                :readonly="!manualOverride"
+                                placeholder="Otomatis dari Harga ÷ Berat"
+                                :class="manualOverride ? 'bg-white border-[#C83B2B]/40 text-[#161210]' : 'bg-[#FAF6F0] border-[#161210]/10 text-[#161210]/80 cursor-not-allowed'"
+                                class="w-full rounded-xl border-2 pl-11 pr-20 py-2.5 text-xs sm:text-sm font-mono font-bold placeholder:text-[#161210]/30 focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
                             >
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-[11px] font-mono text-[#161210]/55">
+                                / <span x-text="sellingMode === 'satuan' ? '{{ strtolower($package_unit ?: $unit) }}' : '{{ $unit }}'"></span>
+                            </span>
                         </div>
-                        <p class="text-[10px] text-[#161210]/50 mt-1">
-                            *Acuan hitungan resep kalkulator (misal Rp10.000 / 250g diisi <code>40</code>).
-                        </p>
+
+                        <div class="flex items-start gap-2 text-[11px] text-[#2D4235] bg-[#E8ECE4]/70 rounded-lg px-2.5 py-2 border border-[#2D4235]/15">
+                            <span class="font-bold shrink-0">⚡ Otomatis:</span>
+                            <span x-show="sellingMode === 'satuan'">
+                                Mode eceran satuan memakai harga kemasan penuh (<strong class="font-mono">Rp <span x-text="formatIdr(basePrice)"></span></strong> / satuan).
+                            </span>
+                            <span x-show="sellingMode !== 'satuan'">
+                                <strong class="font-mono">Rp <span x-text="formatIdr(packagePrice)"></span></strong> &divide;
+                                <strong class="font-mono"><span x-text="formatIdr(packageWeight)"></span>g</strong> =
+                                <strong class="font-mono text-[#B84E26]">Rp <span x-text="formatIdr(basePrice)"></span> / gram</strong>.
+                            </span>
+                        </div>
                         @error('price')
                             <p class="text-[11px] text-[#C83B2B] mt-1 font-medium">{{ $message }}</p>
                         @enderror

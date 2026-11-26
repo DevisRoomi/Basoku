@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\AiConsultant;
+use App\Models\RecipeFormula;
 use App\Services\GeminiConsultantService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
@@ -251,5 +252,39 @@ class AiConsultantTest extends TestCase
         $component->set('question', 'Pertanyaan ke 11 harus ditahan')
             ->call('sendMessage')
             ->assertHasErrors(['question']);
+    }
+
+    public function test_ai_consultant_uses_live_recipe_formulas_from_database(): void
+    {
+        RecipeFormula::updateOrCreate(
+            ['code' => 'enak'],
+            [
+                'name' => 'Racikan Enak',
+                'meat_ratio' => 1.0,
+                'flour_ratio' => 0.20,
+                'spice_ratio' => 0.05,
+                'is_simulation' => false,
+            ]
+        );
+        RecipeFormula::updateOrCreate(
+            ['code' => 'ekonomis'],
+            [
+                'name' => 'Racikan Ekonomis',
+                'meat_ratio' => 1.0,
+                'flour_ratio' => 2.00,
+                'spice_ratio' => 0.12,
+                'is_simulation' => false,
+            ]
+        );
+
+        $service = new GeminiConsultantService;
+        $prompt = $service->getSystemPrompt();
+        $this->assertStringContainsString('1 kg daging + 200g tepung', $prompt);
+        $this->assertStringContainsString('1 kg daging + 2 kg tepung', $prompt);
+
+        Config::set('services.gemini.key', null);
+        $fallback = $service->ask('Berapa rasio tepung bakso enak dan ekonomis?');
+        $this->assertStringContainsString('Daging 5 : 1 Tepung', $fallback);
+        $this->assertStringContainsString('1 kg daging + 2 kg tepung', $fallback);
     }
 }

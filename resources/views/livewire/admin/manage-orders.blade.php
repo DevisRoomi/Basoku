@@ -106,6 +106,7 @@
                             @php
                                 $orderCode = '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
                                 $waUrl = $this->getCustomerWaUrl($order);
+                                $normalizedStatus = $this->normalizeStatus($order->status);
                             @endphp
                             <tr wire:key="admin-order-{{ $order->id }}" class="hover:bg-[#FAF6F0]/40 transition-colors">
                                 <!-- Kolom 1: ID & Waktu Pemesanan -->
@@ -193,7 +194,7 @@
                                             wire:change="updateStatus({{ $order->id }}, $event.target.value)"
                                             wire:loading.attr="disabled"
                                             aria-label="Ubah status pesanan #{{ $order->id }}"
-                                            class="text-xs font-bold rounded-xl py-1.5 pl-3 pr-8 border cursor-pointer focus:outline-none transition-colors appearance-none disabled:opacity-50 {{ match($order->status) {
+                                            class="text-xs font-bold rounded-xl py-1.5 pl-3 pr-8 border cursor-pointer focus:outline-none transition-colors appearance-none disabled:opacity-50 {{ match($normalizedStatus) {
                                                 'pending' => 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100',
                                                 'processing' => 'bg-blue-50 text-blue-800 border-blue-300 hover:bg-blue-100',
                                                 'completed' => 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100',
@@ -201,10 +202,10 @@
                                                 default => 'bg-[#FAF6F0] text-[#161210] border-[#161210]/20'
                                             } }}"
                                         >
-                                            <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>⏳ Menunggu</option>
-                                            <option value="processing" {{ $order->status === 'processing' ? 'selected' : '' }}>⚙️ Diproses</option>
-                                            <option value="completed" {{ $order->status === 'completed' ? 'selected' : '' }}>✅ Selesai</option>
-                                            <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>❌ Dibatalkan</option>
+                                            <option value="pending" {{ $normalizedStatus === 'pending' ? 'selected' : '' }}>⏳ Menunggu</option>
+                                            <option value="processing" {{ $normalizedStatus === 'processing' ? 'selected' : '' }}>⚙️ Diproses</option>
+                                            <option value="completed" {{ $normalizedStatus === 'completed' ? 'selected' : '' }}>✅ Selesai</option>
+                                            <option value="cancelled" {{ $normalizedStatus === 'cancelled' ? 'selected' : '' }}>❌ Dibatalkan</option>
                                         </select>
                                     </div>
                                 </td>
@@ -269,6 +270,7 @@
         @php
             $selectedWaUrl = $this->getCustomerWaUrl($selectedOrder);
             $selectedCode = '#BSK-'.str_pad((string) $selectedOrder->id, 5, '0', STR_PAD_LEFT);
+            $selectedNormalizedStatus = $this->normalizeStatus($selectedOrder->status);
             $materialOnlyItems = $selectedOrder->orderItems->reject(
                 fn ($item) => str_contains(strtolower((string) $item->material_name), 'selepan')
             );
@@ -285,14 +287,14 @@
                             <span class="text-xs font-mono font-extrabold text-[#C83B2B] bg-[#C83B2B]/10 px-2 py-0.5 rounded border border-[#C83B2B]/20">
                                 {{ $selectedCode }}
                             </span>
-                            <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded {{ match($selectedOrder->status) {
+                            <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded {{ match($selectedNormalizedStatus) {
                                 'pending' => 'bg-amber-100 text-amber-800',
                                 'processing' => 'bg-blue-100 text-blue-800',
                                 'completed' => 'bg-emerald-100 text-emerald-800',
                                 'cancelled' => 'bg-rose-100 text-rose-800',
                                 default => 'bg-gray-100 text-gray-800'
                             } }}">
-                                {{ match($selectedOrder->status) {
+                                {{ match($selectedNormalizedStatus) {
                                     'pending' => 'Menunggu Konfirmasi',
                                     'processing' => 'Sedang Diproses',
                                     'completed' => 'Selesai',
@@ -425,7 +427,7 @@
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'pending')"
                                 wire:loading.attr="disabled"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedOrder->status === 'pending' ? 'bg-amber-600 text-white font-bold' : 'bg-white text-amber-800 border border-amber-300 hover:bg-amber-50' }}"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'pending' ? 'bg-amber-600 text-white font-bold' : 'bg-white text-amber-800 border border-amber-300 hover:bg-amber-50' }}"
                             >
                                 Menunggu
                             </button>
@@ -433,7 +435,7 @@
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'processing')"
                                 wire:loading.attr="disabled"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedOrder->status === 'processing' ? 'bg-blue-600 text-white font-bold' : 'bg-white text-blue-800 border border-blue-300 hover:bg-blue-50' }}"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'processing' ? 'bg-blue-600 text-white font-bold' : 'bg-white text-blue-800 border border-blue-300 hover:bg-blue-50' }}"
                             >
                                 Diproses
                             </button>
@@ -441,7 +443,7 @@
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'completed')"
                                 wire:loading.attr="disabled"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedOrder->status === 'completed' ? 'bg-emerald-600 text-white font-bold' : 'bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-50' }}"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'completed' ? 'bg-emerald-600 text-white font-bold' : 'bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-50' }}"
                             >
                                 Selesai
                             </button>
@@ -449,7 +451,7 @@
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'cancelled')"
                                 wire:loading.attr="disabled"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedOrder->status === 'cancelled' ? 'bg-rose-600 text-white font-bold' : 'bg-white text-rose-800 border border-rose-300 hover:bg-rose-50' }}"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'cancelled' ? 'bg-rose-600 text-white font-bold' : 'bg-white text-rose-800 border border-rose-300 hover:bg-rose-50' }}"
                             >
                                 Dibatalkan
                             </button>

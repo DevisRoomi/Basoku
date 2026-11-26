@@ -275,4 +275,51 @@ class ManageOrdersTest extends TestCase
             ->test(ManageOrders::class)
             ->assertViewHas('orders', fn ($orders) => $orders->count() === 15 && $orders->total() === 18);
     }
+
+    public function test_status_filter_and_counts_support_indonesian_and_english_aliases(): void
+    {
+        Order::create([
+            'customer_name' => 'Order Inggris Pending',
+            'pickup_at' => now()->addDay(),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 500,
+            'preference' => 'seimbang',
+            'grinding_fee' => 7500,
+            'total_price' => 88000,
+            'status' => 'pending',
+        ]);
+
+        Order::create([
+            'customer_name' => 'Order Lama Menunggu',
+            'pickup_at' => now()->addDay(),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 500,
+            'preference' => 'seimbang',
+            'grinding_fee' => 7500,
+            'total_price' => 88000,
+            'status' => 'menunggu',
+        ]);
+
+        Order::create([
+            'customer_name' => 'Order Lama Selesai',
+            'pickup_at' => now()->addDay(),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 500,
+            'preference' => 'seimbang',
+            'grinding_fee' => 7500,
+            'total_price' => 88000,
+            'status' => 'selesai',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageOrders::class)
+            ->assertViewHas('counts', fn (array $counts) => $counts['pending'] === 2 && $counts['completed'] === 1)
+            ->set('statusFilter', 'pending')
+            ->assertSee('Order Inggris Pending')
+            ->assertSee('Order Lama Menunggu')
+            ->assertDontSee('Order Lama Selesai')
+            ->set('statusFilter', 'completed')
+            ->assertSee('Order Lama Selesai')
+            ->assertDontSee('Order Lama Menunggu');
+    }
 }

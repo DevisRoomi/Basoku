@@ -239,4 +239,35 @@ class CustomerRecipeTest extends TestCase
             ->assertSet('preference', 'enak')
             ->assertSet('showSaveModal', true);
     }
+
+    public function test_guest_draft_persists_through_registration_and_redirects_to_calculator(): void
+    {
+        Livewire::test(RecipeCalculator::class)
+            ->set('meatType', 'sapi')
+            ->set('meatWeight', 1000)
+            ->set('preference', 'kustom')
+            ->set('customFlourRatio', 250)
+            ->call('openSaveModal')
+            ->assertRedirect('/masuk');
+
+        $this->assertTrue(session()->has('calculator_draft'));
+
+        Livewire::test(Register::class)
+            ->set('name', 'Pelanggan Baru Draft')
+            ->set('email', 'draft-register@example.com')
+            ->set('password', 'password123')
+            ->set('password_confirmation', 'password123')
+            ->call('register')
+            ->assertHasNoErrors()
+            ->assertRedirect('/kalkulator');
+
+        $registered = User::where('email', 'draft-register@example.com')->firstOrFail();
+
+        Livewire::actingAs($registered)
+            ->test(RecipeCalculator::class)
+            ->assertSet('meatWeight', 1000)
+            ->assertSet('preference', 'kustom')
+            ->assertSet('customFlourRatio', 250)
+            ->assertSet('showSaveModal', true);
+    }
 }

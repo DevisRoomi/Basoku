@@ -35,30 +35,32 @@
         <div class="lg:col-span-7 space-y-5">
 
             <!-- ──────────────────────────────────── -->
-            <!-- Tab Mode Perhitungan                 -->
+            <!-- Tab Mode Perhitungan (Khusus Racikan) -->
             <!-- ──────────────────────────────────── -->
-            <div class="p-1 rounded-full bg-[#FAF7F2] border border-[#26221E]/10 flex items-center gap-1.5 shadow-xs">
-                <button
-                    type="button"
-                    wire:click="$set('calculationMode', 'weight')"
-                    class="flex-1 py-2.5 px-4 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 focus:outline-none {{ $calculationMode === 'weight' ? 'bg-[#2D4235] text-white shadow-sm' : 'text-[#26221E]/70 hover:text-[#26221E] hover:bg-black/5' }}"
-                >
-                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-16.5-.52c-1.01.143-2.01.317-3 .52m16.5 0a48.72 48.72 0 01-16.5 0" />
-                    </svg>
-                    <span>Hitung Berdasarkan Berat</span>
-                </button>
-                <button
-                    type="button"
-                    wire:click="$set('calculationMode', 'budget')"
-                    class="flex-1 py-2.5 px-4 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 focus:outline-none {{ $calculationMode === 'budget' ? 'bg-[#2D4235] text-white shadow-sm' : 'text-[#26221E]/70 hover:text-[#26221E] hover:bg-black/5' }}"
-                >
-                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6H2.25m0 0v1.5m0-1.5h1.5m0 0h16.5m-16.5 0a.75.75 0 01-.75-.75V3m0 3h1.5m16.5 0a.75.75 0 00.75-.75V3m0 3v1.5m0-1.5h-1.5m0 0H3.75" />
-                    </svg>
-                    <span>Sesuaikan Anggaran</span>
-                </button>
-            </div>
+            @if ($startType !== 'ingredients_only')
+                <div class="p-1 rounded-full bg-[#FAF7F2] border border-[#26221E]/10 flex items-center gap-1.5 shadow-xs">
+                    <button
+                        type="button"
+                        wire:click="$set('calculationMode', 'weight')"
+                        class="flex-1 py-2.5 px-4 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 focus:outline-none {{ $calculationMode === 'weight' ? 'bg-[#2D4235] text-white shadow-sm' : 'text-[#26221E]/70 hover:text-[#26221E] hover:bg-black/5' }}"
+                    >
+                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-16.5-.52c-1.01.143-2.01.317-3 .52m16.5 0a48.72 48.72 0 01-16.5 0" />
+                        </svg>
+                        <span>Hitung Berdasarkan Berat</span>
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="$set('calculationMode', 'budget')"
+                        class="flex-1 py-2.5 px-4 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 focus:outline-none {{ $calculationMode === 'budget' ? 'bg-[#2D4235] text-white shadow-sm' : 'text-[#26221E]/70 hover:text-[#26221E] hover:bg-black/5' }}"
+                    >
+                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6H2.25m0 0v1.5m0-1.5h1.5m0 0h16.5m-16.5 0a.75.75 0 01-.75-.75V3m0 3h1.5m16.5 0a.75.75 0 00.75-.75V3m0 3v1.5m0-1.5h-1.5m0 0H3.75" />
+                        </svg>
+                        <span>Sesuaikan Anggaran</span>
+                    </button>
+                </div>
+            @endif
 
             <!-- ──────────────────────────────────── -->
             <!-- 1. Mulai dari Mana?                  -->
@@ -121,7 +123,7 @@
                             </div>
                             <div class="min-w-0">
                                 <span class="block text-[13px] font-bold text-[#26221E] leading-tight">Beli Bahan Saja</span>
-                                <span class="block text-[11px] text-[#5A534A] mt-0.5 leading-snug">Hanya beli tepung atau bumbu eceran tanpa daging.</span>
+                                <span class="block text-[11px] text-[#5A534A] mt-0.5 leading-snug">Pilih bebas bumbu, telur, pelengkap, atau tepung tanpa daging.</span>
                             </div>
                         </div>
                     </button>
@@ -388,10 +390,8 @@
                     </div>
                 </fieldset>
             @endif
-            @endif
-
             <!-- ──────────────────────────────────── -->
-            <!-- 4. Varian Tepung Pilihan             -->
+            <!-- 4. Varian Tepung Pilihan (Racikan)   -->
             <!-- ──────────────────────────────────── -->
             <fieldset>
                 <legend class="text-xs font-bold text-[#26221E] uppercase tracking-wider mb-2.5 flex items-center gap-2">
@@ -443,151 +443,178 @@
                         <span class="block text-[9px] font-mono {{ ($catalogPrices['terigu_available'] ?? true) ? 'text-[#5A534A]' : 'text-[#8B231A]' }} mt-1 font-semibold">{{ ($catalogPrices['terigu_available'] ?? true) ? 'Campuran Padat' : 'Stok Habis' }}</span>
                     </button>
                 </div>
-
-                @if ($startType === 'ingredients_only')
-                    <div class="mt-3 p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#26221E]/10 space-y-2.5">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="text-xs font-bold text-[#26221E] block">Jumlah Pack Tepung:</span>
-                                <span class="text-[10px] text-[#5A534A]">Kemasan utuh standar pasar</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button type="button" wire:click="$set('ingredientFlourPacks', {{ max(1, $ingredientFlourPacks - 1) }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center cursor-pointer">-</button>
-                                <span class="w-8 text-center font-mono font-bold text-sm text-[#26221E]">{{ $ingredientFlourPacks }}</span>
-                                <button type="button" wire:click="$set('ingredientFlourPacks', {{ $ingredientFlourPacks + 1 }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center cursor-pointer">+</button>
-                            </div>
-                        </div>
-                        <div class="border-t border-[#26221E]/5 pt-2.5 flex items-center justify-between">
-                            <div>
-                                <span class="text-xs font-bold text-[#26221E] block">Bawang Putih Kupas (Pack {{ number_format($catalogPrices['garlic_weight'] ?? 100, 0, ',', '.') }}g):</span>
-                                <span class="text-[10px] text-[#5A534A]">Bumbu pelengkap siap ulek (Rp {{ number_format($catalogPrices['garlic_price'] ?? 4000, 0, ',', '.') }})</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button type="button" wire:click="$set('ingredientGarlicPacks', {{ max(0, $ingredientGarlicPacks - 1) }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center cursor-pointer">-</button>
-                                <span class="w-8 text-center font-mono font-bold text-sm text-[#26221E]">{{ $ingredientGarlicPacks }}</span>
-                                <button type="button" wire:click="$set('ingredientGarlicPacks', {{ $ingredientGarlicPacks + 1 }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center cursor-pointer">+</button>
-                            </div>
-                        </div>
-                        <div class="border-t border-[#26221E]/5 pt-2.5 flex items-center justify-between">
-                            <div>
-                                <span class="text-xs font-bold text-[#26221E] block">Garam Kasar (Pack {{ number_format($catalogPrices['salt_weight'] ?? 1000, 0, ',', '.') }}g):</span>
-                                <span class="text-[10px] text-[#5A534A]">Garam dapur beryodium (Rp {{ number_format($catalogPrices['salt_price'] ?? 3000, 0, ',', '.') }})</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button type="button" wire:click="$set('ingredientSaltPacks', {{ max(0, $ingredientSaltPacks - 1) }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center cursor-pointer">-</button>
-                                <span class="w-8 text-center font-mono font-bold text-sm text-[#26221E]">{{ $ingredientSaltPacks }}</span>
-                                <button type="button" wire:click="$set('ingredientSaltPacks', {{ $ingredientSaltPacks + 1 }})" class="w-8 h-8 rounded-lg bg-white border border-[#26221E]/15 font-bold hover:bg-black/5 flex items-center justify-center cursor-pointer">+</button>
-                            </div>
-                        </div>
-                    </div>
-                @endif
             </fieldset>
 
-            @if ($startType !== 'ingredients_only')
-            <!-- ──────────────────────────────────── -->
-            <!-- 5. Karakter Rasa & Komposisi         -->
-            <!-- ──────────────────────────────────── -->
+            <!-- ─────────────────────────────────────────────────────────── -->
+            <!-- 5. Karakter Rasa & Komposisi (100% Live dari DB Admin!)     -->
+            <!-- ─────────────────────────────────────────────────────────── -->
+            @php
+                $presets = $this->presetFormulas;
+                $presetMeta = [
+                    'enak' => ['label' => 'Enak', 'dot' => 'bg-[#B84E26]', 'pill' => 'bg-[#B84E26]/10 text-[#B84E26] border-[#B84E26]/20'],
+                    'seimbang' => ['label' => 'Seimbang', 'dot' => 'bg-[#D97706]', 'pill' => 'bg-amber-500/10 text-amber-900 border-amber-500/25'],
+                    'ekonomis' => ['label' => 'Ekonomis', 'dot' => 'bg-[#2D4235]', 'pill' => 'bg-[#2D4235]/10 text-[#2D4235] border-[#2D4235]/20'],
+                ];
+            @endphp
             <fieldset>
                 <legend class="text-xs font-bold text-[#26221E] uppercase tracking-wider mb-2.5 flex items-center gap-2">
                     <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#2D4235] text-white text-[11px] font-bold">5</span>
                     Karakter Rasa &amp; Komposisi
                 </legend>
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-                    
-                    <!-- Enak -->
-                    <button
-                        type="button"
-                        wire:click="$set('preference', 'enak')"
-                        class="p-3 rounded-2xl border text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $preference === 'enak' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
-                    >
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="font-bold text-[13px] text-[#26221E]">Enak</span>
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#D96B43]"></span>
-                        </div>
-                        <p class="text-[11px] text-[#5A534A] leading-snug">
-                            Daging dominan, tekstur urat mantap &amp; gurih pekat.
-                        </p>
-                    </button>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @foreach ($presetMeta as $presetCode => $meta)
+                        @php
+                            $p = $presets[$presetCode];
+                        @endphp
+                        <button
+                            type="button"
+                            wire:click="$set('preference', '{{ $presetCode }}')"
+                            class="p-4 rounded-2xl border text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 flex flex-col justify-between {{ $preference === $presetCode ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                        >
+                            <div>
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <span class="font-bold text-sm text-[#26221E]">{{ $meta['label'] }}</span>
+                                    <span class="w-2.5 h-2.5 rounded-full shrink-0 {{ $meta['dot'] }}"></span>
+                                </div>
 
-                    <!-- Seimbang -->
-                    <button
-                        type="button"
-                        wire:click="$set('preference', 'seimbang')"
-                        class="p-3 rounded-2xl border text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $preference === 'seimbang' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
-                    >
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="font-bold text-[13px] text-[#26221E]">Seimbang</span>
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#E5A93C]"></span>
-                        </div>
-                        <p class="text-[11px] text-[#5A534A] leading-snug">
-                            Kenyal pas, renyah gurih favorit hidangan keluarga.
-                        </p>
-                    </button>
+                                <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                                    <span class="inline-block px-2 py-0.5 rounded-md border text-[10.5px] font-mono font-bold {{ $meta['pill'] }}">
+                                        {{ $p['flour_pct'] }} Tepung
+                                    </span>
+                                    <span class="inline-block px-2 py-0.5 rounded-md border text-[10.5px] font-mono font-semibold bg-[#EAE3D5]/75 text-[#26221E] border-[#26221E]/15">
+                                        {{ $p['explicit_ratio'] }}
+                                    </span>
+                                </div>
 
-                    <!-- Ekonomis -->
-                    <button
-                        type="button"
-                        wire:click="$set('preference', 'ekonomis')"
-                        class="p-3 rounded-2xl border text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $preference === 'ekonomis' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
-                    >
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="font-bold text-[13px] text-[#26221E]">Ekonomis</span>
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#2D4235]"></span>
-                        </div>
-                        <p class="text-[11px] text-[#5A534A] leading-snug">
-                            Porsi melimpah untuk hajatan &amp; modal usaha.
-                        </p>
-                    </button>
+                                <div class="px-2.5 py-1.5 rounded-lg bg-[#E8ECE4]/70 border border-[#2D4235]/15 text-[11px] font-mono font-semibold text-[#2D4235] mb-2">
+                                    {{ $p['per_kg_example'] }}
+                                </div>
+
+                                <p class="text-xs text-[#5A534A] leading-relaxed">
+                                    {{ $p['description'] }}
+                                </p>
+                            </div>
+                        </button>
+                    @endforeach
 
                     <!-- Kustom Bebas -->
                     <button
                         type="button"
                         wire:click="$set('preference', 'kustom')"
-                        class="p-3 rounded-2xl border text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 {{ $preference === 'kustom' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
+                        class="p-4 rounded-2xl border text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] transition-all duration-200 flex flex-col justify-between {{ $preference === 'kustom' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white/90 hover:border-[#26221E]/25 hover:bg-white' }}"
                     >
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="font-bold text-[13px] text-[#26221E]">Kustom Bebas</span>
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></span>
-                        </div>
-                        <p class="text-[11px] text-[#5A534A] leading-snug">
-                            Atur rasio tepung sendiri (10% s/d 50%).
-                        </p>
-                    </button>
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="font-bold text-sm text-[#26221E]">Kustom Bebas</span>
+                                <span class="w-2.5 h-2.5 rounded-full shrink-0 bg-[#2563EB]"></span>
+                            </div>
 
+                            <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                                <span class="inline-block px-2 py-0.5 rounded-md border text-[10.5px] font-mono font-bold bg-blue-50 text-blue-900 border-blue-200">
+                                    10%–450%
+                                </span>
+                                <span class="inline-block px-2 py-0.5 rounded-md border text-[10.5px] font-mono font-semibold bg-[#EAE3D5]/75 text-[#26221E] border-[#26221E]/15">
+                                    Atur Sendiri
+                                </span>
+                            </div>
+
+                            <div class="px-2.5 py-1.5 rounded-lg bg-blue-50/80 border border-blue-200/80 text-[11px] font-mono font-semibold text-blue-900 mb-2">
+                                1 kg daging + 100g s/d 4,5 kg tepung
+                            </div>
+
+                            <p class="text-xs text-[#5A534A] leading-relaxed">
+                                Bebas atur rasio tepung sendiri — dari bakso super daging (10%) hingga bakso aci / cilok daging (350%–450%).
+                            </p>
+                        </div>
+                    </button>
                 </div>
 
                 @if ($preference === 'kustom')
-                    <div class="mt-3 p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#D96B43]/30">
-                        <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                            <label for="custom-flour-slider" class="text-xs font-bold text-[#26221E]">
-                                Rasio Tepung Terhadap Daging: <span class="font-mono text-[#D96B43] font-extrabold text-sm">{{ $customFlourRatio }}%</span>
-                            </label>
-                            <span class="text-[11px] text-[#5A534A] font-medium">
-                                @if ($customFlourRatio <= 15)
-                                    🥩 Daging Super Dominan (Kenyal Padat)
-                                @elseif ($customFlourRatio <= 25)
-                                    ⚖️ Seimbang Standar Warung Bakso
-                                @elseif ($customFlourRatio <= 35)
-                                    🥟 Ekonomis Kenyal Mekar
+                    @php
+                        $customRatioDec = $customFlourRatio / 100;
+                        $customPerKgExample = \App\Models\RecipeFormula::formatPerKgExample($customRatioDec);
+                        $customExplicitRatio = 'Daging ' . \App\Models\RecipeFormula::formatRatio(1.0, $customRatioDec) . ' Tepung';
+                    @endphp
+                    <div class="mt-3 p-4 rounded-2xl bg-[#FAF7F2] border border-[#D96B43]/35 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <label for="custom-flour-input" class="text-xs font-bold text-[#26221E]">
+                                    Rasio Tepung Terhadap Daging:
+                                </label>
+                                <div class="inline-flex items-center rounded-lg border border-[#26221E]/20 bg-white overflow-hidden">
+                                    <input
+                                        type="number"
+                                        id="custom-flour-input"
+                                        min="10"
+                                        max="450"
+                                        step="5"
+                                        wire:model.live.debounce.200ms="customFlourRatio"
+                                        aria-label="Persentase rasio tepung kustom"
+                                        class="w-16 px-2 py-1 text-center font-mono font-extrabold text-sm text-[#B84E26] focus:outline-none"
+                                    />
+                                    <span class="px-2 py-1 bg-[#EAE3D5]/70 text-xs font-mono font-bold text-[#26221E]">%</span>
+                                </div>
+                            </div>
+
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-white border border-[#26221E]/10 text-[11px] text-[#26221E] font-semibold">
+                                @if ($customFlourRatio <= 30)
+                                    🥩 Super Daging (Bakso Padat Premium)
+                                @elseif ($customFlourRatio <= 75)
+                                    🥣 Bakso Daging Kenyal (Sedang)
+                                @elseif ($customFlourRatio <= 130)
+                                    ⚖️ Seimbang Warung (Sekitar 1 : 1)
+                                @elseif ($customFlourRatio <= 220)
+                                    🥟 Ekonomis Usaha (Sekitar 1 : 2)
                                 @else
-                                    🍡 Bakso Aci / Jajan Hemat
+                                    🍡 Bakso Aci / Cilok Daging (1 : 2,5 s/d 1 : 4,5)
                                 @endif
                             </span>
                         </div>
-                        <input
-                            type="range"
-                            id="custom-flour-slider"
-                            wire:model.live="customFlourRatio"
-                            min="10"
-                            max="50"
-                            step="1"
-                            class="w-full accent-[#D96B43] cursor-pointer"
-                        />
-                        <div class="flex justify-between text-[10px] text-[#5A534A]/70 mt-1 font-mono">
-                            <span>10% (Padat)</span>
-                            <span>20% (Seimbang)</span>
-                            <span>35% (Ekonomis)</span>
-                            <span>50% (Hemat)</span>
+
+                        <!-- Live Per-1kg Conversion Strip -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-xl bg-[#E8ECE4]/75 border border-[#2D4235]/15 text-xs font-mono text-[#2D4235]">
+                            <span class="font-semibold">{{ $customPerKgExample }}</span>
+                            <span class="font-bold">{{ $customExplicitRatio }}</span>
+                        </div>
+
+                        <div>
+                            <input
+                                type="range"
+                                id="custom-flour-slider"
+                                aria-label="Geser rasio tepung kustom dari 10% sampai 450%"
+                                wire:model.live="customFlourRatio"
+                                min="10"
+                                max="450"
+                                step="5"
+                                class="w-full accent-[#D96B43] cursor-pointer"
+                            />
+                            <div class="flex justify-between text-[10px] text-[#5A534A] mt-1 font-mono">
+                                <span>10% (Padat)</span>
+                                <span>100% (1:1)</span>
+                                <span>200% (1:2)</span>
+                                <span>350% (Cilok)</span>
+                                <span>450% (1:4,5)</span>
+                            </div>
+                        </div>
+
+                        <!-- Quick Custom Preset Chips -->
+                        <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[#26221E]/10">
+                            <span class="text-[10.5px] font-semibold text-[#5A534A] mr-1">Cepat:</span>
+                            @foreach ([
+                                20 => '20% (5:1)',
+                                50 => '50% (2:1)',
+                                100 => '100% (1:1)',
+                                200 => '200% (1:2)',
+                                350 => '350% (Cilok)',
+                            ] as $quickPct => $quickLabel)
+                                <button
+                                    type="button"
+                                    wire:click="$set('customFlourRatio', {{ $quickPct }})"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-semibold transition-colors cursor-pointer {{ (int) $customFlourRatio === $quickPct ? 'bg-[#2D4235] text-white' : 'bg-white text-[#26221E] border border-[#26221E]/15 hover:bg-[#EAE3D5]/60' }}"
+                                >
+                                    {{ $quickLabel }}
+                                </button>
+                            @endforeach
                         </div>
                     </div>
                 @endif
@@ -625,112 +652,213 @@
             </fieldset>
             @endif
 
-            <!-- ─────────────────────────────────────────────────────── -->
-            <!-- 7. Bahan Tambahan & Pelengkap Kios (Accordion 1-Klik)  -->
-            <!-- ─────────────────────────────────────────────────────── -->
-            <fieldset
-                x-data="{
-                    openExtras: {{ count($extraItems) > 0 ? 'true' : 'false' }},
-                    lastCount: {{ count($extraItems) }}
-                }"
-                x-init="$watch('$wire.extraItems', (val) => {
-                    const c = val ? Object.keys(val).length : 0;
-                    if (c > lastCount) { openExtras = true; }
-                    lastCount = c;
-                })"
-                class="pt-4 border-t border-[#26221E]/10"
-            >
-                <legend class="sr-only">Bahan Tambahan &amp; Pelengkap Kios (Opsional)</legend>
-
-                @php
-                    $selectedExtraTotalQty = array_sum($extraItems);
-                @endphp
-
-                <!-- Header Toggle Accordion -->
-                <button
-                    type="button"
-                    @click="openExtras = !openExtras"
-                    :aria-expanded="openExtras"
-                    class="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer text-left {{ $selectedExtraTotalQty > 0 ? 'border-[#2D4235]/40 bg-[#FAF7F2] shadow-xs' : 'border-[#26221E]/12 bg-[#FAF7F2]/80 hover:bg-[#FAF7F2] hover:border-[#D96B43]/50' }}"
-                >
-                    <div class="flex items-center gap-3 min-w-0">
-                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#B84E26] text-white text-[11px] font-bold shrink-0">7</span>
-                        <div class="min-w-0">
-                            <span class="block text-xs font-bold text-[#26221E] uppercase tracking-wider">
-                                Bahan Tambahan &amp; Pelengkap Kios (Opsional)
-                            </span>
-                            <span class="block text-[11px] text-[#5A534A] mt-0.5 truncate">
-                                Telur, Sobaso, Merica, Masako &mdash; klik untuk pilih pelengkap
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-2 shrink-0">
-                        @if ($selectedExtraTotalQty > 0)
-                            <span class="px-2 py-0.5 rounded-full bg-[#2D4235] text-[#F4EFE6] text-[10px] font-mono font-bold">
-                                {{ $selectedExtraTotalQty }} dipilih
-                            </span>
-                        @else
-                            <span class="hidden sm:inline text-[11px] font-semibold text-[#B84E26]" x-text="openExtras ? 'Tutup' : 'Buka'">
-                                Buka
-                            </span>
-                        @endif
-                        <span class="w-7 h-7 rounded-xl bg-white border border-[#26221E]/10 flex items-center justify-center text-[#26221E] transition-transform duration-200" :class="openExtras ? 'rotate-180' : ''">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </span>
-                    </div>
-                </button>
-
-                <!-- Grid Item Pelengkap (Tetap di DOM via x-show agar aman untuk Livewire) -->
-                <div
-                    x-show="openExtras"
-                    x-transition.opacity.duration.200ms
-                    class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5"
-                    style="{{ count($extraItems) > 0 ? '' : 'display: none;' }}"
-                >
-                    @foreach ($this->availableExtraMaterials as $extraMat)
-                        @php
-                            $extraQty = $extraItems[$extraMat->id] ?? 0;
-                            $pkgPrice = (float) ($extraMat->package_price ?? $extraMat->price);
-                        @endphp
-                        <div wire:key="extra-mat-{{ $extraMat->id }}" class="p-3 rounded-2xl border transition-all flex items-center justify-between gap-2.5 {{ $extraQty > 0 ? 'border-[#2D4235] bg-[#FAF7F2] shadow-xs' : 'border-[#26221E]/10 bg-white/85 hover:bg-white' }}">
-                            <div class="grow min-w-0">
-                                <div class="font-bold text-xs text-[#26221E] truncate">{{ $extraMat->name }}</div>
-                                <div class="text-[11px] font-mono text-[#5A534A] mt-0.5">
-                                    Rp {{ number_format($pkgPrice, 0, ',', '.') }} <span class="text-[10px]">/ {{ $extraMat->package_unit }} ({{ '@'.number_format($extraMat->package_weight) }}g)</span>
-                                </div>
-                            </div>
-
-                            <!-- Stepper Counter -->
-                            <div class="flex items-center gap-1.5 shrink-0">
-                                @if ($extraQty > 0)
-                                    <button
-                                        type="button"
-                                        wire:click="decrementExtra({{ $extraMat->id }})"
-                                        class="w-7 h-7 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
-                                        title="Kurangi"
-                                    >
-                                        -
-                                    </button>
-                                    <span class="font-mono font-bold text-xs text-[#2D4235] px-1 tabular-nums">
-                                        {{ $extraQty }}
-                                    </span>
-                                @endif
+            @if ($startType === 'ingredients_only')
+                <!-- ────────────────────────────────────────────────────────────────── -->
+                <!-- MODE BELI BAHAN SAJA: Pilih Bebas Bahan Kios (Tanpa Wajib Tepung!) -->
+                <!-- ────────────────────────────────────────────────────────────────── -->
+                <fieldset x-data="{ catFilter: 'all' }">
+                    @php
+                        $selectedLooseQty = array_sum($extraItems);
+                    @endphp
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                        <legend class="text-xs font-bold text-[#26221E] uppercase tracking-wider flex items-center gap-2">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#2D4235] text-white text-[11px] font-bold">2</span>
+                            Pilih Bahan Kios Bebas (Tidak Wajib Tepung)
+                        </legend>
+                        @if ($selectedLooseQty > 0)
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full bg-[#2D4235] text-[#F4EFE6] text-[10px] font-mono font-bold">
+                                    {{ $selectedLooseQty }} dipilih
+                                </span>
                                 <button
                                     type="button"
-                                    wire:click="incrementExtra({{ $extraMat->id }})"
-                                    class="w-7 h-7 rounded-full bg-[#2D4235] hover:bg-[#D96B43] text-white font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
-                                    title="Tambah"
+                                    wire:click="clearExtras"
+                                    class="text-[11px] font-semibold text-[#8B231A] hover:underline cursor-pointer"
                                 >
-                                    +
+                                    Reset
                                 </button>
                             </div>
+                        @endif
+                    </div>
+
+                    <p class="text-xs text-[#5A534A] mb-3 leading-relaxed">
+                        Tekan tombol <strong class="text-[#26221E]">+</strong> pada bahan apa saja yang ingin Anda beli — bisa bumbu/pelengkap saja, telur, atau campur tepung sesuai kebutuhan.
+                    </p>
+
+                    <!-- Filter Kategori Cepat -->
+                    <div class="flex flex-wrap items-center gap-1.5 mb-3">
+                        @foreach ([['all', 'Semua'], ['bumbu', 'Bumbu'], ['pelengkap', 'Telur & Pelengkap'], ['tepung', 'Tepung']] as [$catKey, $catLabel])
+                            <button
+                                type="button"
+                                @click="catFilter = '{{ $catKey }}'"
+                                class="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-colors cursor-pointer"
+                                :class="catFilter === '{{ $catKey }}' ? 'bg-[#2D4235] text-[#F4EFE6] border-[#2D4235]' : 'bg-white text-[#5A534A] border-[#26221E]/12 hover:border-[#26221E]/30'"
+                            >
+                                {{ $catLabel }}
+                            </button>
+                        @endforeach
+                    </div>
+
+                    <!-- Grid Bebas Pilih Semua Bahan Non-Daging -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        @foreach ($this->availableExtraMaterials as $extraMat)
+                            @php
+                                $extraQty = $extraItems[$extraMat->id] ?? 0;
+                                $pkgPrice = (float) ($extraMat->package_price ?? $extraMat->price);
+                                $matCatGroup = match ($extraMat->category) {
+                                    'tepung' => 'tepung',
+                                    'bumbu' => 'bumbu',
+                                    default => 'pelengkap',
+                                };
+                            @endphp
+                            <div
+                                wire:key="loose-mat-{{ $extraMat->id }}"
+                                x-show="catFilter === 'all' || catFilter === '{{ $matCatGroup }}'"
+                                class="p-3 rounded-2xl border transition-all flex items-center justify-between gap-2.5 {{ $extraQty > 0 ? 'border-[#2D4235] bg-[#FAF7F2] shadow-xs ring-1 ring-[#2D4235]/20' : 'border-[#26221E]/10 bg-white/90 hover:bg-white' }}"
+                            >
+                                <div class="grow min-w-0">
+                                    <div class="font-bold text-xs text-[#26221E] truncate">{{ $extraMat->name }}</div>
+                                    <div class="text-[11px] font-mono text-[#5A534A] mt-0.5">
+                                        Rp {{ number_format($pkgPrice, 0, ',', '.') }} <span class="text-[10px]">/ {{ $extraMat->package_unit }} ({{ '@'.number_format($extraMat->package_weight) }}g)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Stepper Counter -->
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    @if ($extraQty > 0)
+                                        <button
+                                            type="button"
+                                            wire:click="decrementExtra({{ $extraMat->id }})"
+                                            class="w-7 h-7 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                                            title="Kurangi"
+                                        >
+                                            -
+                                        </button>
+                                        <span class="font-mono font-bold text-xs text-[#2D4235] px-1 tabular-nums">
+                                            {{ $extraQty }}
+                                        </span>
+                                    @endif
+                                    <button
+                                        type="button"
+                                        wire:click="incrementExtra({{ $extraMat->id }})"
+                                        class="w-7 h-7 rounded-full bg-[#2D4235] hover:bg-[#B84E26] text-white font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                                        title="Tambah"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </fieldset>
+            @else
+                <!-- ─────────────────────────────────────────────────────── -->
+                <!-- 7. Bahan Tambahan & Pelengkap Kios (Accordion 1-Klik)  -->
+                <!-- ─────────────────────────────────────────────────────── -->
+                <fieldset
+                    x-data="{
+                        openExtras: {{ count($extraItems) > 0 ? 'true' : 'false' }},
+                        lastCount: {{ count($extraItems) }}
+                    }"
+                    x-init="$watch('$wire.extraItems', (val) => {
+                        const c = val ? Object.keys(val).length : 0;
+                        if (c > lastCount) { openExtras = true; }
+                        lastCount = c;
+                    })"
+                    class="pt-4 border-t border-[#26221E]/10"
+                >
+                    <legend class="sr-only">Bahan Tambahan &amp; Pelengkap Kios (Opsional)</legend>
+
+                    @php
+                        $selectedExtraTotalQty = array_sum($extraItems);
+                    @endphp
+
+                    <!-- Header Toggle Accordion -->
+                    <button
+                        type="button"
+                        @click="openExtras = !openExtras"
+                        :aria-expanded="openExtras"
+                        class="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer text-left {{ $selectedExtraTotalQty > 0 ? 'border-[#2D4235]/40 bg-[#FAF7F2] shadow-xs' : 'border-[#26221E]/12 bg-[#FAF7F2]/80 hover:bg-[#FAF7F2] hover:border-[#D96B43]/50' }}"
+                    >
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#B84E26] text-white text-[11px] font-bold shrink-0">7</span>
+                            <div class="min-w-0">
+                                <span class="block text-xs font-bold text-[#26221E] uppercase tracking-wider">
+                                    Bahan Tambahan &amp; Pelengkap Kios (Opsional)
+                                </span>
+                                <span class="block text-[11px] text-[#5A534A] mt-0.5 truncate">
+                                    Telur, Sobaso, Merica, Masako &mdash; klik untuk pilih pelengkap
+                                </span>
+                            </div>
                         </div>
-                    @endforeach
-                </div>
-            </fieldset>
+
+                        <div class="flex items-center gap-2 shrink-0">
+                            @if ($selectedExtraTotalQty > 0)
+                                <span class="px-2 py-0.5 rounded-full bg-[#2D4235] text-[#F4EFE6] text-[10px] font-mono font-bold">
+                                    {{ $selectedExtraTotalQty }} dipilih
+                                </span>
+                            @else
+                                <span class="hidden sm:inline text-[11px] font-semibold text-[#B84E26]" x-text="openExtras ? 'Tutup' : 'Buka'">
+                                    Buka
+                                </span>
+                            @endif
+                            <span class="w-7 h-7 rounded-xl bg-white border border-[#26221E]/10 flex items-center justify-center text-[#26221E] transition-transform duration-200" :class="openExtras ? 'rotate-180' : ''">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </span>
+                        </div>
+                    </button>
+
+                    <!-- Grid Item Pelengkap (Tetap di DOM via x-show agar aman untuk Livewire) -->
+                    <div
+                        x-show="openExtras"
+                        x-transition.opacity.duration.200ms
+                        class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5"
+                        style="{{ count($extraItems) > 0 ? '' : 'display: none;' }}"
+                    >
+                        @foreach ($this->availableExtraMaterials as $extraMat)
+                            @php
+                                $extraQty = $extraItems[$extraMat->id] ?? 0;
+                                $pkgPrice = (float) ($extraMat->package_price ?? $extraMat->price);
+                            @endphp
+                            <div wire:key="extra-mat-{{ $extraMat->id }}" class="p-3 rounded-2xl border transition-all flex items-center justify-between gap-2.5 {{ $extraQty > 0 ? 'border-[#2D4235] bg-[#FAF7F2] shadow-xs' : 'border-[#26221E]/10 bg-white/85 hover:bg-white' }}">
+                                <div class="grow min-w-0">
+                                    <div class="font-bold text-xs text-[#26221E] truncate">{{ $extraMat->name }}</div>
+                                    <div class="text-[11px] font-mono text-[#5A534A] mt-0.5">
+                                        Rp {{ number_format($pkgPrice, 0, ',', '.') }} <span class="text-[10px]">/ {{ $extraMat->package_unit }} ({{ '@'.number_format($extraMat->package_weight) }}g)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Stepper Counter -->
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    @if ($extraQty > 0)
+                                        <button
+                                            type="button"
+                                            wire:click="decrementExtra({{ $extraMat->id }})"
+                                            class="w-7 h-7 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                                            title="Kurangi"
+                                        >
+                                            -
+                                        </button>
+                                        <span class="font-mono font-bold text-xs text-[#2D4235] px-1 tabular-nums">
+                                            {{ $extraQty }}
+                                        </span>
+                                    @endif
+                                    <button
+                                        type="button"
+                                        wire:click="incrementExtra({{ $extraMat->id }})"
+                                        class="w-7 h-7 rounded-full bg-[#2D4235] hover:bg-[#D96B43] text-white font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                                        title="Tambah"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </fieldset>
+            @endif
 
             <!-- Mobile Sticky Bottom Summary Bar (Tampil hanya saat scroll form di HP/Tablet) -->
             @if (!$showCheckoutModal && !$showSaveModal && !$budgetError)
@@ -757,8 +885,8 @@
         <!-- ═════════════════════════════════════════════════════════ -->
         <!-- KOLOM KANAN: PANEL STRUK LIVE VIEWPORT-FITTED (5 Kolom)   -->
         <!-- ═════════════════════════════════════════════════════════ -->
-        <div id="panel-struk-racikan" class="lg:col-span-5 lg:sticky lg:top-[5.25rem] scroll-mt-24">
-            <div class="rounded-3xl bg-[#2D4235] text-[#F4EFE6] p-5 shadow-xl border border-[#2D4235]/30 relative flex flex-col lg:max-h-[calc(100vh-6.25rem)] overflow-hidden">
+        <div id="panel-struk-racikan" class="lg:col-span-5 lg:sticky lg:top-[6.75rem] scroll-mt-28">
+            <div class="rounded-3xl bg-[#2D4235] text-[#F4EFE6] p-5 shadow-xl border border-[#2D4235]/30 relative flex flex-col lg:max-h-[calc(100vh-7.5rem)] overflow-hidden">
 
                 <!-- ZONA 1 (FIXED TOP): Header Struk + Status + 4 Parameter -->
                 <div class="shrink-0">
@@ -802,8 +930,16 @@
                             </span>
                         </div>
                         <div class="min-w-0">
-                            <span class="text-[#D8E0D3]/85 block text-[8.5px] uppercase font-mono">Tepung</span>
-                            <span class="font-semibold text-white uppercase truncate block text-[10.5px]">{{ $flourType }}</span>
+                            <span class="text-[#D8E0D3]/85 block text-[8.5px] uppercase font-mono">
+                                {{ $startType === 'ingredients_only' ? 'Belanja' : 'Tepung' }}
+                            </span>
+                            <span class="font-semibold text-white uppercase truncate block text-[10.5px]">
+                                @if ($startType === 'ingredients_only')
+                                    {{ count($breakdown) }} Jenis
+                                @else
+                                    {{ $flourType }}
+                                @endif
+                            </span>
                         </div>
                         <div class="min-w-0">
                             <span class="text-[#D8E0D3]/85 block text-[8.5px] uppercase font-mono">Karakter</span>
@@ -854,6 +990,13 @@
                                     </p>
                                 </div>
                             </div>
+                        </div>
+                    @elseif ($startType === 'ingredients_only' && empty($breakdown))
+                        <div class="rounded-2xl bg-white/5 border border-dashed border-white/20 p-5 text-center space-y-1.5 my-2">
+                            <p class="text-xs font-bold text-white">Belum Ada Bahan Dipilih</p>
+                            <p class="text-[11px] text-[#D8E0D3]/85 leading-relaxed">
+                                Tekan tombol <strong class="text-white">+</strong> pada bahan kios di sebelah kiri (bumbu, telur, pelengkap, atau tepung). Tidak wajib membeli tepung.
+                            </p>
                         </div>
                     @else
                         <!-- Header Tabel Struk Sticky Internal -->
@@ -954,13 +1097,17 @@
                     @endif
 
                     <!-- Tombol Aksi: Simpan Racikan & Pesan via WhatsApp -->
+                    @php
+                        $cannotOrder = empty($breakdown) || $budgetError || $availabilityError;
+                    @endphp
                     <div class="flex flex-col sm:flex-row gap-2.5">
                         <!-- Tombol Simpan Racikan -->
                         <button
                             type="button"
                             wire:click="openSaveModal"
                             wire:loading.attr="disabled"
-                            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/25 hover:border-white/50 bg-white/10 hover:bg-white/15 text-white font-medium text-xs sm:text-sm transition-all duration-200 active:scale-[0.99] cursor-pointer disabled:opacity-50"
+                            @disabled($cannotOrder)
+                            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/25 hover:border-white/50 bg-white/10 hover:bg-white/15 text-white font-medium text-xs sm:text-sm transition-all duration-200 active:scale-[0.99] cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed"
                         >
                             <svg class="w-4 h-4 text-amber-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -969,7 +1116,7 @@
                         </button>
 
                         <!-- Tombol Pesan via WhatsApp -->
-                        @if ($budgetError || $availabilityError)
+                        @if ($cannotOrder)
                             <button
                                 type="button"
                                 disabled
@@ -1045,7 +1192,7 @@
                         <span>Racikan:</span>
                         <span class="font-bold text-[#26221E] text-right">
                             @if ($startType === 'ingredients_only')
-                                Belanja Bahan Saja (Tepung {{ ucfirst($flourType) }})
+                                Belanja Bahan Kios ({{ count($breakdown) }} jenis item)
                             @else
                                 {{ ucfirst($meatType) }} ({{ number_format($meatWeight) }} g)
                             @endif

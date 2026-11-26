@@ -24,6 +24,8 @@ class ManageMaterials extends Component
 
     public string $category = 'daging';
 
+    public string $selling_mode = 'kemasan';
+
     public string $unit = 'gram';
 
     public string $package_unit = 'Pack';
@@ -33,6 +35,8 @@ class ManageMaterials extends Component
     public $package_price = null;
 
     public $price = '';
+
+    public bool $manualPriceOverride = false;
 
     public bool $is_available = true;
 
@@ -82,16 +86,80 @@ class ManageMaterials extends Component
         $this->materialId = $material->id;
         $this->name = $material->name;
         $this->category = $material->category;
+        $this->selling_mode = $material->selling_mode ?? 'kemasan';
         $this->unit = $material->unit;
         $this->package_unit = $material->package_unit ?? 'Pack';
         $this->package_weight = $material->package_weight ? (float) $material->package_weight : null;
         $this->package_price = $material->package_price ? (float) $material->package_price : null;
         // Format harga tanpa trailing desimal jika bulat
         $this->price = (float) $material->price;
+        $this->manualPriceOverride = false;
         $this->is_available = (bool) $material->is_available;
 
         $this->isEditing = true;
         $this->showModal = true;
+    }
+
+    /**
+     * Normalisasi string angka dengan koma (contoh: "12,5" atau "0,5") ke float standar.
+     */
+    protected function normalizeDecimal(mixed $value): ?float
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $cleaned = str_replace([' ', ','], ['', '.'], trim((string) $value));
+        if ($cleaned === '' || ! is_numeric($cleaned)) {
+            return null;
+        }
+
+        return (float) $cleaned;
+    }
+
+    /**
+     * Hitung ulang harga dasar acuan (per gram / per unit) otomatis dari harga & berat kemasan.
+     */
+    protected function syncBasePriceFromPackage(): void
+    {
+        if ($this->manualPriceOverride) {
+            return;
+        }
+
+        $pkgPrice = $this->normalizeDecimal($this->package_price);
+        $pkgWeight = $this->normalizeDecimal($this->package_weight);
+
+        if ($pkgPrice === null || $pkgPrice <= 0) {
+            return;
+        }
+
+        if ($this->selling_mode === 'satuan') {
+            $this->price = round($pkgPrice, 2);
+        } elseif ($pkgWeight !== null && $pkgWeight > 0) {
+            $this->price = round($pkgPrice / $pkgWeight, 2);
+        }
+    }
+
+    public function updatedPackagePrice(): void
+    {
+        $this->syncBasePriceFromPackage();
+    }
+
+    public function updatedPackageWeight(): void
+    {
+        $this->syncBasePriceFromPackage();
+    }
+
+    public function updatedSellingMode(): void
+    {
+        $this->syncBasePriceFromPackage();
+    }
+
+    public function updatedManualPriceOverride(bool $value): void
+    {
+        if (! $value) {
+            $this->syncBasePriceFromPackage();
+        }
     }
 
     /**
@@ -121,9 +189,29 @@ class ManageMaterials extends Component
      */
     public function save()
     {
+        // Normalisasi input desimal berkoma (misal: "12,5" -> "12.5") sebelum validasi
+        if (is_string($this->package_weight)) {
+            $trimmedWeight = trim($this->package_weight);
+            $this->package_weight = $trimmedWeight === '' ? null : str_replace([' ', ','], ['', '.'], $trimmedWeight);
+        }
+        if (is_string($this->package_price)) {
+            $trimmedPkgPrice = trim($this->package_price);
+            $this->package_price = $trimmedPkgPrice === '' ? null : str_replace([' ', ','], ['', '.'], $trimmedPkgPrice);
+        }
+        if (is_string($this->price)) {
+            $trimmedPrice = trim($this->price);
+            $this->price = $trimmedPrice === '' ? '' : str_replace([' ', ','], ['', '.'], $trimmedPrice);
+        }
+
+        // Jika harga dasar belum diisi saat menambah bahan baru, coba hitung otomatis dari kemasan
+        if (($this->price === '' || $this->price === null) && ! $this->manualPriceOverride) {
+            $this->syncBasePriceFromPackage();
+        }
+
         $this->validate([
             'name' => ['required', 'string', 'max:100'],
             'category' => ['required', 'string', 'max:50'],
+            'selling_mode' => ['required', 'in:curah,kemasan,satuan'],
             'unit' => ['required', 'string', 'max:20'],
             'package_unit' => ['nullable', 'string', 'max:30'],
             'package_weight' => ['nullable', 'numeric', 'min:0'],
@@ -133,6 +221,7 @@ class ManageMaterials extends Component
         ], [
             'name.required' => 'Nama bahan baku wajib diisi.',
             'category.required' => 'Kategori bahan wajib dipilih.',
+            'selling_mode.required' => 'Mode jual bahan wajib dipilih.',
             'unit.required' => 'Satuan acuan wajib dipilih.',
             'price.required' => 'Harga bahan wajib diisi.',
             'price.numeric' => 'Harga harus berupa angka.',
@@ -142,6 +231,7 @@ class ManageMaterials extends Component
         $payload = [
             'name' => trim($this->name),
             'category' => strtolower(trim($this->category)),
+            'selling_mode' => $this->selling_mode,
             'unit' => trim($this->unit),
             'package_unit' => $this->package_unit ? trim($this->package_unit) : null,
             'package_weight' => $this->package_weight !== null && $this->package_weight !== '' ? (float) $this->package_weight : null,
@@ -184,11 +274,13 @@ class ManageMaterials extends Component
         $this->materialId = null;
         $this->name = '';
         $this->category = 'daging';
+        $this->selling_mode = 'kemasan';
         $this->unit = 'gram';
         $this->package_unit = 'Pack';
         $this->package_weight = null;
         $this->package_price = null;
         $this->price = '';
+        $this->manualPriceOverride = false;
         $this->is_available = true;
         $this->isEditing = false;
         $this->resetErrorBag();
