@@ -21,7 +21,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="min-h-screen bg-motif-kawung text-[#26221E] font-sans antialiased selection:bg-[#D96B43] selection:text-white overflow-x-hidden">
+    <body class="min-h-screen bg-motif-kawung text-[#26221E] font-sans antialiased selection:bg-[#D96B43] selection:text-white overflow-x-clip">
         
         {{ $slot }}
 

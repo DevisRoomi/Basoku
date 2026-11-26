@@ -127,6 +127,22 @@ Dokumen ini mencatat seluruh rangkaian tahapan, audit, optimasi, pembersihan, da
     - **Desktop:** Performance **92**, Accessibility **100**, Best Practices **100**, SEO **100**, Agentic Browsing **100% (4/4)**
     - **Mobile (4G Throttling):** Performance **85** *(naik dari 70)*, Accessibility **100** *(naik dari 88)*, Best Practices **100** *(naik dari 78)*, SEO **100**, Agentic Browsing **100% (4/4)** *(naik dari 50%)*
 
+### [Peningkatan UX Lanjutan] Unique Admin Hamburger Menu, Conversion-First Landing Page & Anti-Wrap Navbar
+- **Waktu:** 26 November 2026
+- **Aksi:**
+  - **Hamburger Menu Unik Panel Admin (Opsi 1 — Hybrid Mini-Rail & Mobile Drawer):** Memperbarui [`admin.blade.php`](file:///c:/Devis/Workspace/Projects/BASOKU/basoku_code/resources/views/components/layouts/admin.blade.php) dan [`admin-sidebar.blade.php`](file:///c:/Devis/Workspace/Projects/BASOKU/basoku_code/resources/views/components/admin-sidebar.blade.php) dengan tombol morphing 3 batang asimetris + titik aksen terracotta, mode mini-rail `78px` dengan tooltip hover & persistensi `localStorage`, shortcut `Ctrl/Cmd + B` & `Esc`, auto-resize Chart.js, serta mobile top bar + slide-over drawer.
+  - **Restrukturisasi Funnel Beranda (Opsi A):** Mengubah urutan [`welcome.blade.php`](file:///c:/Devis/Workspace/Projects/BASOKU/basoku_code/resources/views/welcome.blade.php) menjadi **Hero $\rightarrow$ Kalkulator Racikan $\rightarrow$ Daftar Harga $\rightarrow$ Standar Formula & Cara Kerja $\rightarrow$ Compact Archival Teaser Strip Sejarah** (tepat di atas Footer).
+  - **Perbaikan Anti-Wrap Navbar Desktop & Scroll Spy:** Menambahkan `whitespace-nowrap shrink-0` pada badge jam buka kios, link menu, dan CTA pada [`navbar.blade.php`](file:///c:/Devis/Workspace/Projects/BASOKU/basoku_code/resources/views/components/navbar.blade.php) serta menyelaraskan urutan `checkScroll()` dengan struktur halaman baru.
+
+### [Polesan Ergonomi UI/UX] Zero-Overlap Sidebar Admin & Viewport-Locked Live Receipt Kalkulator
+- **Waktu:** 26 November 2026
+- **Aksi:**
+  - **Header Sidebar Admin Bebas Tumpang Tindih:** Memindahkan pintasan eksternal *Toko Publik* dari baris header [`admin-sidebar.blade.php`](file:///c:/Devis/Workspace/Projects/BASOKU/basoku_code/resources/views/components/admin-sidebar.blade.php) ke bagian bawah navigasi (rapi di mode Expanded, Mobile Drawer, maupun Mini-Rail) dan menata ulang proporsi `BASOKU.` + badge `ADMIN` + Hamburger Unik agar memiliki ruang napas lega.
+  - **Perbaikan Root-Cause Sticky Scroll:** Mengganti `overflow-x-hidden` menjadi `overflow-x-clip` pada `<body>` di [`app.blade.php`](file:///c:/Devis/Workspace/Projects/BASOKU/basoku_code/resources/views/components/layouts/app.blade.php) agar `position: sticky` aktif penuh di seluruh halaman, serta melepas `motion-reveal` dari `<section id="racikan-saya">` pada [`welcome.blade.php`](file:///c:/Devis/Workspace/Projects/BASOKU/basoku_code/resources/views/welcome.blade.php) untuk mencegah interferensi `transform` terhadap modal `fixed`.
+  - **Ergonomi Kalkulator & Struk Live 1-Layar (Opsi A + Opsi 1):** Memperbarui [`recipe-calculator.blade.php`](file:///c:/Devis/Workspace/Projects/BASOKU/basoku_code/resources/views/livewire/recipe-calculator.blade.php) dan [`app.css`](file:///c:/Devis/Workspace/Projects/BASOKU/basoku_code/resources/css/app.css): Struk Kanan terkunci pas 1 layar (`lg:sticky lg:top-[5.25rem] lg:max-h-[calc(100vh-6.25rem)]`, tinggi default `~612px`) dengan header & 4-parameter terkunci atas, daftar bahan scrollable internal (`.receipt-scrollbar`), 2 total biaya berdampingan (*Biaya Bahan Terpakai* | *Uang Belanja Pasar*), dan tombol Simpan/WA selalu terlihat; Form Kiri diringkas ~40% (header horizontal ramping, Step 2 horizontal, Timbangan Analog Side-by-Side, dan Step 7 Pelengkap Kios model Accordion 1-klik) plus Mobile Sticky Bottom Bar (`lg:hidden`).
+  - **Kepatuhan Aksesibilitas WCAG AA:** Memperbaiki kontras teks/badge pada kalkulator & struk (`#B84E26`, `#15803D`, `#D8E0D3/85`) serta label brand navbar (`aria-hidden` pada monogram `B.`).
+  - **Verifikasi Final:** Pint lulus, **102/102 tests passed (454 assertions)**, `npm run build` sukses (`1.04s`, `app-CgYTMTi2.css`), dan skor Google Lighthouse (`https://basoku.test`): **Desktop Perf 95 / A11y 100 / BP 100 / SEO 100**, **Mobile Perf 81 / A11y 100 / BP 100 / SEO 100**.
+
 ---
 
 ## 4. Checklist Eksekusi Deploy ke Server Produksi (Pre-Deployment Execution Checklist)

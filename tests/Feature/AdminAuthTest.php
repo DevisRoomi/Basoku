@@ -105,6 +105,8 @@ class AdminAuthTest extends TestCase
         $response->assertStatus(200);
         $response->assertSeeLivewire(Dashboard::class);
         $response->assertSee('Selamat Datang di Dasbor Admin BASOKU');
+        $response->assertSee('toggleDesktopSidebar', false);
+        $response->assertSee('toggleMobileMenu', false);
     }
 
     public function test_admin_can_logout_via_dashboard(): void
