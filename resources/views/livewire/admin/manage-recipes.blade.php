@@ -20,7 +20,9 @@
                     type="button"
                     wire:click="resetToDefaults"
                     wire:confirm="Kembalikan semua rasio ke nilai formula acuan standar?"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#FAF7F2] text-[#26221E] border border-[#26221E]/15 font-bold text-xs shadow-sm transition-all duration-150 cursor-pointer"
+                    wire:loading.attr="disabled"
+                    wire:target="resetToDefaults"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#FAF7F2] text-[#26221E] border border-[#26221E]/15 font-bold text-xs shadow-sm transition-all duration-150 cursor-pointer disabled:opacity-50"
                     title="Pulihkan rasio bawaan (Enak, Seimbang, Ekonomis)"
                 >
                     <svg class="w-4 h-4 text-[#5A534A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -47,14 +49,14 @@
 
         <!-- Flash Message Sukses -->
         @if (session()->has('success'))
-            <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-sm animate-fade-in">
+            <div x-data="{ show: true }" x-show="show" class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-2.5">
-                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>{{ session('success') }}</span>
                 </div>
-                <button type="button" wire:click="$refresh" class="text-emerald-700 hover:text-emerald-900 cursor-pointer">
+                <button type="button" @click="show = false" aria-label="Tutup notifikasi" class="text-emerald-700 hover:text-emerald-900 cursor-pointer px-1">
                     &times;
                 </button>
             </div>
@@ -83,22 +85,23 @@
                 @php
                     $isEnak = $formula->code === 'enak';
                     $isSeimbang = $formula->code === 'seimbang';
-                    $isEkonomis = $formula->code === 'ekonomis';
 
-                    $badgeTheme = $isEnak 
+                    $badgeTheme = $isEnak
                         ? 'bg-[#8B231A]/10 text-[#8B231A] border-[#8B231A]/20'
-                        : ($isSeimbang ? 'bg-[#2D4235]/10 text-[#2D4235] border-[#2D4235]/20' : 'bg-[#D96B43]/10 text-[#D96B43] border-[#D96B43]/20');
+                        : ($isSeimbang ? 'bg-[#2D4235]/10 text-[#2D4235] border-[#2D4235]/20' : 'bg-[#B84E26]/10 text-[#B84E26] border-[#B84E26]/20');
 
-                    $flourPct = round($formula->flour_ratio * 100, 1);
-                    $spicePct = round($formula->spice_ratio * 100, 1);
+                    $normFlourRatio = \App\Models\RecipeFormula::normalizedFlourRatio((float) $formula->meat_ratio, (float) $formula->flour_ratio);
+                    $normSpiceRatio = \App\Models\RecipeFormula::normalizedSpiceRatio((float) $formula->meat_ratio, (float) $formula->spice_ratio);
+                    $meatPct = round((float) $formula->meat_ratio * 100, 1);
+                    $flourPct = round($normFlourRatio * 100, 1);
+                    $spicePct = round($normSpiceRatio * 100, 1);
 
-                    // Simulasi kebutuhan per 1 kg daging (acuan standar pasar)
-                    $simTapiocaGram = 1000 * $formula->flour_ratio;
-                    $simGarlicGram = 1000 * ($formula->spice_ratio * 0.6);
-                    $simSaltGram = 1000 * ($formula->spice_ratio * 0.4);
+                    // Simulasi kebutuhan per 1 kg daging (ternormalisasi terhadap meat_ratio)
+                    $simGarlicGram = 1000 * ($normSpiceRatio * 0.6);
+                    $simSaltGram = 1000 * ($normSpiceRatio * 0.4);
                 @endphp
 
-                <div class="bg-[#FAF7F2] rounded-3xl p-6 sm:p-7 border border-[#26221E]/10 shadow-sm flex flex-col justify-between hover:border-[#8B231A]/30 transition-all duration-200">
+                <div wire:key="formula-card-{{ $formula->id }}" class="bg-[#FAF7F2] rounded-3xl p-6 sm:p-7 border border-[#26221E]/10 shadow-sm flex flex-col justify-between hover:border-[#8B231A]/30 transition-all duration-200">
                     <div>
                         <!-- Header Kartu -->
                         <div class="flex items-start justify-between gap-3">
@@ -136,7 +139,7 @@
                             <div>
                                 <div class="flex justify-between items-center text-[11px] mb-1">
                                     <span class="font-bold text-[#26221E]">Rasio Daging (Acuan)</span>
-                                    <span class="font-mono font-bold text-[#8B231A]">{{ number_format($formula->meat_ratio, 4) }} (100%)</span>
+                                    <span class="font-mono font-bold text-[#8B231A]">{{ number_format($formula->meat_ratio, 4) }} ({{ $meatPct }}%)</span>
                                 </div>
                                 <div class="w-full bg-[#E5DFD5] h-2 rounded-full overflow-hidden">
                                     <div class="bg-[#8B231A] h-2 rounded-full" style="width: 100%"></div>
@@ -147,13 +150,13 @@
                             <div>
                                 <div class="flex justify-between items-center text-[11px] mb-1">
                                     <span class="font-bold text-[#26221E]">Rasio Tepung Tapioka</span>
-                                    <span class="font-mono font-bold text-[#D96B43]">{{ number_format($formula->flour_ratio, 4) }} ({{ $flourPct }}%)</span>
+                                    <span class="font-mono font-bold text-[#B84E26]">{{ number_format($formula->flour_ratio, 4) }} ({{ $flourPct }}%)</span>
                                 </div>
                                 <div class="w-full bg-[#E5DFD5] h-2 rounded-full overflow-hidden">
-                                    <div class="bg-[#D96B43] h-2 rounded-full" style="width: {{ min(100, max(6, round($flourPct / 2))) }}%"></div>
+                                    <div class="bg-[#B84E26] h-2 rounded-full" style="width: {{ min(100, max(6, round($flourPct / 2))) }}%"></div>
                                 </div>
                                 <span class="text-[10.5px] text-[#5A534A] mt-1 block">
-                                    Acuan 1 kg daging: <strong class="font-semibold text-[#26221E] font-mono">{{ \App\Models\RecipeFormula::formatPerKgExample((float) $formula->flour_ratio) }}</strong> <span class="font-mono text-[#5A534A]">(Daging {{ $formula->formattedMeatFlourRatio() }} Tepung)</span>
+                                    Acuan 1 kg daging: <strong class="font-semibold text-[#26221E] font-mono">{{ \App\Models\RecipeFormula::formatPerKgExample((float) $formula->flour_ratio, (float) $formula->meat_ratio) }}</strong> <span class="font-mono text-[#5A534A]">(Daging {{ $formula->formattedMeatFlourRatio() }} Tepung)</span>
                                 </span>
                             </div>
 
@@ -178,7 +181,9 @@
                         <button
                             type="button"
                             wire:click="toggleSimulation({{ $formula->id }})"
-                            class="text-xs font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer {{ $formula->is_simulation ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-900 hover:bg-emerald-200' }}"
+                            wire:loading.attr="disabled"
+                            wire:target="toggleSimulation({{ $formula->id }})"
+                            class="text-xs font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-50 {{ $formula->is_simulation ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-900 hover:bg-emerald-200' }}"
                         >
                             {{ $formula->is_simulation ? 'Jadikan Resmi' : 'Kembalikan Simulasi' }}
                         </button>
@@ -212,21 +217,32 @@
 
     <!-- MODAL EDIT FORMULA RASIO -->
     @if ($showModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-            <div class="bg-[#FAF7F2] rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-[#26221E]/20 shadow-2xl relative">
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="recipe-modal-title"
+            x-data
+            @keydown.escape.window="$wire.closeModal()"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-black/60 backdrop-blur-sm animate-fade-in"
+        >
+            <div
+                @click.away="$wire.closeModal()"
+                class="bg-[#FAF7F2] rounded-3xl max-w-lg w-full max-h-[90dvh] overflow-y-auto p-6 sm:p-8 border border-[#26221E]/20 shadow-2xl relative"
+            >
                 <!-- Header Modal -->
                 <div class="flex items-center justify-between pb-4 border-b border-[#26221E]/10">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-wider text-[#8B231A]">
                             Penyesuaian Parameter Racikan
                         </span>
-                        <h3 class="text-xl font-bold text-[#26221E] mt-0.5" style="font-family: 'Playfair Display', Georgia, serif;">
+                        <h3 id="recipe-modal-title" class="text-xl font-bold text-[#26221E] mt-0.5" style="font-family: 'Playfair Display', Georgia, serif;">
                             Ubah Formula: {{ $name }}
                         </h3>
                     </div>
                     <button
                         type="button"
                         wire:click="closeModal"
+                        aria-label="Tutup modal edit formula"
                         class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#26221E] flex items-center justify-center text-lg transition-colors cursor-pointer"
                     >
                         &times;
@@ -237,11 +253,17 @@
                 <form
                     wire:submit="save"
                     x-data="{
+                        meatVal: @js((string) $meat_ratio),
                         flourVal: @js((string) $flour_ratio),
                         spiceVal: @js((string) $spice_ratio),
                         parseDec(v) {
                             const n = parseFloat(String(v ?? '').replace(',', '.'));
                             return Number.isFinite(n) && n >= 0 ? n : 0;
+                        },
+                        normRatio(val) {
+                            const m = this.parseDec(this.meatVal);
+                            const base = m > 0 ? m : 1;
+                            return this.parseDec(val) / base;
                         },
                         setFlourPreset(v) {
                             this.flourVal = String(v);
@@ -278,6 +300,7 @@
                                 autocomplete="off"
                                 id="meat-ratio"
                                 wire:model="meat_ratio"
+                                x-model="meatVal"
                                 placeholder="1 atau 1,0"
                                 class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#26221E]/15 text-[#26221E] focus:outline-none focus:border-[#8B231A] font-mono"
                             />
@@ -335,12 +358,13 @@
 
                         <!-- Toggle Simulasi -->
                         <div>
-                            <label class="block font-bold text-[#26221E] mb-1">
+                            <span class="block font-bold text-[#26221E] mb-1">
                                 Status Validitas
-                            </label>
-                            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-[#26221E]/15 cursor-pointer">
+                            </span>
+                            <label for="formula-is-simulation" class="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-[#26221E]/15 cursor-pointer">
                                 <input
                                     type="checkbox"
+                                    id="formula-is-simulation"
                                     wire:model="is_simulation"
                                     class="w-4 h-4 rounded text-[#8B231A] focus:ring-[#8B231A]"
                                 />
@@ -358,20 +382,20 @@
                         <div class="text-[#5A534A] flex justify-between">
                             <span>Tepung Tapioka:</span>
                             <span class="font-mono font-bold text-[#26221E]">
-                                <span x-text="Math.round(1000 * parseDec(flourVal)).toLocaleString('id-ID')">{{ number_format(1000 * (float) $flour_ratio, 0, ',', '.') }}</span> gram
-                                (<span x-text="Math.round(parseDec(flourVal) * 1000) / 10">{{ round((float) $flour_ratio * 100, 1) }}</span>%)
+                                <span x-text="Math.round(1000 * normRatio(flourVal)).toLocaleString('id-ID')">{{ number_format(1000 * (float) $flour_ratio, 0, ',', '.') }}</span> gram
+                                (<span x-text="Math.round(normRatio(flourVal) * 1000) / 10">{{ round((float) $flour_ratio * 100, 1) }}</span>%)
                             </span>
                         </div>
                         <div class="text-[#5A534A] flex justify-between">
                             <span>Bawang Putih (60% bumbu):</span>
                             <span class="font-mono font-bold text-[#26221E]">
-                                <span x-text="(1000 * parseDec(spiceVal) * 0.6).toFixed(1)">{{ number_format(1000 * (float) $spice_ratio * 0.6, 1) }}</span> gram
+                                <span x-text="(1000 * normRatio(spiceVal) * 0.6).toFixed(1)">{{ number_format(1000 * (float) $spice_ratio * 0.6, 1) }}</span> gram
                             </span>
                         </div>
                         <div class="text-[#5A534A] flex justify-between">
                             <span>Garam Kasar (40% bumbu):</span>
                             <span class="font-mono font-bold text-[#26221E]">
-                                <span x-text="(1000 * parseDec(spiceVal) * 0.4).toFixed(1)">{{ number_format(1000 * (float) $spice_ratio * 0.4, 1) }}</span> gram
+                                <span x-text="(1000 * normRatio(spiceVal) * 0.4).toFixed(1)">{{ number_format(1000 * (float) $spice_ratio * 0.4, 1) }}</span> gram
                             </span>
                         </div>
                     </div>
@@ -403,10 +427,11 @@
                         <button
                             type="submit"
                             wire:loading.attr="disabled"
+                            wire:target="save"
                             class="px-5 py-2.5 rounded-xl bg-[#8B231A] hover:bg-[#701A13] text-[#FAF7F2] font-bold text-xs shadow-md transition-all active:scale-[0.99] cursor-pointer flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            <span wire:loading.remove>Simpan Perubahan</span>
-                            <span wire:loading class="flex items-center gap-1.5">
+                            <span wire:loading.remove wire:target="save">Simpan Perubahan</span>
+                            <span wire:loading wire:target="save" class="flex items-center gap-1.5">
                                 <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

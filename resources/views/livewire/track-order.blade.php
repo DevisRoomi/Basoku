@@ -59,6 +59,7 @@
                     <button
                         type="submit"
                         wire:loading.attr="disabled"
+                        wire:target="searchOrder"
                         class="w-full py-3.5 px-5 rounded-2xl bg-[#B84E26] hover:bg-[#9E3F1C] text-white font-bold text-sm shadow-sm transition-all cursor-pointer disabled:opacity-60"
                     >
                         <span wire:loading.remove wire:target="searchOrder">Cek Status</span>
@@ -81,7 +82,7 @@
                 $isPending = in_array($status, ['pending', 'menunggu'], true);
                 $isProcessing = in_array($status, ['processing', 'diproses'], true);
                 $isCompleted = in_array($status, ['completed', 'selesai'], true);
-                $isCancelled = in_array($status, ['cancelled', 'batal'], true);
+                $isCancelled = in_array($status, ['cancelled', 'batal', 'dibatalkan'], true);
                 $orderCodeLabel = '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
             @endphp
 
@@ -151,13 +152,16 @@
                 <div class="p-6 sm:p-8 space-y-5">
                     <div class="bg-white rounded-2xl border border-[#26221E]/10 divide-y divide-[#26221E]/10 overflow-hidden">
                         @foreach ($order->orderItems as $item)
+                            @php
+                                $isOwnMeatTrack = $order->start_type === 'bring_own_meat' && (float) $item->subtotal <= 0;
+                            @endphp
                             <div wire:key="track-item-{{ $item->id }}" class="px-4 py-3 flex items-center justify-between text-xs">
                                 <div>
                                     <span class="font-bold text-[#26221E] block">{{ $item->material_name }}</span>
                                     <span class="text-[#5A534A] font-mono text-[11px]">{{ (float) $item->quantity }} {{ $item->unit }}</span>
                                 </div>
-                                <span class="font-mono font-bold text-[#26221E] tabular-nums">
-                                    Rp {{ number_format($item->subtotal, 0, ',', '.') }}
+                                <span class="font-mono font-bold tabular-nums {{ $isOwnMeatTrack ? 'text-emerald-700' : 'text-[#26221E]' }}">
+                                    {{ $isOwnMeatTrack ? 'Bawa Sendiri' : 'Rp '.number_format($item->subtotal, 0, ',', '.') }}
                                 </span>
                             </div>
                         @endforeach

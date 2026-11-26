@@ -12,7 +12,7 @@
                     <span class="text-[#26221E]/30">&bull;</span>
                     <span class="text-[#2D4235] font-bold">Kalkulator</span>
                 </nav>
-                <a href="{{ route('catalog') }}" class="inline-flex items-center gap-1.5 text-[#D96B43] hover:text-[#C25932] font-semibold transition-colors">
+                <a href="{{ route('catalog') }}" class="inline-flex items-center gap-1.5 text-[#B84E26] hover:text-[#9E3F1C] font-semibold transition-colors">
                     <span>Lihat Katalog Harga Pasar</span>
                     <span aria-hidden="true">&rarr;</span>
                 </a>

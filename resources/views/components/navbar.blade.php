@@ -121,39 +121,38 @@
                 $kioskHoursLabel = sprintf('%02d.00–%02d.00 WIB', $kioskOpenHour, $kioskCloseHour);
                 $kioskOpenLabel = sprintf('%02d.00 WIB', $kioskOpenHour);
             @endphp
-            <div class="flex items-center gap-2.5 shrink-0">
+            <div class="flex items-center gap-2 shrink-0">
                 <a
                     href="{{ url('/') }}"
                     @click="activeNav = 'beranda'"
-                    class="group flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D96B43] rounded-2xl shrink-0"
+                    class="group flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B84E26] rounded-2xl shrink-0"
                 >
-                    <div aria-hidden="true" class="w-10 h-10 rounded-full bg-[#2D4235] text-[#F4EFE6] font-serif font-bold text-lg flex items-center justify-center shadow-sm transition-transform group-hover:scale-105 shrink-0 border border-[#2D4235]/30">
+                    <div aria-hidden="true" class="w-9 h-9 xl:w-10 xl:h-10 rounded-full bg-[#2D4235] text-[#F4EFE6] font-serif font-bold text-base xl:text-lg flex items-center justify-center shadow-sm transition-transform group-hover:scale-105 shrink-0 border border-[#2D4235]/30">
                         B.
                     </div>
                     <div class="whitespace-nowrap">
-                        <span class="text-[#26221E] text-xl xl:text-2xl font-bold tracking-tight block leading-none" style="font-family: 'Playfair Display', Georgia, serif;">
+                        <span class="text-[#26221E] text-lg xl:text-2xl font-bold tracking-tight block leading-none" style="font-family: 'Playfair Display', Georgia, serif;">
                             BASOKU<span class="text-[#B84E26]">.</span>
                         </span>
-                        <span class="text-[9px] uppercase font-mono tracking-wider text-[#5A534A] block mt-1">
+                        <span class="hidden 2xl:block text-[9px] uppercase font-mono tracking-wider text-[#5A534A] mt-1">
                             spesialis bahan &amp; selepan bakso
                         </span>
                     </div>
                 </a>
 
-                <!-- Live Kiosk Badge (Single-Line Anti-Wrap) -->
-                <div class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide whitespace-nowrap shrink-0 {{ $isKioskOpen ? 'bg-emerald-500/10 text-emerald-800 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-900 border border-amber-500/20' }}">
+                <!-- Live Kiosk Badge (Single-Line Anti-Wrap, tampil saat viewport cukup lega agar navbar 1024-1366px bebas overflow) -->
+                <div class="hidden 2xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide whitespace-nowrap shrink-0 {{ $isKioskOpen ? 'bg-emerald-500/10 text-emerald-800 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-900 border border-amber-500/20' }}">
                     <span class="w-2 h-2 rounded-full shrink-0 {{ $isKioskOpen ? 'bg-emerald-600 animate-pulse' : 'bg-amber-600' }}"></span>
-                    <span class="2xl:hidden">{{ $isKioskOpen ? "Buka {$kioskHoursCompact}" : "Tutup · {$kioskOpenLabel}" }}</span>
-                    <span class="hidden 2xl:inline">{{ $isKioskOpen ? "Kios Buka ({$kioskHoursLabel})" : "Kios Tutup (Buka {$kioskOpenLabel})" }}</span>
+                    <span>{{ $isKioskOpen ? "Kios Buka ({$kioskHoursLabel})" : "Kios Tutup (Buka {$kioskOpenLabel})" }}</span>
                 </div>
             </div>
 
-            <!-- Center: Desktop Navigation Links (Single-Page Commerce Hub & Zero Wrapping) -->
-            <div class="hidden lg:flex items-center gap-1 bg-[#FAF7F2] border border-[#26221E]/10 rounded-full px-2 py-1.5 shadow-xs shrink-0">
+            <!-- Center: Desktop Navigation Links (Single-Page Commerce Hub & Zero Wrapping/Overflow 1024px+) -->
+            <div class="hidden lg:flex items-center gap-0.5 xl:gap-1 bg-[#FAF7F2] border border-[#26221E]/10 rounded-full px-1.5 xl:px-2 py-1.5 shadow-xs shrink-0">
                 <a
                     href="{{ request()->is('/') ? '#hero' : url('/') }}"
                     @click="activeNav = 'beranda'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                    class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
+                    class="rounded-full px-2.5 xl:px-3 py-1.5 text-[11.5px] xl:text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                     :class="activeNav === 'beranda' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                 >
                     Beranda
@@ -161,7 +160,7 @@
                 <a
                     href="{{ request()->is('/') ? '#racikan-saya' : url('/#racikan-saya') }}"
                     @click="activeNav = 'kalkulator'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                    class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
+                    class="rounded-full px-2.5 xl:px-3 py-1.5 text-[11.5px] xl:text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                     :class="activeNav === 'kalkulator' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                 >
                     Kalkulator
@@ -169,7 +168,7 @@
                 <a
                     href="{{ request()->is('/') ? '#daftar-harga' : url('/#daftar-harga') }}"
                     @click="activeNav = 'daftar-harga'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                    class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
+                    class="rounded-full px-2.5 xl:px-3 py-1.5 text-[11.5px] xl:text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                     :class="activeNav === 'daftar-harga' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                 >
                     Daftar Harga
@@ -177,7 +176,7 @@
                 <a
                     href="{{ request()->is('/') ? '#cara-kerja' : url('/#cara-kerja') }}"
                     @click="activeNav = '#cara-kerja'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                    class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
+                    class="rounded-full px-2.5 xl:px-3 py-1.5 text-[11.5px] xl:text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                     :class="activeNav === '#cara-kerja' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                 >
                     Cara Kerja
@@ -185,7 +184,7 @@
                 <a
                     href="{{ request()->is('/') ? '#lokasi-kios' : url('/#lokasi-kios') }}"
                     @click="activeNav = '#lokasi-kios'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                    class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
+                    class="rounded-full px-2.5 xl:px-3 py-1.5 text-[11.5px] xl:text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                     :class="activeNav === '#lokasi-kios' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                 >
                     Lokasi
@@ -193,7 +192,7 @@
                 <a
                     href="{{ route('bakso.history') }}"
                     @click="activeNav = 'sejarah'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                    class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
+                    class="rounded-full px-2.5 xl:px-3 py-1.5 text-[11.5px] xl:text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                     :class="activeNav === 'sejarah' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                 >
                     Sejarah
@@ -202,7 +201,7 @@
                     <a
                         href="{{ url('/racikan-saya') }}"
                         @click="activeNav = 'racikan-saya'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                        class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
+                        class="rounded-full px-2.5 xl:px-3 py-1.5 text-[11.5px] xl:text-xs font-medium tracking-wide transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
                         :class="activeNav === 'racikan-saya' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                     >
                         <span>Racikan</span>
@@ -210,17 +209,17 @@
                     <a
                         href="{{ url('/pesanan-saya') }}"
                         @click="activeNav = 'pesanan-saya'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                        class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
+                        class="rounded-full px-2.5 xl:px-3 py-1.5 text-[11.5px] xl:text-xs font-medium tracking-wide transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
                         :class="activeNav === 'pesanan-saya' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                     >
                         <span>Pesanan</span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#D96B43] animate-pulse shrink-0"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#B84E26] animate-pulse shrink-0"></span>
                     </a>
                 @elseif (! auth()->check())
                     <a
                         href="{{ route('orders.track') }}"
                         @click="activeNav = 'lacak-pesanan'"
-                        class="rounded-full px-3 py-1.5 text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
+                        class="rounded-full px-2.5 xl:px-3 py-1.5 text-[11.5px] xl:text-xs font-medium tracking-wide transition-colors whitespace-nowrap shrink-0"
                         :class="activeNav === 'lacak-pesanan' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                     >
                         Lacak
@@ -229,31 +228,31 @@
             </div>
 
             <!-- Right: Actions & User Session (Single-Line Anti-Wrap) -->
-            <div class="hidden lg:flex items-center gap-2.5 shrink-0">
+            <div class="hidden lg:flex items-center gap-2 shrink-0">
                 @auth
                     @if (auth()->user()->role === 'admin')
-                        <a href="{{ route('admin.dashboard') }}" class="text-xs font-semibold px-3.5 py-2 rounded-full bg-[#FAF7F2] hover:bg-[#F0EBE1] text-[#26221E] transition-colors border border-[#26221E]/15 shadow-xs whitespace-nowrap shrink-0">
+                        <a href="{{ route('admin.dashboard') }}" class="text-[11.5px] xl:text-xs font-semibold px-3 py-2 rounded-full bg-[#FAF7F2] hover:bg-[#F0EBE1] text-[#26221E] transition-colors border border-[#26221E]/15 shadow-xs whitespace-nowrap shrink-0">
                             Panel Admin
                         </a>
                     @else
-                        <a href="{{ route('customer.recipes') }}" class="text-xs font-semibold px-3.5 py-2 rounded-full bg-[#FAF7F2] hover:bg-[#F0EBE1] text-[#26221E] transition-colors flex items-center gap-2 border border-[#26221E]/15 shadow-xs whitespace-nowrap shrink-0">
+                        <a href="{{ route('customer.recipes') }}" class="text-[11.5px] xl:text-xs font-semibold px-3 py-2 rounded-full bg-[#FAF7F2] hover:bg-[#F0EBE1] text-[#26221E] transition-colors flex items-center gap-1.5 border border-[#26221E]/15 shadow-xs whitespace-nowrap shrink-0">
                             <span class="w-2 h-2 rounded-full bg-[#2D4235] shrink-0"></span>
-                            <span class="truncate max-w-[100px] xl:max-w-[125px]">{{ auth()->user()->name }}</span>
+                            <span class="truncate max-w-[72px] xl:max-w-[115px]">{{ auth()->user()->name }}</span>
                         </a>
                     @endif
 
                     <!-- Logout Global Form -->
                     <form method="POST" action="{{ route('logout') }}" class="inline shrink-0">
                         @csrf
-                        <button type="submit" class="text-xs font-medium text-[#26221E]/75 hover:text-[#8B231A] px-2 py-1 transition-colors cursor-pointer whitespace-nowrap">
+                        <button type="submit" class="text-[11.5px] xl:text-xs font-medium text-[#26221E]/80 hover:text-[#8B231A] px-1.5 py-1 transition-colors cursor-pointer whitespace-nowrap">
                             Keluar
                         </button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="text-xs font-medium text-[#26221E]/80 hover:text-[#26221E] px-2.5 py-2 transition-colors whitespace-nowrap shrink-0">
+                    <a href="{{ route('login') }}" class="text-[11.5px] xl:text-xs font-medium text-[#26221E]/80 hover:text-[#26221E] px-2 py-2 transition-colors whitespace-nowrap shrink-0">
                         Masuk
                     </a>
-                    <a href="{{ route('register') }}" class="text-xs font-medium px-3.5 py-2 rounded-full border border-[#26221E]/20 hover:border-[#26221E]/40 text-[#26221E] transition-colors whitespace-nowrap shrink-0">
+                    <a href="{{ route('register') }}" class="text-[11.5px] xl:text-xs font-medium px-3 py-2 rounded-full border border-[#26221E]/20 hover:border-[#26221E]/40 text-[#26221E] transition-colors whitespace-nowrap shrink-0">
                         Daftar
                     </a>
                 @endauth
@@ -262,10 +261,10 @@
                 <a
                     href="{{ request()->is('/') ? '#racikan-saya' : url('/#racikan-saya') }}"
                     @click="activeNav = 'kalkulator'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                    class="inline-flex items-center justify-center gap-1.5 bg-[#B84E26] hover:bg-[#9E3F1C] text-white px-4 xl:px-5 py-2.5 rounded-full text-xs font-semibold shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98] whitespace-nowrap shrink-0"
+                    class="inline-flex items-center justify-center gap-1.5 bg-[#B84E26] hover:bg-[#9E3F1C] text-white px-3.5 xl:px-4 py-2 rounded-full text-[11.5px] xl:text-xs font-semibold shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98] whitespace-nowrap shrink-0"
                 >
                     <span>Mulai Racik</span>
-                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-3.5 h-3.5 shrink-0 hidden xl:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                     </svg>
                 </a>

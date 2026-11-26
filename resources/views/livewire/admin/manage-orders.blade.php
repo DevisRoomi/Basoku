@@ -17,13 +17,16 @@
                 <button
                     type="button"
                     wire:click="exportCsv"
-                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2D4235] hover:bg-[#1E2D24] text-white font-semibold text-xs transition-all shadow-xs cursor-pointer active:scale-[0.98]"
+                    wire:loading.attr="disabled"
+                    wire:target="exportCsv"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2D4235] hover:bg-[#1E2D24] text-white font-semibold text-xs transition-all shadow-xs cursor-pointer active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                     title="Unduh rekap data pesanan format CSV / Excel"
                 >
-                    <svg class="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span>Unduh Rekap CSV</span>
+                    <span wire:loading.remove wire:target="exportCsv">Unduh Rekap CSV</span>
+                    <span wire:loading wire:target="exportCsv">Menyiapkan CSV...</span>
                 </button>
             </div>
         </div>
@@ -40,28 +43,28 @@
             <button
                 type="button"
                 wire:click="$set('statusFilter', 'pending')"
-                class="px-3.5 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer shrink-0 {{ $statusFilter === 'pending' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200' }}"
+                class="px-3.5 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer shrink-0 {{ $statusFilter === 'pending' ? 'bg-amber-700 text-white' : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200' }}"
             >
                 Menunggu ({{ $counts['pending'] }})
             </button>
             <button
                 type="button"
                 wire:click="$set('statusFilter', 'processing')"
-                class="px-3.5 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer shrink-0 {{ $statusFilter === 'processing' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200' }}"
+                class="px-3.5 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer shrink-0 {{ $statusFilter === 'processing' ? 'bg-blue-700 text-white' : 'bg-blue-50 text-blue-900 hover:bg-blue-100 border border-blue-200' }}"
             >
                 Diproses ({{ $counts['processing'] }})
             </button>
             <button
                 type="button"
                 wire:click="$set('statusFilter', 'completed')"
-                class="px-3.5 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer shrink-0 {{ $statusFilter === 'completed' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200' }}"
+                class="px-3.5 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer shrink-0 {{ $statusFilter === 'completed' ? 'bg-emerald-700 text-white' : 'bg-emerald-50 text-emerald-900 hover:bg-emerald-100 border border-emerald-200' }}"
             >
                 Selesai ({{ $counts['completed'] }})
             </button>
             <button
                 type="button"
                 wire:click="$set('statusFilter', 'cancelled')"
-                class="px-3.5 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer shrink-0 {{ $statusFilter === 'cancelled' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200' }}"
+                class="px-3.5 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer shrink-0 {{ $statusFilter === 'cancelled' ? 'bg-rose-700 text-white' : 'bg-rose-50 text-rose-900 hover:bg-rose-100 border border-rose-200' }}"
             >
                 Dibatalkan ({{ $counts['cancelled'] }})
             </button>
@@ -73,14 +76,14 @@
 
         <!-- Flash Message Sukses -->
         @if (session()->has('success'))
-            <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-sm animate-fade-in">
+            <div x-data="{ show: true }" x-show="show" class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-sm animate-fade-in">
                 <div class="flex items-center gap-2.5">
-                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>{{ session('success') }}</span>
                 </div>
-                <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-800 cursor-pointer">
+                <button type="button" @click="show = false" aria-label="Tutup notifikasi" class="text-emerald-700 hover:text-emerald-900 cursor-pointer text-base px-1">
                     &times;
                 </button>
             </div>
@@ -191,22 +194,29 @@
                                 <td class="py-4 px-6 text-center">
                                     <div class="relative inline-block text-left">
                                         <select
+                                            id="order-status-{{ $order->id }}"
+                                            name="order_status_{{ $order->id }}"
+                                            wire:key="order-status-{{ $order->id }}-{{ $normalizedStatus }}"
                                             wire:change="updateStatus({{ $order->id }}, $event.target.value)"
                                             wire:loading.attr="disabled"
+                                            wire:target="updateStatus"
                                             aria-label="Ubah status pesanan #{{ $order->id }}"
                                             class="text-xs font-bold rounded-xl py-1.5 pl-3 pr-8 border cursor-pointer focus:outline-none transition-colors appearance-none disabled:opacity-50 {{ match($normalizedStatus) {
-                                                'pending' => 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100',
-                                                'processing' => 'bg-blue-50 text-blue-800 border-blue-300 hover:bg-blue-100',
-                                                'completed' => 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100',
-                                                'cancelled' => 'bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100',
+                                                'pending' => 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100',
+                                                'processing' => 'bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100',
+                                                'completed' => 'bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100',
+                                                'cancelled' => 'bg-rose-50 text-rose-900 border-rose-300 hover:bg-rose-100',
                                                 default => 'bg-[#FAF6F0] text-[#161210] border-[#161210]/20'
                                             } }}"
                                         >
-                                            <option value="pending" {{ $normalizedStatus === 'pending' ? 'selected' : '' }}>⏳ Menunggu</option>
-                                            <option value="processing" {{ $normalizedStatus === 'processing' ? 'selected' : '' }}>⚙️ Diproses</option>
-                                            <option value="completed" {{ $normalizedStatus === 'completed' ? 'selected' : '' }}>✅ Selesai</option>
-                                            <option value="cancelled" {{ $normalizedStatus === 'cancelled' ? 'selected' : '' }}>❌ Dibatalkan</option>
+                                            <option value="pending" @selected($normalizedStatus === 'pending')>Menunggu</option>
+                                            <option value="processing" @selected($normalizedStatus === 'processing')>Diproses</option>
+                                            <option value="completed" @selected($normalizedStatus === 'completed')>Selesai</option>
+                                            <option value="cancelled" @selected($normalizedStatus === 'cancelled')>Dibatalkan</option>
                                         </select>
+                                        <svg class="w-3.5 h-3.5 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-current opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                        </svg>
                                     </div>
                                 </td>
 
@@ -275,9 +285,16 @@
                 fn ($item) => str_contains(strtolower((string) $item->material_name), 'selepan')
             );
         @endphp
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-[#161210]/80 backdrop-blur-sm animate-fade-in">
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="order-detail-title"
+            x-data
+            @keydown.escape.window="$wire.closeModal()"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-[#161210]/80 backdrop-blur-sm animate-fade-in"
+        >
             <div
-                class="bg-[#FAF6F0] rounded-2xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl border border-[#161210]/10 relative z-10 max-h-[90vh] flex flex-col"
+                class="bg-[#FAF6F0] rounded-2xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl border border-[#161210]/10 relative z-10 max-h-[90dvh] flex flex-col"
                 @click.away="$wire.closeModal()"
             >
                 <!-- Header Modal -->
@@ -303,7 +320,7 @@
                                 } }}
                             </span>
                         </div>
-                        <h2 class="text-xl sm:text-2xl font-bold text-[#161210] mt-1" style="font-family: 'Playfair Display', Georgia, serif;">
+                        <h2 id="order-detail-title" class="text-xl sm:text-2xl font-bold text-[#161210] mt-1" style="font-family: 'Playfair Display', Georgia, serif;">
                             Pesanan: {{ $selectedOrder->customer_name }}
                         </h2>
                         @if ($selectedOrder->customer_phone && $selectedWaUrl)
@@ -315,9 +332,10 @@
                     <button
                         type="button"
                         wire:click="closeModal"
-                        class="text-[#161210]/40 hover:text-[#161210] p-1.5 rounded-lg transition-colors cursor-pointer"
+                        aria-label="Tutup rincian pesanan"
+                        class="text-[#161210]/55 hover:text-[#161210] p-1.5 rounded-lg transition-colors cursor-pointer"
                     >
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
@@ -359,8 +377,8 @@
                             <span>Rincian Bahan Baku & Takaran</span>
                             <span class="text-[10px] text-[#161210]/50 normal-case font-normal">(Snapshot Harga Pesanan)</span>
                         </h3>
-                        <div class="bg-white rounded-xl border border-[#161210]/10 overflow-hidden">
-                            <table class="w-full text-left border-collapse text-xs">
+                        <div class="bg-white rounded-xl border border-[#161210]/10 overflow-x-auto">
+                            <table class="w-full min-w-[440px] text-left border-collapse text-xs">
                                 <thead>
                                     <tr class="bg-[#FAF6F0]/70 border-b border-[#161210]/10 text-[10px] font-bold uppercase tracking-wider text-[#161210]/60">
                                         <th class="py-2.5 px-4">Nama Bahan</th>
@@ -370,19 +388,25 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-[#161210]/5">
-                                    @forelse ($selectedOrder->orderItems as $item)
-                                        <tr class="hover:bg-[#FAF6F0]/20">
+                                    @forelse ($materialOnlyItems as $item)
+                                        @php
+                                            $isOwnMeatItem = $selectedOrder->start_type === 'bring_own_meat' && (float) $item->subtotal <= 0;
+                                        @endphp
+                                        <tr wire:key="modal-order-item-{{ $item->id }}" class="hover:bg-[#FAF6F0]/20">
                                             <td class="py-2.5 px-4 font-semibold text-[#161210]">
-                                                {{ $item->material_name }}
+                                                <span>{{ $item->material_name }}</span>
+                                                @if ($isOwnMeatItem)
+                                                    <span class="ml-1.5 inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-bold uppercase">Bawa Sendiri</span>
+                                                @endif
                                             </td>
                                             <td class="py-2.5 px-3 text-right text-[#161210]/70 whitespace-nowrap">
                                                 {{ (float) $item->quantity }} {{ $item->unit }}
                                             </td>
                                             <td class="py-2.5 px-3 text-right text-[#161210]/60 whitespace-nowrap">
-                                                {{ \Illuminate\Support\Number::currency($item->unit_price, 'IDR', 'id', precision: 0) }}
+                                                {{ $isOwnMeatItem ? '-' : \Illuminate\Support\Number::currency($item->unit_price, 'IDR', 'id', precision: 0) }}
                                             </td>
-                                            <td class="py-2.5 px-4 text-right font-bold text-[#161210] whitespace-nowrap">
-                                                {{ \Illuminate\Support\Number::currency($item->subtotal, 'IDR', 'id', precision: 0) }}
+                                            <td class="py-2.5 px-4 text-right font-bold whitespace-nowrap {{ $isOwnMeatItem ? 'text-emerald-700' : 'text-[#161210]' }}">
+                                                {{ $isOwnMeatItem ? 'Bawa Sendiri' : \Illuminate\Support\Number::currency($item->subtotal, 'IDR', 'id', precision: 0) }}
                                             </td>
                                         </tr>
                                     @empty
@@ -427,7 +451,8 @@
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'pending')"
                                 wire:loading.attr="disabled"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'pending' ? 'bg-amber-600 text-white font-bold' : 'bg-white text-amber-800 border border-amber-300 hover:bg-amber-50' }}"
+                                wire:target="updateStatus"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'pending' ? 'bg-amber-700 text-white font-bold' : 'bg-white text-amber-900 border border-amber-300 hover:bg-amber-50' }}"
                             >
                                 Menunggu
                             </button>
@@ -435,7 +460,8 @@
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'processing')"
                                 wire:loading.attr="disabled"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'processing' ? 'bg-blue-600 text-white font-bold' : 'bg-white text-blue-800 border border-blue-300 hover:bg-blue-50' }}"
+                                wire:target="updateStatus"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'processing' ? 'bg-blue-700 text-white font-bold' : 'bg-white text-blue-900 border border-blue-300 hover:bg-blue-50' }}"
                             >
                                 Diproses
                             </button>
@@ -443,7 +469,8 @@
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'completed')"
                                 wire:loading.attr="disabled"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'completed' ? 'bg-emerald-600 text-white font-bold' : 'bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-50' }}"
+                                wire:target="updateStatus"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'completed' ? 'bg-emerald-700 text-white font-bold' : 'bg-white text-emerald-900 border border-emerald-300 hover:bg-emerald-50' }}"
                             >
                                 Selesai
                             </button>
@@ -451,7 +478,8 @@
                                 type="button"
                                 wire:click="updateStatus({{ $selectedOrder->id }}, 'cancelled')"
                                 wire:loading.attr="disabled"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'cancelled' ? 'bg-rose-600 text-white font-bold' : 'bg-white text-rose-800 border border-rose-300 hover:bg-rose-50' }}"
+                                wire:target="updateStatus"
+                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'cancelled' ? 'bg-rose-700 text-white font-bold' : 'bg-white text-rose-900 border border-rose-300 hover:bg-rose-50' }}"
                             >
                                 Dibatalkan
                             </button>
@@ -468,7 +496,7 @@
                             onclick="window.print()"
                             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2D4235] hover:bg-[#1E2D24] text-white font-semibold text-xs transition-colors cursor-pointer shadow-xs active:scale-[0.98]"
                         >
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
                             <span>Cetak Struk Kios (Thermal)</span>
@@ -478,7 +506,7 @@
                                 href="{{ $selectedWaUrl }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                                class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs transition-colors shadow-xs"
                             >
                                 <span>Kirim Notifikasi WA</span>
                             </a>
@@ -526,13 +554,20 @@
             <div style="font-size: 11px; border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 8px;">
                 <div style="font-weight: bold; margin-bottom: 4px;">RINCIAN KOMPONEN:</div>
                 @foreach ($materialOnlyItems as $item)
+                    @php
+                        $isOwnMeatReceipt = $selectedOrder->start_type === 'bring_own_meat' && (float) $item->subtotal <= 0;
+                    @endphp
                     <div style="margin-bottom: 3px;">
                         <div style="display: flex; justify-content: space-between;">
                             <span>{{ $item->material_name }}</span>
-                            <span style="font-weight: bold;">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                            <span style="font-weight: bold;">{{ $isOwnMeatReceipt ? 'Bawa Sendiri' : 'Rp '.number_format($item->subtotal, 0, ',', '.') }}</span>
                         </div>
                         <div style="font-size: 9px; color: #333;">
-                            {{ (float) $item->quantity }} {{ $item->unit }} &times; Rp {{ number_format($item->unit_price, 0, ',', '.') }}
+                            @if ($isOwnMeatReceipt)
+                                {{ (float) $item->quantity }} {{ $item->unit }} (daging milik pelanggan)
+                            @else
+                                {{ (float) $item->quantity }} {{ $item->unit }} &times; Rp {{ number_format($item->unit_price, 0, ',', '.') }}
+                            @endif
                         </div>
                     </div>
                 @endforeach

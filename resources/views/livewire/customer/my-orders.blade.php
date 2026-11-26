@@ -94,7 +94,7 @@
                     $isPending = in_array(strtolower((string) $order->status), ['pending', 'menunggu'], true);
                     $isProcessing = in_array(strtolower((string) $order->status), ['processing', 'diproses'], true);
                     $isCompleted = in_array(strtolower((string) $order->status), ['completed', 'selesai'], true);
-                    $isCancelled = in_array(strtolower((string) $order->status), ['cancelled', 'batal'], true);
+                    $isCancelled = in_array(strtolower((string) $order->status), ['cancelled', 'batal', 'dibatalkan'], true);
                     $orderCode = '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
                 @endphp
 
@@ -218,17 +218,29 @@
                                 @endif
                             </div>
 
+                            @php
+                                $visibleOrderItems = (float) $order->grinding_fee > 0
+                                    ? $order->orderItems->reject(fn ($item) => str_contains(strtolower((string) $item->material_name), 'selepan'))
+                                    : $order->orderItems;
+                            @endphp
                             <div class="divide-y divide-[#26221E]/10 border border-[#26221E]/10 rounded-2xl overflow-hidden bg-white">
-                                @forelse ($order->orderItems as $item)
+                                @forelse ($visibleOrderItems as $item)
+                                    @php
+                                        $isOwnMeatItem = $order->start_type === 'bring_own_meat' && (float) $item->subtotal <= 0;
+                                    @endphp
                                     <div wire:key="order-item-{{ $item->id }}" class="p-3.5 flex items-center justify-between text-xs">
                                         <div class="space-y-0.5">
                                             <span class="font-bold text-[#26221E]">{{ $item->material_name }}</span>
                                             <span class="text-[#5A534A] block text-[11px] font-mono">
-                                                {{ (float) $item->quantity }} {{ $item->unit }} &times; Rp {{ number_format($item->unit_price, 0, ',', '.') }}
+                                                @if ($isOwnMeatItem)
+                                                    {{ (float) $item->quantity }} {{ $item->unit }} &bull; Daging milik pelanggan
+                                                @else
+                                                    {{ (float) $item->quantity }} {{ $item->unit }} &times; Rp {{ number_format($item->unit_price, 0, ',', '.') }}
+                                                @endif
                                             </span>
                                         </div>
-                                        <span class="font-mono font-bold text-[#26221E] tabular-nums">
-                                            Rp {{ number_format($item->subtotal, 0, ',', '.') }}
+                                        <span class="font-mono font-bold tabular-nums {{ $isOwnMeatItem ? 'text-emerald-700' : 'text-[#26221E]' }}">
+                                            {{ $isOwnMeatItem ? 'Bawa Sendiri' : 'Rp '.number_format($item->subtotal, 0, ',', '.') }}
                                         </span>
                                     </div>
                                 @empty

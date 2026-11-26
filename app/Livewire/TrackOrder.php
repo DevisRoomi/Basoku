@@ -6,6 +6,7 @@ use App\Models\Order;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -17,14 +18,19 @@ class TrackOrder extends Component
 
     public string $phoneNumber = '';
 
+    #[Locked]
     public ?int $trackedOrderId = null;
+
+    #[Locked]
+    public ?string $verifiedPhone = null;
 
     public ?string $lookupError = null;
 
     public function mount(): void
     {
-        if ($code = request()->query('code')) {
-            $this->orderCode = trim((string) $code);
+        $code = request()->query('code');
+        if (is_string($code) && trim($code) !== '') {
+            $this->orderCode = trim($code);
         }
     }
 
@@ -60,6 +66,7 @@ class TrackOrder extends Component
 
         if ($orderId <= 0 || $normalizedInputPhone === '') {
             $this->trackedOrderId = null;
+            $this->verifiedPhone = null;
             $this->lookupError = 'Pesanan tidak ditemukan. Pastikan nomor pesanan (#BSK-...) dan nomor WhatsApp sesuai.';
 
             return;
@@ -69,17 +76,20 @@ class TrackOrder extends Component
 
         if (! $order || $this->normalizePhone((string) $order->customer_phone) !== $normalizedInputPhone) {
             $this->trackedOrderId = null;
+            $this->verifiedPhone = null;
             $this->lookupError = 'Pesanan tidak ditemukan. Pastikan nomor pesanan dan nomor WhatsApp cocok dengan data pemesanan.';
 
             return;
         }
 
         $this->trackedOrderId = $order->id;
+        $this->verifiedPhone = $normalizedInputPhone;
     }
 
     public function resetSearch(): void
     {
         $this->trackedOrderId = null;
+        $this->verifiedPhone = null;
         $this->lookupError = null;
         $this->orderCode = '';
         $this->phoneNumber = '';
@@ -106,9 +116,16 @@ class TrackOrder extends Component
 
     public function render(): View
     {
-        $order = $this->trackedOrderId
-            ? Order::with('orderItems')->find($this->trackedOrderId)
-            : null;
+        $order = null;
+        if ($this->trackedOrderId !== null && $this->verifiedPhone !== null) {
+            $candidate = Order::with('orderItems')->find($this->trackedOrderId);
+            if ($candidate && $this->normalizePhone((string) $candidate->customer_phone) === $this->verifiedPhone) {
+                $order = $candidate;
+            } else {
+                $this->trackedOrderId = null;
+                $this->verifiedPhone = null;
+            }
+        }
 
         return view('livewire.track-order', [
             'order' => $order,

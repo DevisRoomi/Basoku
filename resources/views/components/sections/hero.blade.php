@@ -24,7 +24,7 @@
 
         <!-- Dark Cinematic Editorial Scrim (Kontras Sempurna untuk Tipografi) -->
         <div class="absolute inset-0 bg-gradient-to-t from-[#1F1C18] via-[#1F1C18]/60 to-[#1F1C18]/45 pointer-events-none"></div>
-        <div class="absolute inset-0 bg-radial-at-c from-transparent via-[#1F1C18]/30 to-[#1F1C18]/80 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-radial from-transparent via-[#1F1C18]/30 to-[#1F1C18]/80 pointer-events-none"></div>
 
         <!-- Ambient Subtle Gradient Drift (CSS-only warm terracotta/maroon drift) -->
         <div class="hero-ambient-drift" aria-hidden="true"></div>
@@ -41,16 +41,16 @@
 
             <!-- Headline Serif Bersahaja & Presisi (Masked Vertical Reveal) -->
             <h1 class="text-2xl sm:text-4xl lg:text-5xl font-serif font-normal text-white tracking-tight leading-tight space-y-1 sm:space-y-2" style="font-family: 'Playfair Display', Georgia, serif;">
-                <div class="hero-mask-wrapper">
+                <span class="hero-mask-wrapper block">
                     <span class="hero-masked-line">
                         Kejujuran Takaran,
                     </span>
-                </div>
-                <div class="hero-mask-wrapper">
+                </span>
+                <span class="hero-mask-wrapper block">
                     <span class="hero-masked-line italic text-[#E5A93C]">
                         Kemurnian Rasa.
                     </span>
-                </div>
+                </span>
             </h1>
 
             <!-- Subtitle 1 Kalimat Bersih with Masked Reveal -->
@@ -157,6 +157,5 @@
 
             </div>
         </div>
-    </div>
 
 </section>

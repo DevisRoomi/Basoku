@@ -2,7 +2,7 @@
     <!-- Top Running Marquee & Soft Oatmeal Sticky Navbar -->
     <x-navbar />
 
-    <main class="relative w-full bg-motif-kawung text-[#26221E] py-12 sm:py-16 lg:py-24 overflow-hidden">
+    <main class="relative w-full bg-motif-kawung text-[#26221E] py-12 sm:py-16 lg:py-24 overflow-x-clip">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 relative z-10">
 
             <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -101,7 +101,7 @@
                             >
                             <div class="bg-[#FAF7F2] p-3 text-[11px] font-mono text-[#5A534A] border-t border-[#26221E]/10 flex items-center justify-between">
                                 <span>FIG. 01 — Daging merah segar dengan serat miosin murni sebelum penumbukan lesung batu.</span>
-                                <span class="text-[#D96B43] font-bold">100% SEGAR</span>
+                                <span class="text-[#B84E26] font-bold">100% SEGAR</span>
                             </div>
                         </div>
 
@@ -347,7 +347,7 @@
                         <div class="space-y-4">
                             <!-- Pillar 1 -->
                             <div class="p-5 rounded-2xl bg-[#F4EFE6] border border-[#26221E]/10">
-                                <span class="text-[10px] font-mono font-bold uppercase text-[#D96B43] tracking-widest block mb-1">
+                                <span class="text-[10px] font-mono font-bold uppercase text-[#B84E26] tracking-widest block mb-1">
                                     ATURAN 01 &bull; KAPASITAS MINIMAL MESIN
                                 </span>
                                 <h4 class="font-bold text-[#26221E] text-base mb-1">Batas Minimal 500 Gram Daging</h4>
@@ -401,7 +401,7 @@
                     <div class="pt-3">
                         <a
                             href="{{ route('calculator') }}"
-                            class="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#D96B43] hover:bg-[#C25932] text-white font-semibold text-xs sm:text-sm shadow-md transition-all active:scale-[0.98]"
+                            class="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#B84E26] hover:bg-[#9E3F1C] text-white font-semibold text-xs sm:text-sm shadow-md transition-all active:scale-[0.98]"
                         >
                             <span>Buka Kalkulator Racikan</span>
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">

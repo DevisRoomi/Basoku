@@ -1,21 +1,42 @@
-// Service Worker Minimalis BASOKU — Offline Shell Cache
-const CACHE_NAME = 'basoku-shell-v2';
+// Service Worker Minimalis BASOKU — Static Asset Cache Only (Aman untuk Sesi Login)
+const CACHE_NAME = 'basoku-static-v3';
 const ASSETS_TO_CACHE = [
-  '/',
   '/manifest.json',
   '/favicon.svg'
 ];
 
-const BYPASS_PREFIXES = [
-  '/livewire',
-  '/admin',
-  '/masuk',
-  '/daftar',
-  '/keluar',
-  '/racikan-saya',
-  '/pesanan-saya',
-  '/lacak-pesanan'
+const STATIC_PATH_PREFIXES = [
+  '/build/',
+  '/images/',
+  '/manifest.json',
+  '/favicon.svg'
 ];
+
+const STATIC_EXTENSIONS = [
+  '.css',
+  '.js',
+  '.svg',
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.webp',
+  '.woff2',
+  '.woff',
+  '.ico'
+];
+
+function isCacheableStaticRequest(request, url) {
+  if (request.method !== 'GET') return false;
+  if (url.origin !== self.location.origin) return false;
+  if (request.mode === 'navigate') return false;
+  if (request.headers.get('accept')?.includes('text/html')) return false;
+
+  if (STATIC_PATH_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
+    return true;
+  }
+
+  return STATIC_EXTENSIONS.some((ext) => url.pathname.toLowerCase().endsWith(ext));
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -39,14 +60,10 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Network-first with safe cache fallback for public/static GET requests
+// Hanya cache aset statis publik agar halaman HTML terautentikasi tidak pernah tersimpan di CacheStorage
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-
   const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
-
-  if (BYPASS_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
+  if (!isCacheableStaticRequest(event.request, url)) {
     return;
   }
 
@@ -61,15 +78,6 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(() => {
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          if (event.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/');
-          }
-        });
-      })
+      .catch(() => caches.match(event.request))
   );
 });

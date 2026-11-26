@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Livewire\Admin\ManageOrders;
+use App\Models\Material;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use Database\Seeders\AdminUserSeeder;
+use Database\Seeders\MaterialSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -321,5 +323,45 @@ class ManageOrdersTest extends TestCase
             ->set('statusFilter', 'completed')
             ->assertSee('Order Lama Selesai')
             ->assertDontSee('Order Lama Menunggu');
+    }
+
+    public function test_csv_export_neutralizes_formula_injection_and_converts_pack_flour_to_grams(): void
+    {
+        $this->seed(MaterialSeeder::class);
+        $tapioka = Material::where('name', 'Tepung Tapioka')->firstOrFail();
+
+        $order = Order::create([
+            'customer_name' => '=CMD|calc',
+            'customer_phone' => '+081234567890',
+            'pickup_at' => now()->addDay(),
+            'start_type' => 'ingredients_only',
+            'meat_weight' => 0,
+            'preference' => 'bahan_saja',
+            'grinding_fee' => 0,
+            'total_price' => 18000,
+            'status' => 'dibatalkan',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'material_id' => $tapioka->id,
+            'material_name' => 'Tepung Tapioka',
+            'quantity' => 2,
+            'unit' => 'Pack',
+            'unit_price' => 9000,
+            'subtotal' => 18000,
+        ]);
+
+        $component = Livewire::actingAs($this->admin)->test(ManageOrders::class);
+        $response = $component->instance()->exportCsv();
+
+        ob_start();
+        $response->sendContent();
+        $csvContent = ob_get_clean();
+
+        $this->assertStringContainsString("'=CMD|calc", $csvContent);
+        $this->assertStringContainsString("'+081234567890", $csvContent);
+        // 2 Pack Tapioka @500g = 1000 gram tepung pada kolom Berat Tepung (g)
+        $this->assertStringContainsString(',0,1000,0,18000,', $csvContent);
     }
 }

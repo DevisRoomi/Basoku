@@ -6,6 +6,7 @@ use App\Livewire\TrackOrder;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -80,5 +81,33 @@ class TrackOrderTest extends TestCase
             ->assertSet('trackedOrderId', null)
             ->assertSee('Pesanan tidak ditemukan')
             ->assertDontSee('Bu Ani Rahasia');
+    }
+
+    public function test_tracked_order_id_is_locked_against_idor_tampering(): void
+    {
+        $order = Order::create([
+            'customer_name' => 'Korban IDOR',
+            'customer_phone' => '081234567890',
+            'pickup_at' => now()->addDay()->setTime(8, 0),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 500,
+            'preference' => 'enak',
+            'grinding_fee' => 7500,
+            'total_price' => 88000,
+            'status' => 'pending',
+        ]);
+
+        $this->expectException(CannotUpdateLockedPropertyException::class);
+
+        Livewire::test(TrackOrder::class)
+            ->set('trackedOrderId', $order->id);
+    }
+
+    public function test_array_code_query_parameter_does_not_crash_track_order_page(): void
+    {
+        $response = $this->get('/lacak-pesanan?code[]=123');
+
+        $response->assertStatus(200);
+        $response->assertSee('Lacak Status Pesanan');
     }
 }

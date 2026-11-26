@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Services\GeminiConsultantService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class AiConsultant extends Component
@@ -12,13 +13,15 @@ class AiConsultant extends Component
     /** Input pertanyaan pengguna */
     public string $question = '';
 
-    /** Riwayat percakapan interaktif */
+    /** Riwayat percakapan interaktif (terkunci agar tidak bisa dimanipulasi dari client) */
+    #[Locked]
     public array $chatHistory = [];
 
     /** Status apakah laci/widget chat sedang terbuka */
     public bool $isOpen = false;
 
     /** Daftar pertanyaan cepat untuk memudahkan pengguna */
+    #[Locked]
     public array $quickPrompts = [
         'Berapa takaran es batu yang ideal saat giling daging?',
         'Daging bagian apa yang paling bagus untuk bakso urat?',

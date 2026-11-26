@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class MaterialCatalog extends Component
@@ -31,20 +32,22 @@ class MaterialCatalog extends Component
 
     public string $pickupTime = '';
 
+    #[Locked]
     public string $sellerWaNumber = '6285122797969';
 
     public function mount(): void
     {
-        $this->sellerWaNumber = config('services.kiosk.wa_number', '6285122797969');
+        $this->sellerWaNumber = (string) config('services.kiosk.wa_number', '6285122797969');
         $this->pickupTime = now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
     }
 
     /**
-     * Tambah jumlah item bahan pilihan (+1).
+     * Tambah jumlah item bahan pilihan (+1, maksimal 100 per bahan).
      */
     public function incrementItem(int $materialId): void
     {
-        $this->selectedItems[$materialId] = ($this->selectedItems[$materialId] ?? 0) + 1;
+        $current = (int) ($this->selectedItems[$materialId] ?? 0);
+        $this->selectedItems[$materialId] = min(100, max(0, $current) + 1);
     }
 
     /**
@@ -53,9 +56,11 @@ class MaterialCatalog extends Component
     public function decrementItem(int $materialId): void
     {
         if (isset($this->selectedItems[$materialId])) {
-            $this->selectedItems[$materialId]--;
-            if ($this->selectedItems[$materialId] <= 0) {
+            $next = ((int) $this->selectedItems[$materialId]) - 1;
+            if ($next <= 0) {
                 unset($this->selectedItems[$materialId]);
+            } else {
+                $this->selectedItems[$materialId] = min(100, $next);
             }
         }
     }
@@ -81,7 +86,13 @@ class MaterialCatalog extends Component
      */
     public function transferToCalculator()
     {
-        $active = array_filter($this->selectedItems, fn ($qty) => $qty > 0);
+        $active = [];
+        foreach ($this->selectedItems as $id => $qty) {
+            $safeQty = min(100, max(0, (int) $qty));
+            if ($safeQty > 0) {
+                $active[(int) $id] = $safeQty;
+            }
+        }
 
         if (! empty($active)) {
             session()->put('selected_materials', $active);
@@ -91,12 +102,22 @@ class MaterialCatalog extends Component
     }
 
     /**
-     * Buka modal pemesanan langsung dari katalog.
+     * Buka modal pemesanan langsung dari katalog hanya jika ada item tersedia.
      */
     public function openDirectCheckout(): void
     {
-        $active = array_filter($this->selectedItems, fn ($qty) => $qty > 0);
+        $active = array_filter($this->selectedItems, fn ($qty) => (int) $qty > 0);
         if (empty($active)) {
+            return;
+        }
+
+        $availableIds = Material::whereIn('id', array_keys($active))
+            ->where('is_available', true)
+            ->pluck('id')
+            ->all();
+
+        $this->selectedItems = array_intersect_key($active, array_flip($availableIds));
+        if (empty($this->selectedItems)) {
             return;
         }
 
@@ -104,6 +125,7 @@ class MaterialCatalog extends Component
             $this->pickupTime = now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
         }
 
+        $this->resetErrorBag();
         $this->showDirectCheckoutModal = true;
     }
 
@@ -133,10 +155,18 @@ class MaterialCatalog extends Component
             'customerName' => ['required', 'string', 'min:2', 'max:100'],
             'customerPhone' => ['required', 'string', 'regex:/^(\+62|62|08)[0-9]{8,13}$/'],
             'pickupTime' => [
+                'bail',
                 'required',
                 'date',
                 function ($attribute, $value, $fail) {
-                    $pickup = Carbon::parse($value);
+                    try {
+                        $pickup = Carbon::parse($value);
+                    } catch (\Throwable) {
+                        $fail('Format jam pengambilan tidak valid.');
+
+                        return;
+                    }
+
                     $minPickup = now()->addHour();
                     if ($pickup->lt($minPickup)) {
                         $fail('Waktu pengambilan minimal 1 jam dari pemesanan (paling awal pukul '.$minPickup->format('H:i').' WIB).');
@@ -183,19 +213,20 @@ class MaterialCatalog extends Component
             $safeQty = min(100, max(0, (int) $qty));
             if ($safeQty > 0 && isset($materials[$materialId])) {
                 $mat = $materials[$materialId];
-                $pkgPrice = (float) ($mat->package_price ?? $mat->price ?? 0.0);
-                $pkgWeight = (float) ($mat->package_weight ?? 1.0);
-                $subtotal = $safeQty * $pkgPrice;
+                $pkgPrice = $mat->effectivePackagePrice();
+                $pkgWeight = $mat->effectivePackageWeight(1.0);
+                $pkgUnit = $mat->effectivePackageUnit();
+                $subtotal = round($safeQty * $pkgPrice, 2);
                 $totalPrice += $subtotal;
 
                 $orderItemsData[] = [
                     'material_id' => $mat->id,
                     'material_name' => $mat->name,
-                    'quantity' => $safeQty * $pkgWeight,
-                    'unit' => $mat->unit ?? 'gram',
-                    'unit_price' => (float) $mat->price,
+                    'quantity' => $safeQty,
+                    'unit' => $pkgUnit,
+                    'unit_price' => $pkgPrice,
                     'subtotal' => $subtotal,
-                    'package_info' => "{$safeQty} {$mat->package_unit} (@".number_format($pkgWeight).'g)',
+                    'package_info' => "{$safeQty} {$pkgUnit} (@".number_format($pkgWeight).'g)',
                 ];
             }
         }
@@ -212,14 +243,14 @@ class MaterialCatalog extends Component
         $order = DB::transaction(function () use ($totalPrice, $orderItemsData) {
             $order = Order::create([
                 'user_id' => Auth::id(),
-                'customer_name' => $this->customerName,
-                'customer_phone' => $this->customerPhone,
+                'customer_name' => trim($this->customerName),
+                'customer_phone' => trim($this->customerPhone),
                 'pickup_at' => $this->pickupTime,
                 'start_type' => 'ingredients_only',
                 'meat_weight' => 0,
                 'preference' => 'belanja_katalog',
                 'grinding_fee' => 0.0,
-                'total_price' => $totalPrice,
+                'total_price' => round($totalPrice, 2),
                 'status' => 'pending',
             ]);
 
@@ -239,13 +270,13 @@ class MaterialCatalog extends Component
         });
 
         // Susun pesan WhatsApp
-        $pickupFormatted = date('d M Y, H:i', strtotime($this->pickupTime));
+        $pickupFormatted = Carbon::parse($this->pickupTime)->format('d M Y, H:i');
         $lines = [];
         $lines[] = '*PESANAN BELANJA BAHAN KIOS - BASOKU*';
         $lines[] = '-----------------------------------';
         $lines[] = '*No. Pesanan:* #BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
-        $lines[] = '*Nama Pemesan:* '.$this->customerName;
-        $lines[] = '*No. WhatsApp:* '.$this->customerPhone;
+        $lines[] = '*Nama Pemesan:* '.trim($this->customerName);
+        $lines[] = '*No. WhatsApp:* '.trim($this->customerPhone);
         $lines[] = '*Jadwal Ambil:* '.$pickupFormatted.' WIB';
         $lines[] = '*Kategori:* Belanja Bahan Baku Langsung';
         $lines[] = '';
@@ -262,12 +293,13 @@ class MaterialCatalog extends Component
         $lines[] = '';
         $lines[] = 'Mohon disiapkan sebelum jadwal pickup. Terima kasih!';
 
+        $waNumber = (string) config('services.kiosk.wa_number', '6285122797969');
         $waText = urlencode(implode("\n", $lines));
 
         $this->showDirectCheckoutModal = false;
         $this->clearCart();
 
-        return $this->redirect('https://wa.me/'.$this->sellerWaNumber.'?text='.$waText, navigate: false);
+        return $this->redirect('https://wa.me/'.$waNumber.'?text='.$waText, navigate: false);
     }
 
     public function render()
@@ -303,9 +335,9 @@ class MaterialCatalog extends Component
                     : strtolower($material->category))
                 ->sortBy(fn ($items, string $cat) => $categoryOrder[$cat] ?? 99);
 
-            // Hitung total belanja keranjang saat ini
-            $activeItems = array_filter($this->selectedItems, fn ($qty) => $qty > 0);
-            $totalSelectedPacks = array_sum($activeItems);
+            // Hitung total belanja keranjang HANYA dari bahan yang masih aktif & tersedia
+            $activeItems = array_filter($this->selectedItems, fn ($qty) => (int) $qty > 0);
+            $totalSelectedPacks = 0;
             $totalSelectedCost = 0.0;
 
             if (! empty($activeItems)) {
@@ -314,14 +346,15 @@ class MaterialCatalog extends Component
                     ->get()
                     ->keyBy('id');
                 foreach ($activeItems as $matId => $qty) {
-                    if (isset($allMaterials[$matId])) {
+                    $safeQty = min(100, max(0, (int) $qty));
+                    if ($safeQty > 0 && isset($allMaterials[$matId])) {
                         $mat = $allMaterials[$matId];
-                        $price = (float) ($mat->package_price ?? $mat->price ?? 0.0);
-                        $totalSelectedCost += ((int) $qty * $price);
+                        $totalSelectedPacks += $safeQty;
+                        $totalSelectedCost += ($safeQty * $mat->effectivePackagePrice());
                     }
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             $groupedMaterials = collect();
             $totalSelectedPacks = 0;
             $totalSelectedCost = 0.0;

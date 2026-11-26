@@ -71,6 +71,79 @@ class Material extends Model
     }
 
     /**
+     * Harga jual kanonik per 1 kemasan/satuan/kg acuan untuk tampilan katalog dan checkout.
+     */
+    public function effectivePackagePrice(): float
+    {
+        $pkgPrice = (float) ($this->package_price ?? 0);
+        if ($pkgPrice > 0) {
+            return $pkgPrice;
+        }
+
+        $basePrice = max(0.0, (float) ($this->price ?? 0));
+        if ($this->isUnitBased()) {
+            return $basePrice;
+        }
+
+        $pkgWeight = (float) ($this->package_weight ?? 0);
+        if ($pkgWeight > 0) {
+            return round($basePrice * $pkgWeight, 2);
+        }
+
+        if (strtolower((string) $this->unit) === 'kg') {
+            return round($basePrice * 1000.0, 2);
+        }
+
+        return $basePrice;
+    }
+
+    /**
+     * Harga dasar kanonik per 1 gram bahan (aman untuk mode curah, kemasan, maupun satuan).
+     */
+    public function effectivePricePerGram(): float
+    {
+        $pkgWeight = (float) ($this->package_weight ?? 0);
+
+        if ($this->isUnitBased()) {
+            $unitPrice = $this->effectivePackagePrice();
+
+            return $pkgWeight > 0 ? round($unitPrice / $pkgWeight, 4) : $unitPrice;
+        }
+
+        $basePrice = (float) ($this->price ?? 0);
+        if ($basePrice > 0) {
+            return $basePrice;
+        }
+
+        $pkgPrice = (float) ($this->package_price ?? 0);
+        if ($pkgPrice > 0 && $pkgWeight > 0) {
+            return round($pkgPrice / $pkgWeight, 4);
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * Berat kemasan efektif dalam gram dengan fallback positif aman.
+     */
+    public function effectivePackageWeight(float $fallback = 1.0): float
+    {
+        $weight = (float) ($this->package_weight ?? 0);
+
+        return $weight > 0 ? $weight : max(1.0, $fallback);
+    }
+
+    /**
+     * Label satuan kemasan efektif (tidak pernah kosong).
+     */
+    public function effectivePackageUnit(): string
+    {
+        $unit = trim((string) ($this->package_unit ?: $this->unit ?: 'Pack'));
+
+        return $unit !== '' ? $unit : 'Pack';
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

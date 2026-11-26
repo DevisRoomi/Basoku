@@ -12,8 +12,8 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700|playfair-display:400,600,700,800,900&display=swap" rel="stylesheet" />
 
-        <!-- Chart.js via CDN -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- Chart.js via CDN (versi terpin untuk kestabilan produksi) -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
 
         <!-- Styles / Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -84,7 +84,7 @@
                         <span class="text-xl font-extrabold tracking-tight" style="font-family: 'Playfair Display', Georgia, serif;">
                             BASOKU<span class="text-[#C83B2B]">.</span>
                         </span>
-                        <span class="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-[#C83B2B]/20 text-[#C83B2B] border border-[#C83B2B]/30">
+                        <span class="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-[#C83B2B]/25 text-[#FCA5A5] border border-[#FCA5A5]/30">
                             Admin
                         </span>
                     </a>

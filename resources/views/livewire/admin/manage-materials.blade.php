@@ -10,7 +10,7 @@
                     Kelola Harga Bahan
                 </h1>
                 <p class="text-xs text-[#161210]/60 mt-1">
-                    Atur harga acuan bahan baku dan ketersediaan stok pasar secara *real-time*.
+                    Atur harga acuan bahan baku dan ketersediaan stok pasar secara <em>real-time</em>.
                 </p>
             </div>
 
@@ -38,8 +38,9 @@
             </button>
             @foreach ($allCategories as $cat)
                 <button
+                    wire:key="mat-cat-tab-{{ $cat }}"
                     type="button"
-                    wire:click="$set('selectedCategory', '{{ $cat }}')"
+                    wire:click="$set('selectedCategory', @js($cat))"
                     class="px-3 py-1.5 rounded-lg font-semibold uppercase tracking-wider transition-colors cursor-pointer shrink-0 {{ $selectedCategory === $cat ? 'bg-[#161210] text-[#FAF6F0]' : 'bg-[#FAF6F0] text-[#161210]/70 hover:bg-white hover:text-[#161210] border border-[#161210]/10' }}"
                 >
                     {{ $cat }}
@@ -53,14 +54,14 @@
 
         <!-- Flash Message Sukses -->
         @if (session()->has('success'))
-            <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-sm animate-fade-in">
+            <div x-data="{ show: true }" x-show="show" class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-2.5">
-                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>{{ session('success') }}</span>
                 </div>
-                <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-800">
+                <button type="button" @click="show = false" aria-label="Tutup notifikasi" class="text-emerald-700 hover:text-emerald-900 cursor-pointer px-1">
                     &times;
                 </button>
             </div>
@@ -84,7 +85,7 @@
                     </thead>
                     <tbody class="divide-y divide-[#161210]/5 text-xs font-medium text-[#161210]">
                         @forelse ($materials as $material)
-                            <tr class="hover:bg-[#FAF6F0]/40 transition-colors">
+                            <tr wire:key="material-row-{{ $material->id }}" class="hover:bg-[#FAF6F0]/40 transition-colors">
                                 <!-- Kolom 1: Nama Bahan -->
                                 <td class="py-4 px-5 font-bold text-sm">
                                     {{ $material->name }}
@@ -146,8 +147,10 @@
                                     <button
                                         type="button"
                                         wire:click="toggleAvailability({{ $material->id }})"
+                                        wire:loading.attr="disabled"
+                                        wire:target="toggleAvailability({{ $material->id }})"
                                         title="Klik untuk ubah status ketersediaan"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-transform active:scale-95 whitespace-nowrap {{ $material->is_available ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100' }}"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-transform active:scale-95 whitespace-nowrap disabled:opacity-50 {{ $material->is_available ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100' }}"
                                     >
                                         <span class="w-1.5 h-1.5 rounded-full {{ $material->is_available ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
                                         {{ $material->is_available ? 'Tersedia' : 'Habis' }}
@@ -190,9 +193,15 @@
 
     <!-- MODAL FORM (TAMBAH / EDIT BAHAN) -->
     @if ($showModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-[#161210]/80 backdrop-blur-sm animate-fade-in">
+        <div
+            class="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 overflow-y-auto bg-[#161210]/80 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="material-modal-title"
+            @keydown.escape.window="$wire.closeModal()"
+        >
             <div
-                class="bg-[#FAF6F0] rounded-2xl w-full max-w-lg p-6 sm:p-8 shadow-2xl border border-[#161210]/10 relative z-10"
+                class="bg-[#FAF6F0] rounded-2xl w-full max-w-lg my-auto max-h-[90dvh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-[#161210]/10 relative z-10"
                 @click.away="$wire.closeModal()"
             >
                 <!-- Header Modal -->
@@ -201,16 +210,17 @@
                         <span class="text-[11px] font-bold uppercase tracking-wider text-[#C83B2B]">
                             {{ $isEditing ? 'Perbarui Data Bahan' : 'Bahan Baku Baru' }}
                         </span>
-                        <h2 class="text-xl sm:text-2xl font-bold text-[#161210] mt-0.5" style="font-family: 'Playfair Display', Georgia, serif;">
+                        <h2 id="material-modal-title" class="text-xl sm:text-2xl font-bold text-[#161210] mt-0.5" style="font-family: 'Playfair Display', Georgia, serif;">
                             {{ $isEditing ? 'Edit Bahan: ' . $name : 'Tambah Bahan Baku' }}
                         </h2>
                     </div>
                     <button
                         type="button"
                         wire:click="closeModal"
-                        class="text-[#161210]/40 hover:text-[#161210] p-1.5 rounded-lg transition-colors cursor-pointer"
+                        aria-label="Tutup modal bahan"
+                        class="text-[#161210]/60 hover:text-[#161210] p-1.5 rounded-lg transition-colors cursor-pointer"
                     >
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
@@ -221,14 +231,23 @@
                     wire:submit.prevent="save"
                     x-data="{
                         sellingMode: @entangle('selling_mode'),
+                        packageUnit: @entangle('package_unit'),
                         packageWeight: @entangle('package_weight'),
                         packagePrice: @entangle('package_price'),
                         basePrice: @entangle('price'),
                         manualOverride: @entangle('manualPriceOverride'),
                         parseNum(val) {
                             if (val === null || val === undefined) return NaN;
-                            const cleaned = String(val).trim().replace(/\s+/g, '').replace(',', '.');
-                            return cleaned === '' ? NaN : parseFloat(cleaned);
+                            let cleaned = String(val).trim().replace(/\s+/g, '');
+                            if (cleaned === '') return NaN;
+                            if (cleaned.includes('.') && cleaned.includes(',')) {
+                                cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+                            } else if (/^-?\d{1,3}(\.\d{3})+$/.test(cleaned)) {
+                                cleaned = cleaned.replace(/\./g, '');
+                            } else {
+                                cleaned = cleaned.replace(',', '.');
+                            }
+                            return parseFloat(cleaned);
                         },
                         recalcBasePrice() {
                             if (this.manualOverride) return;
@@ -390,6 +409,8 @@
                             </label>
                             <label class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#161210]/70 cursor-pointer select-none">
                                 <input
+                                    id="material-manual-price"
+                                    name="manual_price_override"
                                     type="checkbox"
                                     wire:model.live="manualPriceOverride"
                                     x-model="manualOverride"
@@ -415,12 +436,17 @@
                                 :class="manualOverride ? 'bg-white border-[#C83B2B]/40 text-[#161210]' : 'bg-[#FAF6F0] border-[#161210]/10 text-[#161210]/80 cursor-not-allowed'"
                                 class="w-full rounded-xl border-2 pl-11 pr-20 py-2.5 text-xs sm:text-sm font-mono font-bold placeholder:text-[#161210]/30 focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
                             >
-                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-[11px] font-mono text-[#161210]/55">
-                                / <span x-text="sellingMode === 'satuan' ? '{{ strtolower($package_unit ?: $unit) }}' : '{{ $unit }}'"></span>
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-[11px] font-mono text-[#161210]/60">
+                                / <span x-text="sellingMode === 'satuan' ? String(packageUnit || 'satuan').toLowerCase() : 'gram'"></span>
                             </span>
                         </div>
 
-                        <div class="flex items-start gap-2 text-[11px] text-[#2D4235] bg-[#E8ECE4]/70 rounded-lg px-2.5 py-2 border border-[#2D4235]/15">
+                        <div x-show="manualOverride" class="flex items-start gap-2 text-[11px] text-amber-900 bg-amber-50 rounded-lg px-2.5 py-2 border border-amber-200">
+                            <span class="font-bold shrink-0">Mode Manual Aktif:</span>
+                            <span>Harga dasar tidak mengikuti rumus kemasan otomatis. Pastikan sesuai dengan harga jual pasar.</span>
+                        </div>
+
+                        <div x-show="!manualOverride" class="flex items-start gap-2 text-[11px] text-[#2D4235] bg-[#E8ECE4]/70 rounded-lg px-2.5 py-2 border border-[#2D4235]/15">
                             <span class="font-bold shrink-0">⚡ Otomatis:</span>
                             <span x-show="sellingMode === 'satuan'">
                                 Mode eceran satuan memakai harga kemasan penuh (<strong class="font-mono">Rp <span x-text="formatIdr(basePrice)"></span></strong> / satuan).
@@ -440,6 +466,8 @@
                     <div class="pt-2">
                         <label class="flex items-center gap-3 p-3 rounded-xl border border-[#161210]/10 bg-white cursor-pointer hover:bg-[#FAF6F0]/50 transition-colors">
                             <input
+                                id="material-is-available"
+                                name="is_available"
                                 type="checkbox"
                                 wire:model="is_available"
                                 class="w-4 h-4 rounded text-[#C83B2B] focus:ring-[#C83B2B]/30 border-[#161210]/20"
@@ -467,10 +495,11 @@
                         <button
                             type="submit"
                             wire:loading.attr="disabled"
+                            wire:target="save"
                             class="px-6 py-2.5 rounded-xl bg-[#C83B2B] hover:bg-[#A92F21] text-white font-bold text-xs shadow-md shadow-[#C83B2B]/20 transition-all duration-200 active:scale-[0.99] cursor-pointer flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            <span wire:loading.remove>{{ $isEditing ? 'Simpan Perubahan' : 'Tambah Bahan' }}</span>
-                            <span wire:loading class="flex items-center gap-1.5">
+                            <span wire:loading.remove wire:target="save">{{ $isEditing ? 'Simpan Perubahan' : 'Tambah Bahan' }}</span>
+                            <span wire:loading wire:target="save" class="flex items-center gap-1.5">
                                 <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

@@ -21,9 +21,9 @@
             <!-- Masthead Content -->
             <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                 <div class="max-w-3xl">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAF7F2] border border-[#26221E]/10 text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-[#D96B43] mb-3 shadow-xs">
-                        <span class="w-2 h-2 rounded-full bg-[#D96B43]"></span>
-                        <span>INFORMASI HARGA LOS PASAR • REAL-TIME DATABASE</span>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAF7F2] border border-[#26221E]/10 text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-[#B84E26] mb-3 shadow-xs">
+                        <span class="w-2 h-2 rounded-full bg-[#B84E26]"></span>
+                        <span>INFORMASI HARGA LOS PASAR &bull; REAL-TIME DATABASE</span>
                     </div>
                     <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#26221E] tracking-tight leading-[1.15]" style="font-family: 'Playfair Display', Georgia, serif;">
                         Katalog Harga Bahan Baku &amp; Jasa Selepan.
@@ -36,7 +36,7 @@
                 <div class="shrink-0 pb-1">
                     <a
                         href="{{ route('calculator') }}"
-                        class="inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-[#D96B43] hover:bg-[#C25932] text-white font-semibold text-xs sm:text-sm shadow-md transition-all duration-200 active:scale-[0.98]"
+                        class="inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-[#B84E26] hover:bg-[#9E3F1C] text-white font-semibold text-xs sm:text-sm shadow-md transition-all duration-200 active:scale-[0.98]"
                     >
                         <span>Buka Kalkulator Racikan &rarr;</span>
                     </a>

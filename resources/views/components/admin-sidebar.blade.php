@@ -9,7 +9,7 @@
         <!-- Header Brand Admin + Unique Morphing Heritage Hamburger -->
         <div
             class="border-b border-white/10 transition-all duration-300"
-            :class="sidebarCollapsed ? 'px-3 py-4 flex flex-col items-center gap-3' : 'px-4 py-4 flex items-center justify-between gap-2'"
+            :class="sidebarCollapsed ? 'px-4 py-4 flex items-center justify-between gap-2 md:px-3 md:flex-col md:items-center md:gap-3' : 'px-4 py-4 flex items-center justify-between gap-2'"
         >
             <!-- Brand Monogram / Full Logo -->
             <a
@@ -36,7 +36,7 @@
                     <span class="text-[21px] leading-none font-extrabold tracking-tight whitespace-nowrap" style="font-family: 'Playfair Display', Georgia, serif;">
                         BASOKU<span class="text-[#C83B2B]">.</span>
                     </span>
-                    <span class="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-[#C83B2B]/20 text-[#C83B2B] border border-[#C83B2B]/30 shrink-0">
+                    <span class="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-[#C83B2B]/25 text-[#FCA5A5] border border-[#FCA5A5]/30 shrink-0">
                         Admin
                     </span>
                 </div>
@@ -218,7 +218,7 @@
     <!-- Profil Admin & Tombol Logout -->
     <div
         class="border-t border-white/10 bg-black/20 shrink-0 sticky bottom-0 transition-all duration-300"
-        :class="sidebarCollapsed ? 'p-3 flex flex-col items-center gap-2.5' : 'p-4'"
+        :class="sidebarCollapsed ? 'p-4 md:p-3 md:flex md:flex-col md:items-center md:gap-2.5' : 'p-4'"
     >
         <div
             class="group/profile relative flex items-center"

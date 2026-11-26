@@ -24,19 +24,22 @@ class Login extends Component
      */
     public function authenticate()
     {
+        $this->email = Str::lower(trim($this->email));
+
         $this->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
+            'email' => ['required', 'email', 'max:150'],
+            'password' => ['required', 'string', 'max:128'],
         ], [
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
-        $throttleKey = Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        $throttleKey = Str::transliterate($this->email.'|'.request()->ip());
+        $ipThrottleKey = 'login-ip|'.request()->ip();
 
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
+        if (RateLimiter::tooManyAttempts($throttleKey, 5) || RateLimiter::tooManyAttempts($ipThrottleKey, 20)) {
+            $seconds = max(RateLimiter::availableIn($throttleKey), RateLimiter::availableIn($ipThrottleKey));
             $this->addError('email', "Terlalu banyak percobaan masuk. Harap tunggu {$seconds} detik sebelum mencoba kembali.");
 
             return;
@@ -58,6 +61,7 @@ class Login extends Component
         }
 
         RateLimiter::hit($throttleKey, 60);
+        RateLimiter::hit($ipThrottleKey, 300);
 
         $this->addError('email', 'Email atau kata sandi yang Anda masukkan salah.');
     }

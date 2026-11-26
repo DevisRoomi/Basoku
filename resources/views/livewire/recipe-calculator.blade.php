@@ -196,14 +196,19 @@
                         Berat Daging (Gram)
                     </legend>
                     
+                    @php
+                        $safeMeatWeight = is_numeric($meatWeight) && (int) $meatWeight > 0 ? (int) $meatWeight : 500;
+                    @endphp
                     <!-- Compact Side-by-Side Analog Market Scale Dial & Slider (Haptic & Tactile) -->
                     <div
                         x-data="{
-                            weight: {{ $meatWeight }},
-                            lastTickWeight: {{ $meatWeight }},
+                            weight: {{ $safeMeatWeight }},
+                            lastTickWeight: {{ $safeMeatWeight }},
                             audioCtx: null,
                             get needleAngle() {
-                                const w = Math.min(Math.max(this.weight, 500), 5000);
+                                const parsed = Number(this.weight);
+                                const safe = Number.isFinite(parsed) ? parsed : 500;
+                                const w = Math.min(Math.max(safe, 500), 5000);
                                 return -80 + (w / 5000) * 160;
                             },
                             playHaptic() {
@@ -234,14 +239,16 @@
                                 }
                             },
                             onSlide(val) {
-                                this.weight = Number(val);
+                                const n = Number(val);
+                                if (!Number.isFinite(n)) { return; }
+                                this.weight = n;
                                 if (Math.abs(this.weight - this.lastTickWeight) >= 50) {
                                     this.playHaptic();
                                     this.lastTickWeight = this.weight;
                                 }
                             }
                         }"
-                        x-init="$watch('$wire.meatWeight', (val) => { weight = Number(val); })"
+                        x-init="$watch('$wire.meatWeight', (val) => { const n = Number(val); if (Number.isFinite(n) && n > 0) { weight = n; } })"
                         class="bg-white/95 rounded-2xl border border-[#26221E]/10 p-4 shadow-xs"
                     >
                         <!-- Side-by-Side: Jarum Timbangan (Kiri) + Angka Digital & Input Manual (Kanan) -->
@@ -274,11 +281,11 @@
                             <div class="flex-1 flex flex-col items-center sm:items-end justify-center gap-1.5 text-center sm:text-right">
                                 <div>
                                     <span class="text-2xl font-mono font-bold text-[#26221E] tabular-nums tracking-tight leading-none">
-                                        <span x-text="Number(weight).toLocaleString()">{{ number_format($meatWeight) }}</span>
+                                        <span x-text="(Number(weight) || 500).toLocaleString()">{{ number_format((int) ($meatWeight ?: 500)) }}</span>
                                         <span class="text-xs font-sans font-semibold text-[#B84E26]">gram</span>
                                     </span>
                                     <span class="block text-[11px] font-mono text-[#5A534A] mt-0.5">
-                                        (setara <span x-text="(weight / 1000).toFixed(2)">{{ number_format($meatWeight / 1000, 2) }}</span> kg daging)
+                                        (setara <span x-text="((Number(weight) || 500) / 1000).toFixed(2)">{{ number_format(((int) ($meatWeight ?: 500)) / 1000, 2) }}</span> kg daging)
                                     </span>
                                 </div>
 
@@ -286,7 +293,7 @@
                                 <div class="inline-flex items-center gap-1.5">
                                     <button
                                         type="button"
-                                        @click="weight = Math.max(500, Number(weight) - 100); $wire.set('meatWeight', weight); playHaptic();"
+                                        @click="weight = Math.max(500, (Number(weight) || 500) - 100); $wire.set('meatWeight', weight); playHaptic();"
                                         aria-label="Kurangi 100 gram"
                                         class="w-8 h-8 rounded-xl bg-[#FAF7F2] hover:bg-[#EAE3D5] border border-[#26221E]/15 text-[#26221E] font-mono font-bold text-sm cursor-pointer transition-colors"
                                     >
@@ -297,9 +304,10 @@
                                         <input
                                             type="number"
                                             id="meatWeightNumber"
+                                            name="meatWeight"
                                             min="500"
                                             max="50000"
-                                            step="50"
+                                            step="1"
                                             wire:model.live.debounce.300ms="meatWeight"
                                             x-model.number="weight"
                                             class="w-24 text-center font-mono font-bold text-sm text-[#26221E] bg-[#FAF7F2] border border-[#26221E]/20 rounded-xl py-1 px-2 focus:outline-none focus:border-[#2D4235] tabular-nums"
@@ -307,7 +315,7 @@
                                     </div>
                                     <button
                                         type="button"
-                                        @click="weight = Math.min(50000, Number(weight) + 100); $wire.set('meatWeight', weight); playHaptic();"
+                                        @click="weight = Math.min(50000, Math.max(500, (Number(weight) || 500) + 100)); $wire.set('meatWeight', weight); playHaptic();"
                                         aria-label="Tambah 100 gram"
                                         class="w-8 h-8 rounded-xl bg-[#FAF7F2] hover:bg-[#EAE3D5] border border-[#26221E]/15 text-[#26221E] font-mono font-bold text-sm cursor-pointer transition-colors"
                                     >
@@ -531,7 +539,8 @@
 
                 @if ($preference === 'kustom')
                     @php
-                        $customRatioDec = $customFlourRatio / 100;
+                        $safeCustomFlour = is_numeric($customFlourRatio) ? max(10, min(450, (int) $customFlourRatio)) : 20;
+                        $customRatioDec = $safeCustomFlour / 100;
                         $customPerKgExample = \App\Models\RecipeFormula::formatPerKgExample($customRatioDec);
                         $customExplicitRatio = 'Daging ' . \App\Models\RecipeFormula::formatRatio(1.0, $customRatioDec) . ' Tepung';
                     @endphp
@@ -557,13 +566,13 @@
                             </div>
 
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-white border border-[#26221E]/10 text-[11px] text-[#26221E] font-semibold">
-                                @if ($customFlourRatio <= 30)
+                                @if ($safeCustomFlour <= 30)
                                     🥩 Super Daging (Bakso Padat Premium)
-                                @elseif ($customFlourRatio <= 75)
+                                @elseif ($safeCustomFlour <= 75)
                                     🥣 Bakso Daging Kenyal (Sedang)
-                                @elseif ($customFlourRatio <= 130)
+                                @elseif ($safeCustomFlour <= 130)
                                     ⚖️ Seimbang Warung (Sekitar 1 : 1)
-                                @elseif ($customFlourRatio <= 220)
+                                @elseif ($safeCustomFlour <= 220)
                                     🥟 Ekonomis Usaha (Sekitar 1 : 2)
                                 @else
                                     🍡 Bakso Aci / Cilok Daging (1 : 2,5 s/d 1 : 4,5)
@@ -610,7 +619,7 @@
                                 <button
                                     type="button"
                                     wire:click="$set('customFlourRatio', {{ $quickPct }})"
-                                    class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-semibold transition-colors cursor-pointer {{ (int) $customFlourRatio === $quickPct ? 'bg-[#2D4235] text-white' : 'bg-white text-[#26221E] border border-[#26221E]/15 hover:bg-[#EAE3D5]/60' }}"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-semibold transition-colors cursor-pointer {{ $safeCustomFlour === $quickPct ? 'bg-[#2D4235] text-white' : 'bg-white text-[#26221E] border border-[#26221E]/15 hover:bg-[#EAE3D5]/60' }}"
                                 >
                                     {{ $quickLabel }}
                                 </button>
@@ -656,7 +665,7 @@
                 <!-- ────────────────────────────────────────────────────────────────── -->
                 <!-- MODE BELI BAHAN SAJA: Pilih Bebas Bahan Kios (Tanpa Wajib Tepung!) -->
                 <!-- ────────────────────────────────────────────────────────────────── -->
-                <fieldset x-data="{ catFilter: 'all' }">
+                <fieldset x-data="{ catFilter: 'all' }" class="min-w-0 w-full">
                     @php
                         $selectedLooseQty = array_sum($extraItems);
                     @endphp
@@ -704,7 +713,9 @@
                         @foreach ($this->availableExtraMaterials as $extraMat)
                             @php
                                 $extraQty = $extraItems[$extraMat->id] ?? 0;
-                                $pkgPrice = (float) ($extraMat->package_price ?? $extraMat->price);
+                                $pkgPrice = $extraMat->effectivePackagePrice();
+                                $pkgUnit = $extraMat->effectivePackageUnit();
+                                $pkgWeight = $extraMat->effectivePackageWeight();
                                 $matCatGroup = match ($extraMat->category) {
                                     'tepung' => 'tepung',
                                     'bumbu' => 'bumbu',
@@ -719,7 +730,7 @@
                                 <div class="grow min-w-0">
                                     <div class="font-bold text-xs text-[#26221E] truncate">{{ $extraMat->name }}</div>
                                     <div class="text-[11px] font-mono text-[#5A534A] mt-0.5">
-                                        Rp {{ number_format($pkgPrice, 0, ',', '.') }} <span class="text-[10px]">/ {{ $extraMat->package_unit }} ({{ '@'.number_format($extraMat->package_weight) }}g)</span>
+                                        Rp {{ number_format($pkgPrice, 0, ',', '.') }} <span class="text-[10px]">/ {{ $pkgUnit }} ({{ '@'.number_format($pkgWeight) }}g)</span>
                                     </div>
                                 </div>
 
@@ -729,6 +740,7 @@
                                         <button
                                             type="button"
                                             wire:click="decrementExtra({{ $extraMat->id }})"
+                                            aria-label="Kurangi {{ $extraMat->name }}"
                                             class="w-7 h-7 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                                             title="Kurangi"
                                         >
@@ -741,6 +753,7 @@
                                     <button
                                         type="button"
                                         wire:click="incrementExtra({{ $extraMat->id }})"
+                                        aria-label="Tambah {{ $extraMat->name }}"
                                         class="w-7 h-7 rounded-full bg-[#2D4235] hover:bg-[#B84E26] text-white font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                                         title="Tambah"
                                     >
@@ -756,16 +769,19 @@
                 <!-- 7. Bahan Tambahan & Pelengkap Kios (Accordion 1-Klik)  -->
                 <!-- ─────────────────────────────────────────────────────── -->
                 <fieldset
+                    wire:key="extras-accordion-fieldset"
                     x-data="{
                         openExtras: {{ count($extraItems) > 0 ? 'true' : 'false' }},
-                        lastCount: {{ count($extraItems) }}
+                        lastCount: {{ count($extraItems) }},
+                        init() {
+                            this.$watch('$wire.extraItems', (val) => {
+                                const c = val ? Object.keys(val).length : 0;
+                                if (c > this.lastCount) { this.openExtras = true; }
+                                this.lastCount = c;
+                            });
+                        }
                     }"
-                    x-init="$watch('$wire.extraItems', (val) => {
-                        const c = val ? Object.keys(val).length : 0;
-                        if (c > lastCount) { openExtras = true; }
-                        lastCount = c;
-                    })"
-                    class="pt-4 border-t border-[#26221E]/10"
+                    class="pt-4 border-t border-[#26221E]/10 min-w-0 w-full max-w-full"
                 >
                     <legend class="sr-only">Bahan Tambahan &amp; Pelengkap Kios (Opsional)</legend>
 
@@ -774,41 +790,53 @@
                     @endphp
 
                     <!-- Header Toggle Accordion -->
-                    <button
-                        type="button"
-                        @click="openExtras = !openExtras"
-                        :aria-expanded="openExtras"
-                        class="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer text-left {{ $selectedExtraTotalQty > 0 ? 'border-[#2D4235]/40 bg-[#FAF7F2] shadow-xs' : 'border-[#26221E]/12 bg-[#FAF7F2]/80 hover:bg-[#FAF7F2] hover:border-[#D96B43]/50' }}"
-                    >
-                        <div class="flex items-center gap-3 min-w-0">
-                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#B84E26] text-white text-[11px] font-bold shrink-0">7</span>
-                            <div class="min-w-0">
-                                <span class="block text-xs font-bold text-[#26221E] uppercase tracking-wider">
-                                    Bahan Tambahan &amp; Pelengkap Kios (Opsional)
-                                </span>
-                                <span class="block text-[11px] text-[#5A534A] mt-0.5 truncate">
-                                    Telur, Sobaso, Merica, Masako &mdash; klik untuk pilih pelengkap
+                    <div class="flex items-center gap-2 min-w-0">
+                        <button
+                            type="button"
+                            @click="openExtras = !openExtras"
+                            :aria-expanded="openExtras.toString()"
+                            class="flex-1 min-w-0 flex items-center justify-between gap-3 p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer text-left {{ $selectedExtraTotalQty > 0 ? 'border-[#2D4235]/40 bg-[#FAF7F2] shadow-xs' : 'border-[#26221E]/12 bg-[#FAF7F2]/80 hover:bg-[#FAF7F2] hover:border-[#B84E26]/50' }}"
+                        >
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#B84E26] text-white text-[11px] font-bold shrink-0">7</span>
+                                <div class="min-w-0">
+                                    <span class="block text-xs font-bold text-[#26221E] uppercase tracking-wider">
+                                        Bahan Tambahan &amp; Pelengkap Kios (Opsional)
+                                    </span>
+                                    <span class="block text-[11px] text-[#5A534A] mt-0.5 truncate">
+                                        Telur, Sobaso, Merica, Masako &mdash; klik untuk pilih pelengkap
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 shrink-0">
+                                @if ($selectedExtraTotalQty > 0)
+                                    <span class="px-2 py-0.5 rounded-full bg-[#2D4235] text-[#F4EFE6] text-[10px] font-mono font-bold">
+                                        {{ $selectedExtraTotalQty }} dipilih
+                                    </span>
+                                @else
+                                    <span class="hidden sm:inline text-[11px] font-semibold text-[#B84E26]" x-text="openExtras ? 'Tutup' : 'Buka'">
+                                        Buka
+                                    </span>
+                                @endif
+                                <span class="w-7 h-7 rounded-xl bg-white border border-[#26221E]/10 flex items-center justify-center text-[#26221E] transition-transform duration-200" :class="openExtras ? 'rotate-180' : ''">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </span>
                             </div>
-                        </div>
-
-                        <div class="flex items-center gap-2 shrink-0">
-                            @if ($selectedExtraTotalQty > 0)
-                                <span class="px-2 py-0.5 rounded-full bg-[#2D4235] text-[#F4EFE6] text-[10px] font-mono font-bold">
-                                    {{ $selectedExtraTotalQty }} dipilih
-                                </span>
-                            @else
-                                <span class="hidden sm:inline text-[11px] font-semibold text-[#B84E26]" x-text="openExtras ? 'Tutup' : 'Buka'">
-                                    Buka
-                                </span>
-                            @endif
-                            <span class="w-7 h-7 rounded-xl bg-white border border-[#26221E]/10 flex items-center justify-center text-[#26221E] transition-transform duration-200" :class="openExtras ? 'rotate-180' : ''">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </span>
-                        </div>
-                    </button>
+                        </button>
+                        @if ($selectedExtraTotalQty > 0)
+                            <button
+                                type="button"
+                                wire:click="clearExtras"
+                                class="px-3 py-2 rounded-xl text-[11px] font-bold text-[#8B231A] bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer shrink-0"
+                                title="Hapus semua bahan pelengkap"
+                            >
+                                Reset
+                            </button>
+                        @endif
+                    </div>
 
                     <!-- Grid Item Pelengkap (Tetap di DOM via x-show agar aman untuk Livewire) -->
                     <div
@@ -820,13 +848,15 @@
                         @foreach ($this->availableExtraMaterials as $extraMat)
                             @php
                                 $extraQty = $extraItems[$extraMat->id] ?? 0;
-                                $pkgPrice = (float) ($extraMat->package_price ?? $extraMat->price);
+                                $pkgPrice = $extraMat->effectivePackagePrice();
+                                $pkgUnit = $extraMat->effectivePackageUnit();
+                                $pkgWeight = $extraMat->effectivePackageWeight();
                             @endphp
                             <div wire:key="extra-mat-{{ $extraMat->id }}" class="p-3 rounded-2xl border transition-all flex items-center justify-between gap-2.5 {{ $extraQty > 0 ? 'border-[#2D4235] bg-[#FAF7F2] shadow-xs' : 'border-[#26221E]/10 bg-white/85 hover:bg-white' }}">
                                 <div class="grow min-w-0">
                                     <div class="font-bold text-xs text-[#26221E] truncate">{{ $extraMat->name }}</div>
                                     <div class="text-[11px] font-mono text-[#5A534A] mt-0.5">
-                                        Rp {{ number_format($pkgPrice, 0, ',', '.') }} <span class="text-[10px]">/ {{ $extraMat->package_unit }} ({{ '@'.number_format($extraMat->package_weight) }}g)</span>
+                                        Rp {{ number_format($pkgPrice, 0, ',', '.') }} <span class="text-[10px]">/ {{ $pkgUnit }} ({{ '@'.number_format($pkgWeight) }}g)</span>
                                     </div>
                                 </div>
 
@@ -836,6 +866,7 @@
                                         <button
                                             type="button"
                                             wire:click="decrementExtra({{ $extraMat->id }})"
+                                            aria-label="Kurangi {{ $extraMat->name }}"
                                             class="w-7 h-7 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                                             title="Kurangi"
                                         >
@@ -848,7 +879,8 @@
                                     <button
                                         type="button"
                                         wire:click="incrementExtra({{ $extraMat->id }})"
-                                        class="w-7 h-7 rounded-full bg-[#2D4235] hover:bg-[#D96B43] text-white font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                                        aria-label="Tambah {{ $extraMat->name }}"
+                                        class="w-7 h-7 rounded-full bg-[#2D4235] hover:bg-[#B84E26] text-white font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                                         title="Tambah"
                                     >
                                         +
@@ -860,9 +892,9 @@
                 </fieldset>
             @endif
 
-            <!-- Mobile Sticky Bottom Summary Bar (Tampil hanya saat scroll form di HP/Tablet) -->
+            <!-- Mobile Sticky Bottom Summary Bar (Tampil hanya saat scroll form di HP/Tablet, bebas tabrakan AI FAB) -->
             @if (!$showCheckoutModal && !$showSaveModal && !$budgetError)
-                <div class="lg:hidden sticky bottom-3 z-30 mr-16">
+                <div class="lg:hidden sticky bottom-3 z-30 mr-24">
                     <div class="rounded-2xl bg-[#2D4235]/95 backdrop-blur-md text-[#F4EFE6] px-4 py-2.5 shadow-2xl border border-white/15 flex items-center justify-between gap-3">
                         <div class="min-w-0">
                             <span class="block text-[9.5px] font-mono uppercase tracking-wider text-[#D8E0D3]/80">Uang Belanja Pasar</span>
@@ -885,8 +917,8 @@
         <!-- ═════════════════════════════════════════════════════════ -->
         <!-- KOLOM KANAN: PANEL STRUK LIVE VIEWPORT-FITTED (5 Kolom)   -->
         <!-- ═════════════════════════════════════════════════════════ -->
-        <div id="panel-struk-racikan" class="lg:col-span-5 lg:sticky lg:top-[6.75rem] scroll-mt-28">
-            <div class="rounded-3xl bg-[#2D4235] text-[#F4EFE6] p-5 shadow-xl border border-[#2D4235]/30 relative flex flex-col lg:max-h-[calc(100vh-7.5rem)] overflow-hidden">
+        <div id="panel-struk-racikan" class="lg:col-span-5 lg:sticky lg:top-24 scroll-mt-28">
+            <div class="rounded-3xl bg-[#2D4235] text-[#F4EFE6] p-5 shadow-xl border border-[#2D4235]/30 relative flex flex-col lg:max-h-[calc(100dvh-12rem)] overflow-hidden">
 
                 <!-- ZONA 1 (FIXED TOP): Header Struk + Status + 4 Parameter -->
                 <div class="shrink-0">
@@ -918,14 +950,20 @@
                     @endif
 
                     <!-- Info Parameter Singkat -->
+                    @php
+                        $receiptMeatWeight = is_numeric($meatWeight) ? (int) $meatWeight : 0;
+                        $receiptCustomRatio = is_numeric($customFlourRatio) ? max(10, min(450, (int) $customFlourRatio)) : 20;
+                    @endphp
                     <div class="grid grid-cols-4 gap-1.5 py-2 px-2.5 rounded-xl bg-black/15 border border-white/10 text-xs mb-2.5 text-center">
                         <div class="min-w-0">
                             <span class="text-[#D8E0D3]/85 block text-[8.5px] uppercase font-mono">Daging</span>
                             <span class="font-semibold text-white truncate block text-[10.5px]">
                                 @if ($startType === 'ingredients_only')
                                     Tanpa Daging
+                                @elseif ($budgetError)
+                                    Belum Cukup
                                 @else
-                                    {{ ucfirst($meatType) }} ({{ number_format($meatWeight) }}g)
+                                    {{ ucfirst($meatType) }} ({{ number_format($receiptMeatWeight) }}g)
                                 @endif
                             </span>
                         </div>
@@ -947,7 +985,7 @@
                                 @if ($startType === 'ingredients_only')
                                     Bahan Saja
                                 @elseif ($preference === 'kustom')
-                                    {{ $customFlourRatio }}% Tepung
+                                    {{ $receiptCustomRatio }}% Tepung
                                 @else
                                     {{ ucfirst($preference) }}
                                 @endif
@@ -1006,7 +1044,7 @@
                         </div>
                         <div class="divide-y divide-white/5">
                             @foreach ($breakdown as $item)
-                                <div class="py-1.5 flex items-start justify-between gap-2.5 text-xs">
+                                <div wire:key="breakdown-{{ $loop->index }}-{{ $item['material_id'] ?? \Illuminate\Support\Str::slug($item['name']) }}" class="py-1.5 flex items-start justify-between gap-2.5 text-xs">
                                     <div class="grow min-w-0">
                                         <div class="flex items-center gap-1.5 flex-wrap">
                                             <span class="font-medium text-white text-[12px] leading-tight">{{ $item['name'] }}</span>
@@ -1015,10 +1053,25 @@
                                             @endif
                                             @if (!empty($item['is_extra']))
                                                 <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30">Pelengkap Kios</span>
+                                                @if (!empty($item['material_id']))
+                                                    <button
+                                                        type="button"
+                                                        wire:click="removeExtra({{ (int) $item['material_id'] }})"
+                                                        aria-label="Hapus {{ $item['name'] }} dari rincian"
+                                                        class="text-[10px] leading-none px-1.5 py-0.5 rounded bg-white/10 hover:bg-rose-500/40 text-white/80 hover:text-white cursor-pointer"
+                                                        title="Hapus pelengkap"
+                                                    >
+                                                        &times;
+                                                    </button>
+                                                @endif
                                             @endif
                                         </div>
                                         <div class="text-[10.5px] text-[#D8E0D3]/85 flex flex-wrap items-center gap-1 mt-0.5 font-mono leading-snug">
-                                            <span class="tabular-nums font-semibold text-white/95">{{ number_format($item['weight']) }} {{ $item['unit'] }}</span>
+                                            @if (isset($item['qty']))
+                                                <span class="tabular-nums font-semibold text-white/95">{{ (int) $item['qty'] }} {{ $item['unit'] }}</span>
+                                            @else
+                                                <span class="tabular-nums font-semibold text-white/95">{{ number_format((float) $item['weight']) }} {{ $item['unit'] }}</span>
+                                            @endif
                                             @if (!empty($item['package_info']))
                                                 <span>&bull;</span>
                                                 <span class="text-amber-200 font-medium">{{ $item['package_info'] }}</span>
@@ -1074,9 +1127,12 @@
                             </div>
                         </div>
 
-                        @if ($calculationMode === 'budget' && $totalMarketCost > (float) $budget)
+                        @php
+                            $safeBudgetAmount = is_numeric($budget) ? (float) $budget : 0.0;
+                        @endphp
+                        @if ($calculationMode === 'budget' && $safeBudgetAmount > 0 && $totalMarketCost > $safeBudgetAmount)
                             <p class="text-[10.5px] text-amber-200 bg-amber-500/10 border border-amber-400/25 rounded-xl px-3 py-2 mb-2.5 leading-snug">
-                                Catatan anggaran: Nilai adonan terpakai sesuai batas Rp {{ number_format((float) $budget, 0, ',', '.') }}, namun pembelian kemasan utuh di pasar membutuhkan tunai Rp {{ number_format($totalMarketCost, 0, ',', '.') }} (sisa tepung &amp; bumbu dapat dibawa pulang).
+                                Catatan anggaran: Nilai adonan terpakai sesuai batas Rp {{ number_format($safeBudgetAmount, 0, ',', '.') }}, namun pembelian kemasan utuh di pasar membutuhkan tunai Rp {{ number_format($totalMarketCost, 0, ',', '.') }} (sisa tepung &amp; bumbu dapat dibawa pulang).
                             </p>
                         @endif
                     @endif
@@ -1106,10 +1162,11 @@
                             type="button"
                             wire:click="openSaveModal"
                             wire:loading.attr="disabled"
+                            wire:target="openSaveModal"
                             @disabled($cannotOrder)
                             class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/25 hover:border-white/50 bg-white/10 hover:bg-white/15 text-white font-medium text-xs sm:text-sm transition-all duration-200 active:scale-[0.99] cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed"
                         >
-                            <svg class="w-4 h-4 text-amber-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <svg class="w-4 h-4 text-amber-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                             </svg>
                             <span>Simpan Racikan</span>
@@ -1121,7 +1178,7 @@
                                 type="button"
                                 disabled
                                 aria-disabled="true"
-                                class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366]/40 text-white font-medium text-xs sm:text-sm shadow-none cursor-not-allowed opacity-50"
+                                class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#15803D]/40 text-white font-medium text-xs sm:text-sm shadow-none cursor-not-allowed opacity-50"
                             >
                                 <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -1133,6 +1190,7 @@
                                 type="button"
                                 wire:click="openCheckout"
                                 wire:loading.attr="disabled"
+                                wire:target="openCheckout"
                                 class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#15803D] hover:bg-[#166534] text-white font-semibold text-xs sm:text-sm shadow-md transition-all duration-200 active:scale-[0.99] cursor-pointer disabled:opacity-50"
                             >
                                 <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -1153,31 +1211,31 @@
     <!-- MODAL CHECKOUT & PENGAMBILAN PESANAN        -->
     <!-- ═══════════════════════════════════════════ -->
     @if ($showCheckoutModal)
-        <div 
-            class="fixed inset-0 z-50 bg-[#26221E]/80 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-300"
+        <div
+            class="fixed inset-0 z-50 overflow-y-auto bg-[#26221E]/80 backdrop-blur-md flex items-start sm:items-center justify-center p-4 transition-opacity duration-300"
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-checkout-title"
             @keydown.escape.window="$wire.closeCheckout()"
         >
             <div
-                class="bg-[#FAF7F2] rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl relative border border-[#26221E]/10"
+                class="bg-[#FAF7F2] rounded-3xl w-full max-w-md my-auto max-h-[90dvh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative border border-[#26221E]/10"
             >
                 <!-- Tombol Tutup 'X' -->
                 <button
                     type="button"
                     wire:click="closeCheckout"
-                    class="absolute top-5 right-5 w-9 h-9 rounded-full bg-black/5 hover:bg-black/10 text-[#26221E]/60 hover:text-[#26221E] flex items-center justify-center transition-colors cursor-pointer"
+                    class="absolute top-5 right-5 w-9 h-9 rounded-full bg-black/5 hover:bg-black/10 text-[#26221E]/70 hover:text-[#26221E] flex items-center justify-center transition-colors cursor-pointer"
                     aria-label="Tutup Modal"
                 >
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
 
                 <!-- Judul Modal -->
-                <div class="mb-5">
-                    <p class="text-[#D96B43] font-bold tracking-widest text-xs uppercase mb-1 font-mono">Konfirmasi Pesanan</p>
+                <div class="mb-5 pr-8">
+                    <p class="text-[#B84E26] font-bold tracking-widest text-xs uppercase mb-1 font-mono">Konfirmasi Pesanan</p>
                     <h3 id="modal-checkout-title" class="text-[#26221E] text-2xl font-bold leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
                         Data Pengambilan
                     </h3>
@@ -1194,26 +1252,26 @@
                             @if ($startType === 'ingredients_only')
                                 Belanja Bahan Kios ({{ count($breakdown) }} jenis item)
                             @else
-                                {{ ucfirst($meatType) }} ({{ number_format($meatWeight) }} g)
+                                {{ ucfirst($meatType) }} ({{ number_format((int) ($meatWeight ?: 500)) }} g)
                             @endif
-                            @if (!empty($extraItems))
-                                <span class="text-[11px] text-[#D96B43] font-mono font-medium block">+ {{ count($extraItems) }} bahan pelengkap</span>
+                            @if ($startType !== 'ingredients_only' && !empty($extraItems))
+                                <span class="text-[11px] text-[#B84E26] font-mono font-semibold block">+ {{ count($extraItems) }} bahan pelengkap</span>
                             @endif
                         </span>
                     </div>
                     <div class="flex justify-between text-[#5A534A]">
                         <span>Total Belanja Kemasan Pasar:</span>
-                        <span class="font-bold text-[#D96B43] text-sm tabular-nums">{{ \Illuminate\Support\Number::currency($totalMarketCost, 'IDR', 'id', precision: 0) }}</span>
+                        <span class="font-bold text-[#B84E26] text-sm tabular-nums">{{ \Illuminate\Support\Number::currency($totalMarketCost, 'IDR', 'id', precision: 0) }}</span>
                     </div>
-                    <div class="flex justify-between text-[11px] text-[#5A534A]/80">
+                    <div class="flex justify-between text-[11px] text-[#5A534A]/85">
                         <span>Biaya Bahan Masuk Adonan:</span>
                         <span class="font-mono">{{ \Illuminate\Support\Number::currency($totalProportionalCost, 'IDR', 'id', precision: 0) }}</span>
                     </div>
                     <div class="pt-2 border-t border-[#26221E]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-[#5A534A]">
                         <span>Lokasi Pengambilan: <strong class="text-[#26221E] font-mono">Titik Kios 7°59'31.5"S 113°14'58.9"E</strong></span>
-                        <a href="https://www.google.com/maps/search/?api=1&query=-7.992083,113.249694" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[#8B231A] hover:text-[#D96B43] font-bold underline underline-offset-2">
+                        <a href="https://www.google.com/maps/search/?api=1&query=-7.992083,113.249694" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[#8B231A] hover:text-[#B84E26] font-bold underline underline-offset-2">
                             <span>Lihat Peta</span>
-                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         </a>
                     </div>
                 </div>
@@ -1223,34 +1281,34 @@
                     <!-- Field: Nama Lengkap -->
                     <div>
                         <label for="customerName" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
-                            Nama Lengkap <span class="text-[#D96B43]">*</span>
+                            Nama Lengkap <span class="text-[#8B231A]">*</span>
                         </label>
                         <input
                             type="text"
                             id="customerName"
                             wire:model="customerName"
                             placeholder="Contoh: Budi Santoso"
-                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/30 focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
+                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/35 focus:outline-none focus:border-[#2D4235] focus:ring-2 focus:ring-[#2D4235]/15 transition-all duration-200"
                         >
                         @error('customerName')
-                            <p class="text-[11px] text-[#D96B43] mt-1 font-semibold">{{ $message }}</p>
+                            <p class="text-[11px] text-[#8B231A] mt-1 font-semibold">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <!-- Field: Nomor WhatsApp Pembeli -->
                     <div>
                         <label for="customerPhone" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
-                            Nomor WhatsApp Pembeli <span class="text-[#D96B43]">*</span>
+                            Nomor WhatsApp Pembeli <span class="text-[#8B231A]">*</span>
                         </label>
                         <input
                             type="tel"
                             id="customerPhone"
                             wire:model="customerPhone"
                             placeholder="Contoh: 08123456789 atau 628123456789"
-                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/30 focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
+                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/35 focus:outline-none focus:border-[#2D4235] focus:ring-2 focus:ring-[#2D4235]/15 transition-all duration-200"
                         >
                         @error('customerPhone')
-                            <p class="text-[11px] text-[#D96B43] mt-1 font-semibold">{{ $message }}</p>
+                            <p class="text-[11px] text-[#8B231A] mt-1 font-semibold">{{ $message }}</p>
                         @enderror
                         <p class="text-[11px] text-[#5A534A] mt-1">
                             Pihak kios akan menghubungi nomor ini jika ada konfirmasi ketersediaan bahan.
@@ -1260,21 +1318,27 @@
                     <!-- Field: Jam Pengambilan -->
                     <div>
                         <label for="pickupTime" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
-                            Jam Pengambilan ke Pasar <span class="text-[#D96B43]">*</span>
+                            Jam Pengambilan ke Pasar <span class="text-[#8B231A]">*</span>
                         </label>
                         <input
                             type="datetime-local"
                             id="pickupTime"
                             wire:model="pickupTime"
-                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
+                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#2D4235] focus:ring-2 focus:ring-[#2D4235]/15 transition-all duration-200"
                         >
                         @error('pickupTime')
-                            <p class="text-[11px] text-[#D96B43] mt-1 font-semibold">{{ $message }}</p>
+                            <p class="text-[11px] text-[#8B231A] mt-1 font-semibold">{{ $message }}</p>
                         @enderror
                         <p class="text-[11px] text-[#5A534A] mt-1">
                             Kios buka pkl {{ sprintf('%02d.00–%02d.00 WIB', config('services.kiosk.open_hour', 4), config('services.kiosk.close_hour', 12)) }}. Pengambilan minimal 1 jam setelah pemesanan agar racikan siap giling saat Anda tiba.
                         </p>
                     </div>
+
+                    @error('calculation')
+                        <div role="alert" class="rounded-2xl bg-rose-50 border border-rose-200 text-[#8B231A] px-4 py-3 text-xs font-semibold">
+                            {{ $message }}
+                        </div>
+                    @enderror
 
                     <!-- Tombol Konfirmasi -->
                     <div class="pt-2">
@@ -1282,14 +1346,14 @@
                             type="submit"
                             wire:loading.attr="disabled"
                             wire:target="processCheckout"
-                            class="w-full py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#1DA851] text-white font-bold text-sm shadow transition-all duration-200 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                            class="w-full py-4 px-6 rounded-2xl bg-[#15803D] hover:bg-[#166534] text-white font-bold text-sm shadow transition-all duration-200 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             <svg wire:loading.remove wire:target="processCheckout" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                             </svg>
-                            <span wire:loading.remove wire:target="processCheckout">Konfirmasi & Kirim WA</span>
+                            <span wire:loading.remove wire:target="processCheckout">Konfirmasi &amp; Kirim WA</span>
                             <span wire:loading wire:target="processCheckout" class="flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
@@ -1306,31 +1370,31 @@
     <!-- MODAL SIMPAN RACIKAN RESEP SAYA             -->
     <!-- ═══════════════════════════════════════════ -->
     @if ($showSaveModal)
-        <div 
-            class="fixed inset-0 z-50 bg-[#26221E]/80 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-300"
+        <div
+            class="fixed inset-0 z-50 overflow-y-auto bg-[#26221E]/80 backdrop-blur-md flex items-start sm:items-center justify-center p-4 transition-opacity duration-300"
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-save-title"
             @keydown.escape.window="$wire.closeSaveModal()"
         >
             <div
-                class="bg-[#FAF7F2] rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl relative border border-[#26221E]/10"
+                class="bg-[#FAF7F2] rounded-3xl w-full max-w-md my-auto max-h-[90dvh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative border border-[#26221E]/10"
             >
                 <!-- Tombol Tutup 'X' -->
                 <button
                     type="button"
                     wire:click="closeSaveModal"
-                    class="absolute top-5 right-5 w-9 h-9 rounded-full bg-black/5 hover:bg-black/10 text-[#26221E]/60 hover:text-[#26221E] flex items-center justify-center transition-colors cursor-pointer"
+                    class="absolute top-5 right-5 w-9 h-9 rounded-full bg-black/5 hover:bg-black/10 text-[#26221E]/70 hover:text-[#26221E] flex items-center justify-center transition-colors cursor-pointer"
                     aria-label="Tutup Modal"
                 >
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
 
                 <!-- Judul Modal -->
-                <div class="mb-5">
-                    <p class="text-[#D96B43] font-bold tracking-widest text-xs uppercase mb-1 font-mono">Buku Resep Pribadi</p>
+                <div class="mb-5 pr-8">
+                    <p class="text-[#B84E26] font-bold tracking-widest text-xs uppercase mb-1 font-mono">Buku Resep Pribadi</p>
                     <h3 id="modal-save-title" class="text-[#26221E] text-2xl font-bold leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
                         Simpan Racikan
                     </h3>
@@ -1343,29 +1407,35 @@
                 <form wire:submit.prevent="saveRecipe" class="space-y-4">
                     <div>
                         <label for="recipeName" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
-                            Nama Racikan <span class="text-[#D96B43]">*</span>
+                            Nama Racikan <span class="text-[#8B231A]">*</span>
                         </label>
                         <input
                             type="text"
                             id="recipeName"
                             wire:model="recipeName"
                             placeholder="Contoh: Bakso Urat Spesial Lebaran"
-                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/30 focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
+                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/35 focus:outline-none focus:border-[#2D4235] focus:ring-2 focus:ring-[#2D4235]/15 transition-all duration-200"
                         >
                         @error('recipeName')
-                            <p class="text-[11px] text-[#D96B43] mt-1 font-semibold">{{ $message }}</p>
+                            <p class="text-[11px] text-[#8B231A] mt-1 font-semibold">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <!-- Ringkasan Takaran -->
                     <div class="p-4 rounded-2xl bg-white border border-[#26221E]/10 text-xs space-y-1 shadow-xs">
-                        <div class="flex justify-between text-[#5A534A]">
-                            <span>Karakter & Bahan:</span>
-                            <span class="font-bold text-[#26221E]">{{ ucfirst($meatType) }} &bull; {{ ucfirst($preference) }} ({{ number_format($meatWeight) }}g)</span>
+                        <div class="flex justify-between text-[#5A534A] gap-2">
+                            <span>Karakter &amp; Bahan:</span>
+                            <span class="font-bold text-[#26221E] text-right">
+                                @if ($startType === 'ingredients_only')
+                                    Belanja Bahan Kios ({{ count($breakdown) }} jenis item)
+                                @else
+                                    {{ ucfirst($meatType) }} &bull; {{ $preference === 'kustom' ? 'Kustom ' . ($customFlourRatio ?: 20) . '%' : ucfirst($preference) }} ({{ number_format((int) ($meatWeight ?: 500)) }}g)
+                                @endif
+                            </span>
                         </div>
                         <div class="flex justify-between text-[#5A534A]">
                             <span>Estimasi Nilai Bahan:</span>
-                            <span class="font-bold text-[#D96B43] tabular-nums">{{ \Illuminate\Support\Number::currency($totalProportionalCost, 'IDR', 'id', precision: 0) }}</span>
+                            <span class="font-bold text-[#B84E26] tabular-nums">{{ \Illuminate\Support\Number::currency($totalProportionalCost, 'IDR', 'id', precision: 0) }}</span>
                         </div>
                     </div>
 
@@ -1381,11 +1451,11 @@
                             type="submit"
                             wire:loading.attr="disabled"
                             wire:target="saveRecipe"
-                            class="px-6 py-2.5 rounded-xl bg-[#D96B43] hover:bg-[#C25932] text-white font-bold text-xs shadow transition-all active:scale-[0.99] cursor-pointer flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                            class="px-6 py-2.5 rounded-xl bg-[#B84E26] hover:bg-[#9E3F1C] text-white font-bold text-xs shadow transition-all active:scale-[0.99] cursor-pointer flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             <span wire:loading.remove wire:target="saveRecipe">Simpan ke Resep Saya</span>
                             <span wire:loading wire:target="saveRecipe" class="flex items-center gap-1.5">
-                                <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                                <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>

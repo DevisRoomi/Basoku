@@ -126,17 +126,25 @@ class ManageOrders extends Component
     }
 
     /**
-     * Ekspor data pesanan ke file CSV native stream untuk pembukuan kas.
+     * Netralkan sel CSV dari potensi Excel/Calc Formula Injection (=, +, -, @, tab, CR).
+     */
+    protected function sanitizeCsvCell(mixed $value): string
+    {
+        $text = (string) ($value ?? '');
+        if ($text !== '' && preg_match('/^[=+\-@\t\r]/', $text) === 1) {
+            return "'".$text;
+        }
+
+        return $text;
+    }
+
+    /**
+     * Ekspor data pesanan ke file CSV native stream secara hemat memori (lazy chunking & anti-formula-injection).
      */
     public function exportCsv()
     {
         $fileName = 'rekap-pesanan-basoku-'.now()->format('Y-m-d-His').'.csv';
-
-        $query = Order::with('orderItems.material')->orderBy('created_at', 'desc');
-        if ($this->statusFilter !== 'all') {
-            $query->whereIn('status', self::STATUS_ALIASES[$this->statusFilter] ?? [$this->statusFilter]);
-        }
-        $orders = $query->get();
+        $statusFilter = $this->statusFilter;
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -146,7 +154,7 @@ class ManageOrders extends Component
             'Expires' => '0',
         ];
 
-        return response()->stream(function () use ($orders) {
+        return response()->stream(function () use ($statusFilter) {
             $handle = fopen('php://output', 'w');
 
             // BOM UTF-8 agar Excel mengenali encoding secara otomatis
@@ -168,22 +176,37 @@ class ManageOrders extends Component
                 'Jadwal Pickup (WIB)',
             ]);
 
-            foreach ($orders as $order) {
+            $query = Order::with('orderItems.material')->orderBy('created_at', 'desc');
+            if ($statusFilter !== 'all') {
+                $query->whereIn('status', self::STATUS_ALIASES[$statusFilter] ?? [$statusFilter]);
+            }
+
+            foreach ($query->lazy(200) as $order) {
                 $flourWeight = (int) round($order->orderItems
                     ->filter(fn ($item) => ($item->material?->category === 'tepung') || str_contains(strtolower((string) $item->material_name), 'tepung'))
-                    ->sum('quantity'));
+                    ->sum(function ($item) {
+                        $unit = strtolower((string) $item->unit);
+                        if ($unit === 'gram' || $unit === 'g') {
+                            return (float) $item->quantity;
+                        }
+                        $pkgWeight = $item->material ? $item->material->effectivePackageWeight(500.0) : 500.0;
+
+                        return (float) $item->quantity * $pkgWeight;
+                    }));
+
+                $phoneCell = $order->customer_phone ? $this->sanitizeCsvCell($order->customer_phone) : '-';
 
                 fputcsv($handle, [
                     '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
                     $order->created_at ? $order->created_at->format('Y-m-d H:i') : '-',
-                    $order->customer_name,
-                    $order->customer_phone ?? '-',
+                    $this->sanitizeCsvCell($order->customer_name),
+                    $phoneCell,
                     match ($order->start_type) {
                         'start_from_zero' => 'Bahan Lengkap Toko',
                         'ingredients_only' => 'Beli Bahan Saja',
                         default => 'Bawa Daging Sendiri',
                     },
-                    $order->start_type === 'ingredients_only' ? '-' : ucfirst(str_replace('_', ' ', $order->preference)),
+                    $order->start_type === 'ingredients_only' ? '-' : $this->sanitizeCsvCell(ucfirst(str_replace('_', ' ', (string) $order->preference))),
                     $order->start_type === 'ingredients_only' ? '0' : (int) $order->meat_weight,
                     $flourWeight,
                     (int) $order->grinding_fee,
@@ -193,7 +216,7 @@ class ManageOrders extends Component
                         'processing' => 'Sedang Diproses',
                         'completed' => 'Selesai',
                         'cancelled' => 'Dibatalkan',
-                        default => $order->status,
+                        default => $this->sanitizeCsvCell($order->status),
                     },
                     $order->pickup_at ? Carbon::parse($order->pickup_at)->format('Y-m-d H:i') : '-',
                 ]);
@@ -249,7 +272,7 @@ class ManageOrders extends Component
 
     public function render()
     {
-        $query = Order::with('orderItems')->orderBy('created_at', 'desc');
+        $query = Order::query()->with('user:id')->orderBy('created_at', 'desc');
 
         if ($this->statusFilter !== 'all') {
             $query->whereIn('status', self::STATUS_ALIASES[$this->statusFilter] ?? [$this->statusFilter]);

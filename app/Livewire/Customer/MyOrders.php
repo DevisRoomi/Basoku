@@ -46,7 +46,7 @@ class MyOrders extends Component
                 'pending' => ['pending', 'menunggu'],
                 'processing' => ['processing', 'diproses'],
                 'completed' => ['completed', 'selesai'],
-                'cancelled' => ['cancelled', 'batal'],
+                'cancelled' => ['cancelled', 'batal', 'dibatalkan'],
             ];
             $query->whereIn('status', $statusMap[$this->statusFilter] ?? [$this->statusFilter]);
         }

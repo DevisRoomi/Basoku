@@ -35,28 +35,35 @@ class Register extends Component
             return;
         }
 
+        $this->name = trim($this->name);
+        $this->email = strtolower(trim($this->email));
+
         $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'name' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'string', 'email', 'max:150', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'max:72', 'confirmed'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
+            'name.max' => 'Nama lengkap maksimal 100 karakter.',
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
+            'email.max' => 'Alamat email maksimal 150 karakter.',
             'email.unique' => 'Email ini sudah terdaftar. Silakan masuk.',
             'password.required' => 'Kata sandi wajib diisi.',
             'password.min' => 'Kata sandi minimal 8 karakter.',
+            'password.max' => 'Kata sandi maksimal 72 karakter.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
         ]);
 
         RateLimiter::hit($throttleKey, 300);
 
-        $user = User::create([
-            'name' => trim($this->name),
-            'email' => strtolower(trim($this->email)),
+        $user = new User([
+            'name' => $this->name,
+            'email' => $this->email,
             'password' => Hash::make($this->password),
-            'role' => 'customer',
         ]);
+        $user->role = 'customer';
+        $user->save();
 
         Auth::login($user);
         session()->regenerate();

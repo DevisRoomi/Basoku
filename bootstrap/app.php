@@ -13,6 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        if ($trustedProxies = env('TRUSTED_PROXIES')) {
+            $middleware->trustProxies(
+                at: $trustedProxies === '*'
+                    ? '*'
+                    : array_map('trim', explode(',', (string) $trustedProxies))
+            );
+        }
+
         $middleware->alias([
             'admin' => EnsureAdmin::class,
         ]);

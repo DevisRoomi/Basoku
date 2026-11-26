@@ -6,6 +6,7 @@ use App\Models\RecipeFormula;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -16,8 +17,10 @@ class ManageRecipes extends Component
     // State Modal Edit
     public bool $showModal = false;
 
+    #[Locked]
     public ?int $recipeId = null;
 
+    #[Locked]
     public string $code = '';
 
     public string $name = '';

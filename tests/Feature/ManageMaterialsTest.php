@@ -237,4 +237,39 @@ class ManageMaterialsTest extends TestCase
             'price' => 2750.50,
         ]);
     }
+
+    public function test_indonesian_thousands_separator_and_direct_price_edit_syncs_package_price(): void
+    {
+        $tapioka = Material::where('name', 'Tepung Tapioka')->firstOrFail();
+
+        // 1. Input ribuan Indonesia "10.000" untuk 500g => 10000.0 & Rp 20/g (bukan Rp 10!)
+        Livewire::actingAs($this->admin)
+            ->test(ManageMaterials::class)
+            ->call('openEditModal', $tapioka->id)
+            ->set('package_price', '10.000')
+            ->assertSet('price', 20.0)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('materials', [
+            'id' => $tapioka->id,
+            'package_price' => 10000.00,
+            'price' => 20.00,
+        ]);
+
+        // 2. Edit langsung harga dasar daging (Rp 150/g) otomatis menyinkronkan package_price (Rp 150.000/kg)
+        $beef = Material::where('name', 'Daging Sapi')->firstOrFail();
+        Livewire::actingAs($this->admin)
+            ->test(ManageMaterials::class)
+            ->call('openEditModal', $beef->id)
+            ->set('price', 150)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('materials', [
+            'id' => $beef->id,
+            'price' => 150.00,
+            'package_price' => 150000.00,
+        ]);
+    }
 }

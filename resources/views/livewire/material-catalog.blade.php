@@ -30,20 +30,23 @@
             <!-- Search Bar & Category Filter Pills -->
             <div class="mt-8 space-y-4">
                 <div class="relative max-w-md mx-auto">
+                    <label for="catalog-search-input" class="sr-only">Cari bahan baku pasar</label>
                     <input
+                        id="catalog-search-input"
                         type="text"
                         wire:model.live.debounce.300ms="search"
                         placeholder="Cari bahan (misal: Sapi, Tapioka, Sobaso)..."
                         class="w-full px-5 py-3 pl-11 rounded-2xl bg-[#FAF7F2] border border-[#26221E]/15 text-sm text-[#26221E] placeholder-[#5A534A]/60 focus:outline-hidden focus:border-[#2D4235] focus:ring-1 focus:ring-[#2D4235] shadow-xs font-medium"
                     />
-                    <svg class="w-5 h-5 absolute left-3.5 top-3.5 text-[#5A534A]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-5 h-5 absolute left-3.5 top-3.5 text-[#5A534A]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                     @if (!empty($search))
                         <button
                             type="button"
                             wire:click="$set('search', '')"
-                            class="absolute right-3.5 top-3 text-xs text-[#5A534A] hover:text-[#26221E] px-2 py-1 rounded bg-[#EAE3D5]"
+                            aria-label="Hapus pencarian bahan"
+                            class="absolute right-3.5 top-3 text-xs text-[#5A534A] hover:text-[#26221E] px-2 py-1 rounded bg-[#EAE3D5] cursor-pointer"
                         >
                             ✕
                         </button>
@@ -108,7 +111,7 @@
                     };
                 @endphp
 
-                <div class="space-y-6">
+                <div wire:key="catalog-group-{{ $catLower }}" class="space-y-6">
                     
                     <!-- Category Header Bar (Pure Editorial Header) -->
                     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-4 border-b border-[#26221E]/15">
@@ -140,29 +143,29 @@
                                 }
 
                                 $hasPackage = !empty($material->package_weight) && (float) $material->package_weight > 0 && !empty($material->package_unit);
-                                $packagePrice = (float) ($material->package_price > 0 ? $material->package_price : (strtolower($material->unit) === 'kg' ? $material->price * 1000 : $material->price));
+                                $packagePrice = $material->effectivePackagePrice();
 
                                 // Format harga utama kemasan pasar (retail)
                                 $mainPriceFormatted = 'Rp ' . number_format($packagePrice, 0, ',', '.');
 
-                                $pkgUnitLower = strtolower($material->package_unit ?? $material->unit);
+                                $pkgUnitLower = strtolower($material->effectivePackageUnit());
                                 if ($pkgUnitLower === 'kg') {
                                     $mainUnitLabel = '/ kg';
                                 } elseif (in_array($pkgUnitLower, ['pack', 'bks', 'bungkus'])) {
-                                    $mainUnitLabel = '/ pack (' . number_format($material->package_weight, 0, ',', '.') . ' g)';
+                                    $mainUnitLabel = '/ pack (' . number_format($material->effectivePackageWeight(), 0, ',', '.') . ' g)';
                                 } elseif ($pkgUnitLower === 'sachet') {
-                                    $mainUnitLabel = '/ sachet (' . number_format($material->package_weight, 0, ',', '.') . ' g)';
+                                    $mainUnitLabel = '/ sachet (' . number_format($material->effectivePackageWeight(), 0, ',', '.') . ' g)';
                                 } elseif ($pkgUnitLower === 'butir') {
                                     $mainUnitLabel = '/ butir';
                                 } else {
-                                    $mainUnitLabel = '/ ' . ($material->package_unit ?? $material->unit);
+                                    $mainUnitLabel = '/ ' . $material->effectivePackageUnit();
                                 }
 
                                 // Badge harga dasar per gram atau per butir/sachet sesuai mode jual
                                 if ($material->isUnitBased() || $pkgUnitLower === 'butir' || $pkgUnitLower === 'sachet') {
                                     $baseBadge = 'Rp ' . number_format($packagePrice, 0, ',', '.') . ' / ' . $pkgUnitLower;
                                 } else {
-                                    $baseBadge = 'Rp ' . number_format($material->price, 0, ',', '.') . ' / g';
+                                    $baseBadge = 'Rp ' . number_format($material->effectivePricePerGram(), 0, ',', '.') . ' / g';
                                 }
 
                                 $sellingModeBadgeClass = match ($material->selling_mode ?? 'kemasan') {
@@ -174,7 +177,7 @@
                                 $currentQty = $selectedItems[$material->id] ?? 0;
                             @endphp
 
-                            <div class="bg-[#FAF7F2] border border-[#26221E]/12 hover:border-[#2D4235]/40 rounded-2xl p-5 flex flex-col justify-between gap-4 shadow-xs hover:shadow-md transition-all duration-200 group">
+                            <div wire:key="material-card-{{ $material->id }}" class="bg-[#FAF7F2] border border-[#26221E]/12 hover:border-[#2D4235]/40 rounded-2xl p-5 flex flex-col justify-between gap-4 shadow-xs hover:shadow-md transition-all duration-200 group">
                                 <!-- Top & Middle: Monogram, Full-Width Title, Selling Mode Pill, Clean Spec -->
                                 <div class="space-y-3">
                                     <div class="flex items-start justify-between gap-3">
@@ -342,7 +345,7 @@
     @if ($totalSelectedPacks > 0)
         <aside
             aria-label="Keranjang Belanja Bahan"
-            class="fixed bottom-20 sm:bottom-5 inset-x-4 sm:inset-x-auto sm:right-24 sm:max-w-xl z-40 bg-[#26221E] text-[#F4EFE6] px-5 py-4 rounded-3xl shadow-2xl border border-[#D96B43]/30 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in slide-in-from-bottom duration-300"
+            class="fixed bottom-20 sm:bottom-5 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto sm:max-w-xl z-40 bg-[#26221E] text-[#F4EFE6] px-5 py-4 rounded-3xl shadow-2xl border border-[#D96B43]/30 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all duration-200"
         >
             <div class="flex items-center gap-3 w-full sm:w-auto">
                 <div class="w-10 h-10 rounded-2xl bg-[#B84E26] text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
@@ -392,25 +395,31 @@
     <!-- DIRECT CHECKOUT MODAL (Beli Bahan Tanpa Daging/Kalkulator)     -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
     @if ($showDirectCheckoutModal)
-        <div class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div
+            class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-start sm:items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="direct-checkout-title"
+            x-on:keydown.escape.window="$wire.closeDirectCheckout()"
+        >
             <div
-                class="bg-[#FAF7F2] rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-[#26221E]/15 shadow-2xl relative text-[#26221E] animate-in zoom-in-95 duration-200"
-                x-on:keydown.escape.window="$wire.closeDirectCheckout()"
+                class="bg-[#FAF7F2] rounded-3xl max-w-lg w-full my-auto max-h-[90dvh] overflow-y-auto p-6 sm:p-8 border border-[#26221E]/15 shadow-2xl relative text-[#26221E]"
             >
                 <!-- Modal Close -->
                 <button
                     type="button"
                     wire:click="closeDirectCheckout"
-                    class="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#EAE3D5] text-[#26221E] hover:bg-[#D96B43] hover:text-white flex items-center justify-center font-bold text-sm transition-colors"
+                    aria-label="Tutup modal konfirmasi pesanan bahan"
+                    class="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#EAE3D5] text-[#26221E] hover:bg-[#B84E26] hover:text-white flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
                 >
                     ✕
                 </button>
 
-                <div class="text-left space-y-2">
-                    <span class="text-[11px] font-mono uppercase tracking-wider text-[#D96B43] bg-[#EAE3D5]/60 px-3 py-1 rounded-full border border-[#26221E]/10">
+                <div class="text-left space-y-2 pr-8">
+                    <span class="text-[11px] font-mono uppercase tracking-wider text-[#B84E26] bg-[#EAE3D5]/60 px-3 py-1 rounded-full border border-[#26221E]/10 font-bold">
                         Checkout Belanja Kios
                     </span>
-                    <h3 class="text-2xl font-bold tracking-tight" style="font-family: 'Playfair Display', Georgia, serif;">
+                    <h3 id="direct-checkout-title" class="text-2xl font-bold tracking-tight" style="font-family: 'Playfair Display', Georgia, serif;">
                         Konfirmasi Pesanan Bahan
                     </h3>
                     <p class="text-xs text-[#5A534A]">
@@ -421,40 +430,43 @@
                 <!-- Form Fields -->
                 <form wire:submit.prevent="processDirectCheckout" class="mt-6 space-y-4">
                     <div>
-                        <label class="block text-xs font-mono font-bold uppercase text-[#5A534A] mb-1">
+                        <label for="catalog-customer-name" class="block text-xs font-mono font-bold uppercase text-[#5A534A] mb-1">
                             Nama Lengkap Pemesan *
                         </label>
                         <input
+                            id="catalog-customer-name"
                             type="text"
                             wire:model="customerName"
                             placeholder="Contoh: Pak Budi"
                             class="w-full px-4 py-2.5 rounded-xl bg-white border border-[#26221E]/20 text-sm focus:outline-hidden focus:border-[#2D4235]"
                         />
                         @error('customerName')
-                            <p class="text-xs text-[#D96B43] mt-1">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-[#8B231A] mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-mono font-bold uppercase text-[#5A534A] mb-1">
+                        <label for="catalog-customer-phone" class="block text-xs font-mono font-bold uppercase text-[#5A534A] mb-1">
                             Nomor WhatsApp Pemesan *
                         </label>
                         <input
+                            id="catalog-customer-phone"
                             type="tel"
                             wire:model="customerPhone"
                             placeholder="08123456789 atau 628123456789"
                             class="w-full px-4 py-2.5 rounded-xl bg-white border border-[#26221E]/20 text-sm focus:outline-hidden focus:border-[#2D4235]"
                         />
                         @error('customerPhone')
-                            <p class="text-xs text-[#D96B43] mt-1">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-[#8B231A] mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-mono font-bold uppercase text-[#5A534A] mb-1">
+                        <label for="catalog-pickup-time" class="block text-xs font-mono font-bold uppercase text-[#5A534A] mb-1">
                             Jadwal Pengambilan di Kios *
                         </label>
                         <input
+                            id="catalog-pickup-time"
                             type="datetime-local"
                             wire:model="pickupTime"
                             class="w-full px-4 py-2.5 rounded-xl bg-white border border-[#26221E]/20 text-sm focus:outline-hidden focus:border-[#2D4235]"
@@ -463,7 +475,7 @@
                             Jam operasional: {{ sprintf('%02d.00 – %02d.00 WIB', config('services.kiosk.open_hour', 4), config('services.kiosk.close_hour', 12)) }} (min. 1 jam dari pemesanan).
                         </p>
                         @error('pickupTime')
-                            <p class="text-xs text-[#D96B43] mt-1">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-[#8B231A] mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -475,12 +487,12 @@
                         </div>
                         <div class="flex justify-between text-sm font-bold border-t border-[#26221E]/10 pt-2 text-[#26221E]">
                             <span>Total Pembayaran Kios:</span>
-                            <span class="font-mono text-[#D96B43]">Rp {{ number_format($totalSelectedCost, 0, ',', '.') }}</span>
+                            <span class="font-mono text-[#B84E26]">Rp {{ number_format($totalSelectedCost, 0, ',', '.') }}</span>
                         </div>
                     </div>
 
                     @error('cart')
-                        <p class="text-xs text-[#D96B43] text-center">{{ $message }}</p>
+                        <p class="text-xs font-semibold text-[#8B231A] text-center">{{ $message }}</p>
                     @enderror
 
                     <!-- Action Buttons -->
@@ -488,18 +500,19 @@
                         <button
                             type="button"
                             wire:click="closeDirectCheckout"
-                            class="px-5 py-2.5 rounded-full border border-[#26221E]/20 text-xs font-semibold text-[#5A534A] hover:bg-[#EAE3D5]"
+                            class="px-5 py-2.5 rounded-full border border-[#26221E]/20 text-xs font-semibold text-[#5A534A] hover:bg-[#EAE3D5] cursor-pointer"
                         >
                             Batal
                         </button>
                         <button
                             type="submit"
                             wire:loading.attr="disabled"
-                            class="px-6 py-2.5 rounded-full bg-[#2D4235] hover:bg-[#1F3025] text-white text-xs font-bold shadow-md transition-all active:scale-95 flex items-center gap-2"
+                            wire:target="processDirectCheckout"
+                            class="px-6 py-2.5 rounded-full bg-[#2D4235] hover:bg-[#1F3025] text-white text-xs font-bold shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
                         >
-                            <span wire:loading.remove>Lanjutkan ke WhatsApp</span>
-                            <span wire:loading>Memproses...</span>
-                            <svg class="w-4 h-4 text-[#D8E0D3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <span wire:loading.remove wire:target="processDirectCheckout">Lanjutkan ke WhatsApp</span>
+                            <span wire:loading wire:target="processDirectCheckout">Memproses...</span>
+                            <svg class="w-4 h-4 text-[#D8E0D3]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                             </svg>
                         </button>
@@ -508,3 +521,4 @@
             </div>
         </div>
     @endif
+</section>

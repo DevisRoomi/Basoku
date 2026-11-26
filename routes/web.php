@@ -10,6 +10,7 @@ Route::get('/', function () {
 Route::view('/sejarah-bakso', 'bakso-history')->name('bakso.history');
 Route::view('/kalkulator', 'calculator-page')->name('calculator');
 Route::view('/daftar-harga', 'catalog-page')->name('catalog');
+Route::redirect('/katalog', '/daftar-harga', 301);
 Route::get('/lacak-pesanan', TrackOrder::class)->name('orders.track');
 
 // Rute Terpisah (Auth, Customer, Admin)

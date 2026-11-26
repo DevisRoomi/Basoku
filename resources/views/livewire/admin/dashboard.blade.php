@@ -2,7 +2,7 @@
     <!-- Top Bar -->
     <header class="bg-[#FAF7F2]/90 backdrop-blur-md border-b border-[#26221E]/10 px-6 sm:px-8 py-4 flex items-center justify-between shrink-0 sticky top-0 z-20">
         <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-[#D96B43]">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#B84E26]">
                 Panel Pengelola Pasar
             </span>
             <h1 class="text-lg sm:text-2xl font-bold text-[#26221E]" style="font-family: 'Playfair Display', Georgia, serif;">
@@ -99,37 +99,27 @@
                 </div>
             </div>
 
-            <!-- Kartu 3: Preferensi Terfavorit -->
-            <div class="bg-[#FAF7F2] rounded-3xl p-6 border border-[#26221E]/10 shadow-sm relative overflow-hidden group hover:border-[#D96B43]/30 transition-all">
+            <!-- Kartu 3: Preferensi Terfavorit (Dinamis Mencakup Kustom, Bahan Saja, Urat & Preset) -->
+            <div class="bg-[#FAF7F2] rounded-3xl p-6 border border-[#26221E]/10 shadow-sm relative overflow-hidden group hover:border-[#B84E26]/30 transition-all">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-[#5A534A] uppercase tracking-wider">Resep Terpopuler</span>
-                    <span class="w-9 h-9 rounded-xl bg-[#D96B43]/10 text-[#D96B43] flex items-center justify-center">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <span class="w-9 h-9 rounded-xl bg-[#B84E26]/10 text-[#B84E26] flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                         </svg>
                     </span>
                 </div>
                 <div class="mt-4">
-                    @php
-                        $topPref = 'Seimbang';
-                        $maxCount = $seimbangCount;
-                        if ($enakCount > $maxCount) {
-                            $topPref = 'Enak';
-                            $maxCount = $enakCount;
-                        }
-                        if ($ekonomisCount > $maxCount) {
-                            $topPref = 'Ekonomis';
-                            $maxCount = $ekonomisCount;
-                        }
-                    @endphp
-                    <p class="text-2xl sm:text-3xl font-extrabold text-[#D96B43] font-sans tracking-tight">
-                        {{ $totalPreferences > 0 ? $topPref : 'Belum Ada' }}
+                    <p class="text-2xl sm:text-3xl font-extrabold text-[#B84E26] font-sans tracking-tight">
+                        {{ $totalPreferences > 0 ? $topPreference['label'] : 'Belum Ada' }}
                     </p>
                     <div class="flex items-center gap-1.5 mt-2 text-xs font-medium text-[#5A534A]">
-                        <span>Dominasi: {{ $preferencePercentages[strtolower($topPref)] ?? 0 }}% dari racikan</span>
+                        <span>Dominasi: {{ $topPreference['percentage'] }}% dari racikan</span>
                     </div>
-                    <p class="text-[11px] text-[#5A534A]/80 mt-1">
-                        {{ $enakCount }} Enak • {{ $seimbangCount }} Seimbang • {{ $ekonomisCount }} Ekonomis
+                    <p class="text-[11px] text-[#5A534A]/85 mt-1">
+                        {{ $enakCount }} Enak &bull; {{ $seimbangCount }} Seimbang &bull; {{ $ekonomisCount }} Ekonomis
+                        @if ($kustomCount > 0) &bull; {{ $kustomCount }} Kustom @endif
+                        @if ($katalogCount > 0) &bull; {{ $katalogCount }} Bahan @endif
                     </p>
                 </div>
             </div>
@@ -168,17 +158,17 @@
                 <div>
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-[#D96B43]">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-[#B84E26]">
                                 Distribusi Resep
                             </span>
                             <h3 class="text-lg sm:text-xl font-bold text-[#26221E]" style="font-family: 'Playfair Display', Georgia, serif;">
                                 Karakter Adonan Pilihan
                             </h3>
                             <p class="text-xs text-[#5A534A] mt-1">
-                                Perbandingan pilihan racikan Enak, Seimbang, dan Ekonomis dari pelanggan.
+                                Perbandingan pilihan racikan Enak, Seimbang, Ekonomis, Kustom, dan Bahan Saja.
                             </p>
                         </div>
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#D96B43]/10 text-[#D96B43] border border-[#D96B43]/20 shrink-0">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#B84E26]/10 text-[#B84E26] border border-[#B84E26]/20 shrink-0">
                             {{ $totalPreferences }} Racikan
                         </span>
                     </div>
@@ -189,32 +179,18 @@
                     </div>
                 </div>
 
-                <!-- Legenda & Rincian Proporsi -->
-                <div class="grid grid-cols-3 gap-2 pt-6 mt-4 border-t border-[#26221E]/10 text-center">
-                    <div class="p-2.5 rounded-2xl bg-white/60 border border-[#26221E]/5">
-                        <div class="flex items-center justify-center gap-1.5 mb-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#8B231A]"></span>
-                            <span class="text-[11px] font-bold text-[#26221E]">Enak</span>
+                <!-- Legenda & Rincian Proporsi Dinamis -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-6 mt-4 border-t border-[#26221E]/10 text-center">
+                    @foreach ($preferenceLegendItems as $legendItem)
+                        <div wire:key="pref-legend-{{ $legendItem['key'] }}" class="p-2.5 rounded-2xl bg-white/60 border border-[#26221E]/5">
+                            <div class="flex items-center justify-center gap-1.5 mb-1">
+                                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ $legendItem['color'] }};"></span>
+                                <span class="text-[11px] font-bold text-[#26221E] truncate">{{ $legendItem['label'] }}</span>
+                            </div>
+                            <p class="text-sm font-extrabold font-sans tabular-nums" style="color: {{ $legendItem['color'] }};">{{ $legendItem['count'] }}</p>
+                            <p class="text-[10px] text-[#5A534A]">{{ $legendItem['pct'] }}%</p>
                         </div>
-                        <p class="text-sm font-extrabold text-[#8B231A] font-sans tabular-nums">{{ $enakCount }}</p>
-                        <p class="text-[10px] text-[#5A534A]">{{ $preferencePercentages['enak'] }}%</p>
-                    </div>
-                    <div class="p-2.5 rounded-2xl bg-white/60 border border-[#26221E]/5">
-                        <div class="flex items-center justify-center gap-1.5 mb-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#2D4235]"></span>
-                            <span class="text-[11px] font-bold text-[#26221E]">Seimbang</span>
-                        </div>
-                        <p class="text-sm font-extrabold text-[#2D4235] font-sans tabular-nums">{{ $seimbangCount }}</p>
-                        <p class="text-[10px] text-[#5A534A]">{{ $preferencePercentages['seimbang'] }}%</p>
-                    </div>
-                    <div class="p-2.5 rounded-2xl bg-white/60 border border-[#26221E]/5">
-                        <div class="flex items-center justify-center gap-1.5 mb-1">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#D96B43]"></span>
-                            <span class="text-[11px] font-bold text-[#26221E]">Ekonomis</span>
-                        </div>
-                        <p class="text-sm font-extrabold text-[#D96B43] font-sans tabular-nums">{{ $ekonomisCount }}</p>
-                        <p class="text-[10px] text-[#5A534A]">{{ $preferencePercentages['ekonomis'] }}%</p>
-                    </div>
+                    @endforeach
                 </div>
             </div>
 
@@ -317,7 +293,7 @@
                     </thead>
                     <tbody class="divide-y divide-[#26221E]/5 text-xs font-medium text-[#26221E]">
                         @forelse ($recentOrders as $order)
-                            <tr class="hover:bg-white/60 transition-colors">
+                            <tr wire:key="dashboard-recent-order-{{ $order->id }}" class="hover:bg-white/60 transition-colors">
                                 <!-- ID & Waktu -->
                                 <td class="py-4 px-6 whitespace-nowrap">
                                     <span class="font-extrabold font-mono text-[#26221E]">
@@ -336,7 +312,7 @@
                                 <!-- Karakter Resep -->
                                 <td class="py-4 px-6 whitespace-nowrap">
                                     @php
-                                        $prefLower = strtolower($order->preference);
+                                        $prefLower = strtolower(trim((string) $order->preference));
                                     @endphp
                                     @if ($prefLower === 'enak')
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#8B231A]/10 text-[#8B231A] border border-[#8B231A]/20">
@@ -347,12 +323,20 @@
                                             Seimbang
                                         </span>
                                     @elseif ($prefLower === 'ekonomis')
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#D96B43]/10 text-[#D96B43] border border-[#D96B43]/20">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#B84E26]/10 text-[#B84E26] border border-[#B84E26]/20">
                                             Ekonomis
+                                        </span>
+                                    @elseif ($prefLower === 'kustom')
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-900 border border-indigo-200">
+                                            Kustom
+                                        </span>
+                                    @elseif (in_array($prefLower, ['bahan_saja', 'belanja_katalog'], true))
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-900 border border-emerald-200">
+                                            Bahan Saja
                                         </span>
                                     @else
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#26221E]/10 text-[#26221E]">
-                                            {{ ucfirst($order->preference) }}
+                                            {{ ucfirst(str_replace('_', ' ', $order->preference)) }}
                                         </span>
                                     @endif
                                 </td>
@@ -373,18 +357,18 @@
                                 <!-- Status -->
                                 <td class="py-4 px-6 text-center whitespace-nowrap">
                                     @php
-                                        $statusClass = match(strtolower($order->status)) {
+                                        $statusClass = match(strtolower(trim((string) $order->status))) {
                                             'completed', 'selesai' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
                                             'processing', 'diproses' => 'bg-blue-50 text-blue-800 border-blue-200',
                                             'pending', 'menunggu' => 'bg-amber-50 text-amber-800 border-amber-200',
-                                            'cancelled', 'batal' => 'bg-rose-50 text-rose-800 border-rose-200',
+                                            'cancelled', 'batal', 'dibatalkan' => 'bg-rose-50 text-rose-800 border-rose-200',
                                             default => 'bg-stone-50 text-stone-800 border-stone-200',
                                         };
-                                        $statusLabel = match(strtolower($order->status)) {
+                                        $statusLabel = match(strtolower(trim((string) $order->status))) {
                                             'completed', 'selesai' => 'Selesai',
                                             'processing', 'diproses' => 'Diproses',
                                             'pending', 'menunggu' => 'Menunggu',
-                                            'cancelled', 'batal' => 'Dibatalkan',
+                                            'cancelled', 'batal', 'dibatalkan' => 'Dibatalkan',
                                             default => ucfirst($order->status),
                                         };
                                     @endphp
@@ -415,24 +399,24 @@
             <a
                 href="{{ route('admin.materials') }}"
                 wire:navigate
-                class="bg-[#FAF7F2] rounded-3xl p-6 border border-[#26221E]/10 shadow-sm hover:border-[#D96B43]/50 transition-all flex items-center justify-between group cursor-pointer"
+                class="bg-[#FAF7F2] rounded-3xl p-6 border border-[#26221E]/10 shadow-sm hover:border-[#B84E26]/50 transition-all flex items-center justify-between group cursor-pointer"
             >
                 <div class="flex items-center gap-4">
-                    <span class="w-12 h-12 rounded-2xl bg-[#D96B43]/10 text-[#D96B43] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <span class="w-12 h-12 rounded-2xl bg-[#B84E26]/10 text-[#B84E26] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </span>
                     <div>
-                        <h4 class="text-base font-bold text-[#26221E] group-hover:text-[#D96B43] transition-colors" style="font-family: 'Playfair Display', Georgia, serif;">
-                            Katalog Harga Bahan & Selepan
+                        <h4 class="text-base font-bold text-[#26221E] group-hover:text-[#B84E26] transition-colors" style="font-family: 'Playfair Display', Georgia, serif;">
+                            Katalog Harga Bahan &amp; Selepan
                         </h4>
                         <p class="text-xs text-[#5A534A] mt-0.5">
                             Perbarui harga daging sapi, ayam, tepung aren, dan ongkos selepan pasar.
                         </p>
                     </div>
                 </div>
-                <span class="text-[#D96B43] text-lg font-bold group-hover:translate-x-1 transition-transform">
+                <span class="text-[#B84E26] text-lg font-bold group-hover:translate-x-1 transition-transform">
                     &rarr;
                 </span>
             </a>
@@ -465,23 +449,37 @@
         </div>
     </div>
 
-    <!-- Script Inisialisasi Chart.js -->
+    <!-- Script Inisialisasi Chart.js (Anti Listener-Leak & Bounded Retry) -->
     <script>
         (function() {
-            const chartData = {
+            window.__basokuDashboardChartData = {
                 preference: @json($preferenceChart),
                 status: @json($statusChart)
             };
 
-            function initBasokuCharts() {
-                if (typeof Chart === 'undefined') {
-                    console.warn('Chart.js belum dimuat. Mencoba kembali dalam 100ms...');
-                    setTimeout(initBasokuCharts, 100);
+            if (window.__basokuChartsRetryTimer) {
+                clearTimeout(window.__basokuChartsRetryTimer);
+                window.__basokuChartsRetryTimer = null;
+            }
+
+            function initBasokuCharts(attempt = 0) {
+                const prefCanvas = document.getElementById('recipePreferenceChart');
+                const statusCanvas = document.getElementById('orderStatusChart');
+                if (!prefCanvas && !statusCanvas) {
                     return;
                 }
 
+                if (typeof Chart === 'undefined') {
+                    if (attempt < 30) {
+                        window.__basokuChartsRetryTimer = setTimeout(() => initBasokuCharts(attempt + 1), 150);
+                    }
+                    return;
+                }
+
+                const chartData = window.__basokuDashboardChartData;
+                if (!chartData) return;
+
                 // 1. Chart Preferensi Resep (Doughnut Chart)
-                const prefCanvas = document.getElementById('recipePreferenceChart');
                 if (prefCanvas) {
                     if (window.basokuRecipeChartInstance) {
                         window.basokuRecipeChartInstance.destroy();
@@ -507,9 +505,7 @@
                             responsive: true,
                             maintainAspectRatio: false,
                             plugins: {
-                                legend: {
-                                    display: false
-                                },
+                                legend: { display: false },
                                 tooltip: {
                                     backgroundColor: '#26221E',
                                     titleColor: '#FAF7F2',
@@ -534,7 +530,6 @@
                 }
 
                 // 2. Chart Status & Tren Pesanan (Bar Chart)
-                const statusCanvas = document.getElementById('orderStatusChart');
                 if (statusCanvas) {
                     if (window.basokuStatusChartInstance) {
                         window.basokuStatusChartInstance.destroy();
@@ -549,17 +544,12 @@
                                 label: 'Jumlah Pesanan',
                                 data: chartData.status.data,
                                 backgroundColor: [
-                                    'rgba(45, 66, 53, 0.85)',   // Diproses: Deep Sage
-                                    'rgba(22, 101, 52, 0.85)',  // Selesai: Emerald
-                                    'rgba(217, 119, 6, 0.85)',  // Menunggu: Amber
-                                    'rgba(153, 27, 27, 0.85)'   // Dibatalkan: Maroon/Rose
+                                    'rgba(45, 66, 53, 0.85)',
+                                    'rgba(22, 101, 52, 0.85)',
+                                    'rgba(217, 119, 6, 0.85)',
+                                    'rgba(153, 27, 27, 0.85)'
                                 ],
-                                borderColor: [
-                                    '#2D4235',
-                                    '#166534',
-                                    '#D97706',
-                                    '#991B1B'
-                                ],
+                                borderColor: ['#2D4235', '#166534', '#D97706', '#991B1B'],
                                 borderWidth: 1.5,
                                 borderRadius: 12,
                                 borderSkipped: false,
@@ -570,9 +560,7 @@
                             responsive: true,
                             maintainAspectRatio: false,
                             plugins: {
-                                legend: {
-                                    display: false
-                                },
+                                legend: { display: false },
                                 tooltip: {
                                     backgroundColor: '#26221E',
                                     titleColor: '#FAF7F2',
@@ -592,27 +580,16 @@
                                     ticks: {
                                         precision: 0,
                                         color: '#5A534A',
-                                        font: {
-                                            family: "'Instrument Sans', sans-serif",
-                                            size: 11
-                                        }
+                                        font: { family: "'Instrument Sans', sans-serif", size: 11 }
                                     },
-                                    grid: {
-                                        color: 'rgba(38, 34, 30, 0.06)'
-                                    }
+                                    grid: { color: 'rgba(38, 34, 30, 0.06)' }
                                 },
                                 x: {
                                     ticks: {
                                         color: '#26221E',
-                                        font: {
-                                            family: "'Instrument Sans', sans-serif",
-                                            size: 11,
-                                            weight: '600'
-                                        }
+                                        font: { family: "'Instrument Sans', sans-serif", size: 11, weight: '600' }
                                     },
-                                    grid: {
-                                        display: false
-                                    }
+                                    grid: { display: false }
                                 }
                             }
                         }
@@ -620,14 +597,17 @@
                 }
             }
 
-            // Inisialisasi saat pertama kali load dan saat Livewire navigate
-            if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                initBasokuCharts();
-            } else {
-                document.addEventListener('DOMContentLoaded', initBasokuCharts);
+            if (window.__basokuChartsNavHandler) {
+                document.removeEventListener('livewire:navigated', window.__basokuChartsNavHandler);
             }
+            window.__basokuChartsNavHandler = () => initBasokuCharts(0);
+            document.addEventListener('livewire:navigated', window.__basokuChartsNavHandler);
 
-            document.addEventListener('livewire:navigated', initBasokuCharts);
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                initBasokuCharts(0);
+            } else {
+                document.addEventListener('DOMContentLoaded', () => initBasokuCharts(0), { once: true });
+            }
         })();
     </script>
 </main>

@@ -55,11 +55,27 @@ class RecipeFormula extends Model
     }
 
     /**
+     * Normalisasi rasio tepung terhadap acuan 1 bagian daging agar selalu konsisten meski meat_ratio != 1.0.
+     */
+    public static function normalizedFlourRatio(float $meatRatio, float $flourRatio): float
+    {
+        return $meatRatio > 0 ? max(0.0, $flourRatio / $meatRatio) : max(0.0, $flourRatio);
+    }
+
+    /**
+     * Normalisasi rasio bumbu terhadap acuan 1 bagian daging.
+     */
+    public static function normalizedSpiceRatio(float $meatRatio, float $spiceRatio): float
+    {
+        return $meatRatio > 0 ? max(0.0, $spiceRatio / $meatRatio) : max(0.0, $spiceRatio);
+    }
+
+    /**
      * Format persentase tepung terhadap daging secara ringkas (mis. "20%", "100%", "12,5%").
      */
     public function flourPercentageLabel(): string
     {
-        return self::formatPercentage((float) $this->flour_ratio);
+        return self::formatPercentage(self::normalizedFlourRatio((float) $this->meat_ratio, (float) $this->flour_ratio));
     }
 
     /**
@@ -101,9 +117,10 @@ class RecipeFormula extends Model
     /**
      * Format contoh takaran tepung per acuan 1 kg daging (mis. "1 kg daging + 200g tepung" atau "1 kg daging + 2 kg tepung").
      */
-    public static function formatPerKgExample(float $flourRatio): string
+    public static function formatPerKgExample(float $flourRatio, float $meatRatio = 1.0): string
     {
-        $flourGrams = (int) round(1000 * max(0.0, $flourRatio));
+        $normalizedFlour = self::normalizedFlourRatio($meatRatio, $flourRatio);
+        $flourGrams = (int) round(1000 * max(0.0, $normalizedFlour));
 
         if ($flourGrams >= 1000) {
             $kg = $flourGrams / 1000;
@@ -141,6 +158,7 @@ class RecipeFormula extends Model
             $meatRatio = (float) ($db?->meat_ratio ?? $fallback['meat_ratio']);
             $flourRatio = (float) ($db?->flour_ratio ?? $fallback['flour_ratio']);
             $spiceRatio = (float) ($db?->spice_ratio ?? $fallback['spice_ratio']);
+            $normalizedFlour = self::normalizedFlourRatio($meatRatio, $flourRatio);
             $ratioLabel = self::formatRatio($meatRatio, $flourRatio);
 
             $presets[$code] = [
@@ -150,10 +168,10 @@ class RecipeFormula extends Model
                 'meat_ratio' => $meatRatio,
                 'flour_ratio' => $flourRatio,
                 'spice_ratio' => $spiceRatio,
-                'flour_pct' => self::formatPercentage($flourRatio),
+                'flour_pct' => self::formatPercentage($normalizedFlour),
                 'ratio_label' => $ratioLabel,
                 'explicit_ratio' => "Daging {$ratioLabel} Tepung",
-                'per_kg_example' => self::formatPerKgExample($flourRatio),
+                'per_kg_example' => self::formatPerKgExample($flourRatio, $meatRatio),
                 'is_simulation' => (bool) ($db ? $db->is_simulation : $fallback['is_simulation']),
             ];
         }
@@ -162,7 +180,7 @@ class RecipeFormula extends Model
     }
 
     /**
-     * Nilai rasio bawaan (fallback) jika database kosong.
+     * Nilai rasio bawaan resmi kios BASOKU (acuan per 1 kg daging) jika database kosong atau dipulihkan ke standar.
      *
      * @return array<string, array{name: string, meat_ratio: float, flour_ratio: float, spice_ratio: float, is_simulation: bool, description: string}>
      */
@@ -172,26 +190,26 @@ class RecipeFormula extends Model
             'seimbang' => [
                 'name' => 'Racikan Seimbang',
                 'meat_ratio' => 1.0000,
-                'flour_ratio' => 0.2000,
-                'spice_ratio' => 0.0500,
-                'is_simulation' => true,
-                'description' => 'Rasio seimbang standar pasar (tepung 20%, bumbu 5%). Paling disukai pelanggan harian.',
+                'flour_ratio' => 1.0000,
+                'spice_ratio' => 0.0800,
+                'is_simulation' => false,
+                'description' => 'Rasio seimbang 1:1 antara daging dan tepung (100%) dengan takaran bumbu 8%. Rasa daging tetap terasa, tekstur kenyal pas, dan gurihnya seimbang—paling populer untuk jualan harian maupun stok rumahan.',
             ],
             'enak' => [
                 'name' => 'Racikan Enak (Spesial Daging)',
                 'meat_ratio' => 1.0000,
-                'flour_ratio' => 0.1000,
+                'flour_ratio' => 0.2000,
                 'spice_ratio' => 0.0500,
-                'is_simulation' => true,
-                'description' => 'Dominan serat daging asli dengan sedikit tepung (10%). Tekstur kenyal alami dan cita rasa gurih premium.',
+                'is_simulation' => false,
+                'description' => 'Dominan serat daging asli dengan sedikit tepung (20%) dan bumbu 5%. Tekstur padat, kenyal alami, dengan cita rasa gurih daging premium.',
             ],
             'ekonomis' => [
                 'name' => 'Racikan Ekonomis',
                 'meat_ratio' => 1.0000,
-                'flour_ratio' => 0.4000,
-                'spice_ratio' => 0.0500,
-                'is_simulation' => true,
-                'description' => 'Rasio tepung lebih tinggi (40%) untuk kuantitas butir bakso lebih banyak. Cocok untuk hajatan atau jualan keliling.',
+                'flour_ratio' => 2.0000,
+                'spice_ratio' => 0.1200,
+                'is_simulation' => false,
+                'description' => 'Rasio ekonomis 1:2 antara daging dan tepung (200%) dengan takaran bumbu 12% agar tetap gurih. Menghasilkan butiran bakso paling banyak dengan modal hemat—cocok untuk jualan keliling maupun hajatan. Catatan: ini batas maksimal tepung agar tekstur tetap bakso, bukan cilok.',
             ],
         ];
     }

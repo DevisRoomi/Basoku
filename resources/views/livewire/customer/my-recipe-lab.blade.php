@@ -37,9 +37,9 @@
             <!-- Tombol Tambah Racikan Baru -->
             <a
                 href="{{ route('calculator') }}"
-                class="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full bg-[#D96B43] hover:bg-[#C25932] text-white font-semibold text-xs shadow-md transition-all duration-200 active:scale-[0.99] shrink-0"
+                class="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full bg-[#B84E26] hover:bg-[#9E3F1C] text-white font-semibold text-xs shadow-md transition-all duration-200 active:scale-[0.99] shrink-0"
             >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
                 <span>Buat Racikan Baru</span>
@@ -52,14 +52,14 @@
 
         <!-- Flash Message Notifikasi -->
         @if (session()->has('success'))
-            <div class="mb-8 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-xs">
+            <div x-data="{ show: true }" x-show="show" class="mb-8 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-xs">
                 <div class="flex items-center gap-2.5">
-                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>{{ session('success') }}</span>
                 </div>
-                <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-800 cursor-pointer text-base">
+                <button type="button" @click="show = false" aria-label="Tutup notifikasi" class="text-emerald-700 hover:text-emerald-900 cursor-pointer text-base px-1">
                     &times;
                 </button>
             </div>
@@ -81,10 +81,10 @@
                     </p>
                     <a
                         href="{{ route('calculator') }}"
-                        class="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#D96B43] hover:bg-[#C25932] text-white font-bold text-xs shadow-md transition-all active:scale-[0.99]"
+                        class="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#B84E26] hover:bg-[#9E3F1C] text-white font-bold text-xs shadow-md transition-all active:scale-[0.99]"
                     >
                         <span>Mulai Meracik Sekarang</span>
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                         </svg>
                     </a>
@@ -92,7 +92,10 @@
             @else
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach ($recipes as $recipe)
-                        <div class="bg-[#FAF7F2] rounded-3xl border border-[#26221E]/10 p-6 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between">
+                        @php
+                            $isIngredientsOnlyRecipe = (int) $recipe->meat_weight <= 0 && strtolower((string) $recipe->preference) === 'bahan_saja';
+                        @endphp
+                        <div wire:key="saved-recipe-{{ $recipe->id }}" class="bg-[#FAF7F2] rounded-3xl border border-[#26221E]/10 p-6 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between">
                             <div>
                                 <!-- Header Kartu Resep -->
                                 <div class="flex items-start justify-between gap-2 pb-3 border-b border-[#26221E]/10">
@@ -108,27 +111,30 @@
                                         type="button"
                                         wire:click="deleteRecipe({{ $recipe->id }})"
                                         wire:confirm="Yakin ingin menghapus racikan '{{ $recipe->name }}'?"
+                                        wire:loading.attr="disabled"
+                                        wire:target="deleteRecipe({{ $recipe->id }})"
+                                        aria-label="Hapus racikan {{ $recipe->name }}"
                                         title="Hapus racikan ini"
-                                        class="text-[#26221E]/40 hover:text-[#8B231A] p-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
+                                        class="text-[#26221E]/50 hover:text-[#8B231A] p-1.5 rounded-lg transition-colors cursor-pointer shrink-0 disabled:opacity-40"
                                     >
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                     </button>
                                 </div>
 
-                                <!-- Spesifikasi Utama (Required String: {weight}g Daging) -->
+                                <!-- Spesifikasi Utama -->
                                 <div class="grid grid-cols-2 gap-2 mt-4 text-xs font-mono">
                                     <div class="p-2.5 rounded-xl bg-white border border-[#26221E]/5 shadow-xs">
-                                        <span class="text-[10px] uppercase text-[#5A534A] block">Daging Utama</span>
+                                        <span class="text-[10px] uppercase text-[#5A534A] block">{{ $isIngredientsOnlyRecipe ? 'Mode Belanja' : 'Daging Utama' }}</span>
                                         <span class="font-bold text-[#26221E] mt-0.5 block">
-                                            {{ (int) $recipe->meat_weight }}g Daging
+                                            {{ $isIngredientsOnlyRecipe ? 'Bahan Saja' : (int) $recipe->meat_weight.'g Daging' }}
                                         </span>
                                     </div>
                                     <div class="p-2.5 rounded-xl bg-white border border-[#26221E]/5 shadow-xs">
                                         <span class="text-[10px] uppercase text-[#5A534A] block">Preferensi</span>
                                         <span class="font-bold text-[#26221E] capitalize mt-0.5 block">
-                                            {{ $recipe->preference }}
+                                            {{ str_replace('_', ' ', (string) $recipe->preference) }}
                                         </span>
                                     </div>
                                 </div>
@@ -142,14 +148,18 @@
                                         @if (is_array($recipe->recipe_details))
                                             @foreach (array_slice($recipe->recipe_details, 0, 4) as $item)
                                                  <div class="flex justify-between items-center text-[#26221E]/90">
-                                                    <span class="truncate pr-2 font-medium">• {{ $item['name'] ?? 'Bahan' }}</span>
+                                                    <span class="truncate pr-2 font-medium">&bull; {{ $item['name'] ?? 'Bahan' }}</span>
                                                     <span class="font-mono text-[#26221E] whitespace-nowrap text-[11px]">
-                                                        {{ (float) ($item['weight'] ?? 0) }} {{ $item['unit'] ?? 'g' }}
+                                                        @if (isset($item['qty']))
+                                                            {{ (int) $item['qty'] }} {{ $item['unit'] ?? 'pack' }}
+                                                        @else
+                                                            {{ (float) ($item['weight'] ?? 0) }} {{ $item['unit'] ?? 'g' }}
+                                                        @endif
                                                     </span>
                                                 </div>
                                             @endforeach
                                             @if (count($recipe->recipe_details) > 4)
-                                                <p class="text-[10px] text-[#D96B43] italic pt-0.5">
+                                                <p class="text-[10px] text-[#B84E26] italic pt-0.5">
                                                     + {{ count($recipe->recipe_details) - 4 }} bahan racikan lainnya
                                                 </p>
                                             @endif
@@ -159,19 +169,19 @@
                             </div>
 
                             <!-- Footer Kartu: Nilai Bahan & Aksi -->
-                            <div class="mt-6 pt-4 border-t border-[#26221E]/10 flex items-end justify-between">
+                            <div class="mt-6 pt-4 border-t border-[#26221E]/10 flex items-end justify-between gap-2">
                                 <div>
                                     <span class="text-[9px] font-mono uppercase text-[#5A534A] block">ESTIMASI BAHAN</span>
-                                    <span class="text-base font-bold text-[#D96B43] tabular-nums" style="font-family: 'Playfair Display', Georgia, serif;">
+                                    <span class="text-base font-bold text-[#B84E26] tabular-nums" style="font-family: 'Playfair Display', Georgia, serif;">
                                         {{ \Illuminate\Support\Number::currency($recipe->estimated_total, 'IDR', 'id', precision: 0) }}
                                     </span>
                                 </div>
                                 <a
                                     href="{{ route('calculator', ['recipe_id' => $recipe->id]) }}"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2D4235] hover:bg-[#D96B43] text-white text-xs font-semibold transition-colors shadow-xs"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2D4235] hover:bg-[#B84E26] text-white text-xs font-semibold transition-colors shadow-xs shrink-0"
                                 >
                                     <span>Gunakan di Kalkulator</span>
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                     </svg>
                                 </a>
@@ -180,6 +190,12 @@
                         </div>
                     @endforeach
                 </div>
+
+                @if ($recipes->hasPages())
+                    <div class="mt-8">
+                        {{ $recipes->links() }}
+                    </div>
+                @endif
             @endif
         </div>
 

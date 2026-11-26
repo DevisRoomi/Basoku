@@ -5,10 +5,12 @@ namespace Tests\Feature;
 use App\Livewire\AiConsultant;
 use App\Models\RecipeFormula;
 use App\Services\GeminiConsultantService;
+use Database\Seeders\MaterialSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -75,10 +77,11 @@ class AiConsultantTest extends TestCase
             ->assertSee($mockAnswer)
             ->assertSet('question', '');
 
-        // Pastikan panggilan Http ke Gemini benar-benar terjadi
+        // Pastikan panggilan Http ke Gemini mengirim API key via header (bukan URL query string)
         Http::assertSent(function ($request) {
             return str_contains($request->url(), 'generativelanguage.googleapis.com')
-                && str_contains($request->url(), 'key=test-dummy-api-key')
+                && ! str_contains($request->url(), 'key=')
+                && $request->hasHeader('x-goog-api-key', 'test-dummy-api-key')
                 && $request['contents'][0]['parts'][0]['text'] === 'Berapa es batu per 1 kg daging?';
         });
     }
@@ -286,5 +289,29 @@ class AiConsultantTest extends TestCase
         $fallback = $service->ask('Berapa rasio tepung bakso enak dan ekonomis?');
         $this->assertStringContainsString('Daging 5 : 1 Tepung', $fallback);
         $this->assertStringContainsString('1 kg daging + 2 kg tepung', $fallback);
+    }
+
+    public function test_chat_history_is_locked_against_client_tampering(): void
+    {
+        $this->expectException(CannotUpdateLockedPropertyException::class);
+
+        Livewire::test(AiConsultant::class)
+            ->set('chatHistory', [
+                ['role' => 'user', 'message' => 'Injected prompt', 'time' => '00:00'],
+            ]);
+    }
+
+    public function test_fallback_does_not_misroute_resep_price_query_to_ice_branch(): void
+    {
+        $this->seed(MaterialSeeder::class);
+        Config::set('services.gemini.key', null);
+
+        $service = new GeminiConsultantService;
+        $reply = $service->ask('Berapa harga bahan untuk resep bakso hari ini?');
+
+        $this->assertStringContainsString('Daftar Harga Bahan & Tarif Selepan BASOKU Hari Ini', $reply);
+        $this->assertStringContainsString('Daging Sapi', $reply);
+        $this->assertStringNotContainsString('Takaran Es Batu', $reply);
+        $this->assertStringNotContainsString('Harga & Ketersediaan Es Batu', $reply);
     }
 }

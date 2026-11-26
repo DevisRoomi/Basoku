@@ -7,11 +7,14 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('components.layouts.app')]
 #[Title('Laboratorium Racikan Saya — BASOKU')]
 class MyRecipeLab extends Component
 {
+    use WithPagination;
+
     /**
      * Pastikan hanya pengguna terautentikasi yang dapat mengakses.
      */
@@ -27,7 +30,10 @@ class MyRecipeLab extends Component
      */
     public function deleteRecipe(int $id)
     {
-        $recipe = SavedRecipe::where('user_id', Auth::id())->findOrFail($id);
+        $recipe = SavedRecipe::where('user_id', Auth::id())->find($id);
+        if (! $recipe) {
+            return;
+        }
         $name = $recipe->name;
         $recipe->delete();
 
@@ -38,7 +44,7 @@ class MyRecipeLab extends Component
     {
         $recipes = SavedRecipe::where('user_id', Auth::id())
             ->latest()
-            ->get();
+            ->paginate(12);
 
         return view('livewire.customer.my-recipe-lab', [
             'recipes' => $recipes,
