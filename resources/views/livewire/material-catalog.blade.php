@@ -549,15 +549,10 @@
                     </div>
 
                     <div>
-                        <label for="catalog-pickup-time" class="block text-xs font-mono font-bold uppercase text-[#5A534A] mb-1">
-                            Jadwal Pengambilan di Kios *
+                        <label for="catalog-pickup-time" class="block text-xs font-mono font-bold uppercase text-[#5A534A] mb-1.5">
+                            Tanggal &amp; Jam Pengambilan di Kios *
                         </label>
-                        <input
-                            id="catalog-pickup-time"
-                            type="datetime-local"
-                            wire:model="pickupTime"
-                            class="w-full px-4 py-2.5 rounded-xl bg-white border border-[#26221E]/20 text-sm focus:outline-hidden focus:border-[#2D4235]"
-                        />
+                        <x-pickup-datetime-input id="catalog-pickup-time" model="pickupTime" :value="$pickupTime" />
                         @php
                             $catalogPickupShortcuts = \App\Support\CheckoutHelper::pickupShortcuts();
                         @endphp

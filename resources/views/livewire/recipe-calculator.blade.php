@@ -1404,17 +1404,12 @@
                         </p>
                     </div>
 
-                    <!-- Field: Jam Pengambilan -->
+                    <!-- Field: Jam Pengambilan (Format 24 Jam Indonesia 00.00-23.59 WIB) -->
                     <div>
                         <label for="pickupTime" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
-                            Jam Pengambilan ke Pasar <span class="text-[#8B231A]">*</span>
+                            Tanggal &amp; Jam Pengambilan ke Pasar <span class="text-[#8B231A]">*</span>
                         </label>
-                        <input
-                            type="datetime-local"
-                            id="pickupTime"
-                            wire:model="pickupTime"
-                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#2D4235] focus:ring-2 focus:ring-[#2D4235]/15 transition-all duration-200"
-                        >
+                        <x-pickup-datetime-input id="pickupTime" model="pickupTime" :value="$pickupTime" />
                         @php
                             $pickupShortcuts = \App\Support\CheckoutHelper::pickupShortcuts();
                         @endphp
