@@ -10,6 +10,7 @@ use App\Models\User;
 use Database\Seeders\AdminUserSeeder;
 use Database\Seeders\MaterialSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -271,5 +272,97 @@ class ManageMaterialsTest extends TestCase
             'price' => 150.00,
             'package_price' => 150000.00,
         ]);
+    }
+
+    public function test_admin_cannot_create_duplicate_material_name_and_renaming_core_material_preserves_calculator_lookup(): void
+    {
+        // 1. Validasi nama unik menolak duplikasi
+        Livewire::actingAs($this->admin)
+            ->test(ManageMaterials::class)
+            ->call('openAddModal')
+            ->set('name', 'Daging Sapi')
+            ->set('category', 'daging')
+            ->set('price', 140)
+            ->call('save')
+            ->assertHasErrors(['name']);
+
+        // 2. Rename bahan inti "Bawang Putih Kupas" -> "Bawang Lokal Super" + ubah harga ke Rp 60/g tetap terbaca via slug kanonik
+        $garlic = Material::where('slug', 'bawang-putih-kupas')->firstOrFail();
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageMaterials::class)
+            ->call('openEditModal', $garlic->id)
+            ->set('name', 'Bawang Lokal Super')
+            ->set('package_weight', 100)
+            ->set('package_price', 6000)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame('bawang-putih-kupas', $garlic->fresh()->slug);
+
+        $calc = Livewire::test(RecipeCalculator::class)
+            ->set('startType', 'start_from_zero')
+            ->set('meatWeight', 500);
+
+        $garlicRow = collect($calc->get('breakdown'))->firstWhere('material_id', $garlic->id);
+        $this->assertNotNull($garlicRow);
+        $this->assertSame('Bawang Lokal Super', $garlicRow['name']);
+        $this->assertEquals(60.0, (float) $garlicRow['price_per_gram']);
+    }
+
+    public function test_admin_can_delete_non_core_material_and_syncs_unit_for_satuan_items_while_protecting_core_materials(): void
+    {
+        // 1. Tambah bahan satuan baru dengan package_unit 'Ikat' tanpa mengisi unit -> unit otomatis sinkron menjadi 'Ikat'
+        Livewire::actingAs($this->admin)
+            ->test(ManageMaterials::class)
+            ->call('openAddModal')
+            ->set('name', 'Daun Seledri Segar')
+            ->set('category', 'bumbu')
+            ->set('selling_mode', 'satuan')
+            ->set('package_unit', 'Ikat')
+            ->set('package_weight', 50)
+            ->set('package_price', 3000)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $custom = Material::where('name', 'Daun Seledri Segar')->firstOrFail();
+        $this->assertSame('Ikat', $custom->unit);
+
+        // 2. Bahan non-inti bisa dihapus permanen lewat deleteMaterial
+        Livewire::actingAs($this->admin)
+            ->test(ManageMaterials::class)
+            ->assertSee('Hapus')
+            ->call('deleteMaterial', $custom->id)
+            ->assertSee('telah dihapus');
+
+        $this->assertDatabaseMissing('materials', ['id' => $custom->id]);
+
+        // 3. Bahan inti kalkulator diproteksi dari hapus permanen
+        $beef = Material::where('slug', 'daging-sapi')->firstOrFail();
+        Livewire::actingAs($this->admin)
+            ->test(ManageMaterials::class)
+            ->call('deleteMaterial', $beef->id)
+            ->assertSee('tidak dapat dihapus permanen');
+
+        $this->assertDatabaseHas('materials', ['id' => $beef->id]);
+    }
+
+    public function test_material_cache_populates_and_auto_invalidates_on_admin_updates(): void
+    {
+        $cached = Material::cachedAll();
+        $this->assertTrue(Cache::has(Material::CACHE_KEY));
+        $beef = $cached->firstWhere('slug', 'daging-sapi');
+        $this->assertNotNull($beef);
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageMaterials::class)
+            ->call('openEditModal', $beef->id)
+            ->set('price', 155)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertFalse(Cache::has(Material::CACHE_KEY));
+        $refreshed = Material::cachedAll()->firstWhere('slug', 'daging-sapi');
+        $this->assertEquals(155.0, (float) $refreshed->price);
     }
 }

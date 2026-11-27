@@ -2,13 +2,34 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class Material extends Model
 {
     use HasFactory;
+
+    public const CACHE_KEY = 'basoku.materials.all';
+
+    /**
+     * Slug kanonik untuk 8 bahan inti yang dirujuk langsung oleh Kalkulator Racikan.
+     *
+     * @var list<string>
+     */
+    public const CORE_SLUGS = [
+        'daging-sapi',
+        'daging-ayam',
+        'tepung-tapioka',
+        'tepung-probakso',
+        'tepung-terigu',
+        'tepung-sagu',
+        'bawang-putih-kupas',
+        'garam-kasar',
+    ];
 
     /**
      * The table associated with the model.
@@ -24,6 +45,7 @@ class Material extends Model
      */
     protected $fillable = [
         'name',
+        'slug',
         'category',
         'selling_mode',
         'unit',
@@ -33,6 +55,90 @@ class Material extends Model
         'price',
         'is_available',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Material $material): void {
+            if (empty($material->slug)) {
+                $material->slug = self::generateUniqueSlug((string) $material->name);
+            }
+        });
+
+        static::saved(fn (): null => self::clearCache());
+        static::deleted(fn (): null => self::clearCache());
+    }
+
+    /**
+     * Ambil seluruh data bahan dengan cache ringan (otomatis terinvalidasi saat bahan ditambah/diubah/dihapus).
+     *
+     * @return EloquentCollection<int, Material>
+     */
+    public static function cachedAll(): EloquentCollection
+    {
+        $cached = Cache::get(self::CACHE_KEY);
+
+        if (is_array($cached)) {
+            return self::hydrate($cached);
+        }
+
+        if ($cached !== null) {
+            self::clearCache();
+        }
+
+        $materials = self::query()->orderBy('name')->get();
+
+        Cache::put(
+            self::CACHE_KEY,
+            $materials->map(fn (self $material): array => $material->getAttributes())->all(),
+            now()->addMinutes(10)
+        );
+
+        return $materials;
+    }
+
+    /**
+     * Bersihkan cache daftar bahan baku.
+     */
+    public static function clearCache(): null
+    {
+        try {
+            Cache::forget(self::CACHE_KEY);
+        } catch (\Throwable) {
+            // Abaikan bila cache store belum siap
+        }
+
+        return null;
+    }
+
+    /**
+     * Apakah bahan ini termasuk 8 bahan inti kalkulator yang sebaiknya dinonaktifkan (bukan dihapus permanen).
+     */
+    public function isCoreMaterial(): bool
+    {
+        return in_array((string) $this->slug, self::CORE_SLUGS, true);
+    }
+
+    /**
+     * Hasilkan slug unik berbasis nama bahan baku.
+     */
+    public static function generateUniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $base = Str::slug(trim($name)) ?: 'bahan-kios';
+        $candidate = $base;
+        $suffix = 2;
+
+        while (
+            self::query()
+                ->where('slug', $candidate)
+                ->when($ignoreId !== null, fn ($q) => $q->where('id', '!=', $ignoreId))
+                ->exists()
+        ) {
+            $candidate = $base.'-'.$suffix;
+            $suffix++;
+        }
+
+        return $candidate;
+    }
 
     /**
      * Apakah bahan dijual timbang bebas / curah (bisa beli pas sesuai takaran resep).

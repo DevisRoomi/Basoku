@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Order;
+use App\Support\CheckoutHelper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Layout;
@@ -26,6 +27,8 @@ class TrackOrder extends Component
 
     public ?string $lookupError = null;
 
+    public ?string $actionNotice = null;
+
     public function mount(): void
     {
         $code = request()->query('code');
@@ -40,6 +43,7 @@ class TrackOrder extends Component
     public function searchOrder(): void
     {
         $this->lookupError = null;
+        $this->actionNotice = null;
 
         $throttleKey = 'track-order|'.request()->ip();
         if (RateLimiter::tooManyAttempts($throttleKey, 15)) {
@@ -91,27 +95,46 @@ class TrackOrder extends Component
         $this->trackedOrderId = null;
         $this->verifiedPhone = null;
         $this->lookupError = null;
+        $this->actionNotice = null;
         $this->orderCode = '';
         $this->phoneNumber = '';
         $this->resetErrorBag();
     }
 
+    /**
+     * Izinkan tamu membatalkan pesanan terverifikasi secara mandiri khusus saat status masih 'pending'.
+     */
+    public function cancelTrackedOrder(): void
+    {
+        $this->lookupError = null;
+        $this->actionNotice = null;
+
+        if ($this->trackedOrderId === null || $this->verifiedPhone === null) {
+            return;
+        }
+
+        $order = Order::find($this->trackedOrderId);
+        if (! $order || $this->normalizePhone((string) $order->customer_phone) !== $this->verifiedPhone) {
+            $this->trackedOrderId = null;
+            $this->verifiedPhone = null;
+
+            return;
+        }
+
+        if (Order::normalizeStatus((string) $order->status) !== 'pending') {
+            $this->lookupError = 'Pesanan yang sudah diproses, selesai, atau dibatalkan tidak dapat dibatalkan secara mandiri.';
+
+            return;
+        }
+
+        $order->update(['status' => 'cancelled']);
+        $code = CheckoutHelper::formatOrderCode($order->id);
+        $this->actionNotice = "Pesanan {$code} berhasil dibatalkan.";
+    }
+
     protected function normalizePhone(string $phone): string
     {
-        $digits = preg_replace('/[^0-9]/', '', $phone) ?? '';
-        if ($digits === '') {
-            return '';
-        }
-
-        if (str_starts_with($digits, '0')) {
-            return '62'.substr($digits, 1);
-        }
-
-        if (! str_starts_with($digits, '62')) {
-            return '62'.$digits;
-        }
-
-        return $digits;
+        return CheckoutHelper::canonicalPhoneDigits($phone);
     }
 
     public function render(): View

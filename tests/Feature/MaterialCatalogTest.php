@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\MaterialCatalog;
 use App\Models\Material;
+use App\Models\Order;
 use Database\Seeders\MaterialSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -98,7 +99,9 @@ class MaterialCatalogTest extends TestCase
             ->set('pickupTime', $pickup)
             ->call('processDirectCheckout')
             ->assertHasNoErrors()
-            ->assertRedirect();
+            ->assertSet('showDirectCheckoutModal', true)
+            ->assertSet('selectedItems', [])
+            ->assertSee('Pesanan Berhasil Dicatat');
 
         $this->assertDatabaseHas('orders', [
             'customer_name' => 'Siti Rahma',
@@ -106,8 +109,35 @@ class MaterialCatalogTest extends TestCase
             'start_type' => 'ingredients_only',
         ]);
 
-        $redirectUrl = $test->effects['redirect'] ?? '';
-        $this->assertStringContainsString(urlencode('#BSK-'), $redirectUrl);
+        $orderCode = (string) $test->get('confirmedOrderCode');
+        $this->assertStringStartsWith('#BSK-', $orderCode);
+        $this->assertStringContainsString(urlencode($orderCode), (string) $test->get('confirmedWaUrl'));
+        $this->assertStringContainsString('/lacak-pesanan', (string) $test->get('confirmedTrackUrl'));
+
+        // Anti-double-order: memanggil ulang saat konfirmasi tampil tidak membuat order baru
+        $test->call('processDirectCheckout');
+        $this->assertSame(1, Order::where('customer_name', 'Siti Rahma')->count());
+    }
+
+    public function test_direct_checkout_accepts_formatted_whatsapp_number_with_hyphens_and_spaces(): void
+    {
+        $material = Material::where('name', 'Tepung Tapioka')->firstOrFail();
+        $pickup = now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
+
+        Livewire::test(MaterialCatalog::class)
+            ->call('incrementItem', $material->id)
+            ->set('customerName', 'Bu Rina Format')
+            ->set('customerPhone', '+62 812-3456-7890')
+            ->set('pickupTime', $pickup)
+            ->call('processDirectCheckout')
+            ->assertHasNoErrors()
+            ->assertSet('customerPhone', '+6281234567890')
+            ->assertSet('showDirectCheckoutModal', true);
+
+        $this->assertDatabaseHas('orders', [
+            'customer_name' => 'Bu Rina Format',
+            'customer_phone' => '+6281234567890',
+        ]);
     }
 
     public function test_direct_checkout_rejects_unavailable_materials(): void

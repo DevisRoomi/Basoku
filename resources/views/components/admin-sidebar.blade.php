@@ -187,6 +187,49 @@
                 </span>
             </a>
 
+            <!-- 5. Pengaturan Kios -->
+            <a
+                href="{{ route('admin.kiosk') }}"
+                wire:navigate
+                @click="closeMobileMenu()"
+                class="group/nav relative w-full flex items-center rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer {{ request()->routeIs('admin.kiosk') ? 'bg-[#C83B2B] text-white shadow-md shadow-[#C83B2B]/30' : 'text-[#FAF6F0]/75 hover:bg-white/5 hover:text-white' }}"
+                :class="sidebarCollapsed ? 'md:justify-center md:px-0 px-4 py-3 gap-3' : 'px-4 py-3 gap-3'"
+            >
+                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="whitespace-nowrap truncate" :class="sidebarCollapsed ? 'md:hidden' : 'inline'">Pengaturan Kios</span>
+                <span
+                    x-show="sidebarCollapsed"
+                    class="hidden md:block pointer-events-none opacity-0 group-hover/nav:opacity-100 translate-x-1 group-hover/nav:translate-x-0 transition-all duration-150 absolute left-full ml-3.5 px-3 py-1.5 rounded-lg bg-[#161210] text-[#FAF6F0] text-xs font-semibold whitespace-nowrap shadow-xl border border-white/15 z-50"
+                    style="display: none;"
+                >
+                    Pengaturan Profil &amp; Tarif Kios
+                </span>
+            </a>
+
+            <!-- 6. Akun & Keamanan -->
+            <a
+                href="{{ route('account.settings') }}"
+                wire:navigate
+                @click="closeMobileMenu()"
+                class="group/nav relative w-full flex items-center rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer {{ request()->routeIs('account.settings') ? 'bg-[#C83B2B] text-white shadow-md shadow-[#C83B2B]/30' : 'text-[#FAF6F0]/75 hover:bg-white/5 hover:text-white' }}"
+                :class="sidebarCollapsed ? 'md:justify-center md:px-0 px-4 py-3 gap-3' : 'px-4 py-3 gap-3'"
+            >
+                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span class="whitespace-nowrap truncate" :class="sidebarCollapsed ? 'md:hidden' : 'inline'">Akun &amp; Sandi</span>
+                <span
+                    x-show="sidebarCollapsed"
+                    class="hidden md:block pointer-events-none opacity-0 group-hover/nav:opacity-100 translate-x-1 group-hover/nav:translate-x-0 transition-all duration-150 absolute left-full ml-3.5 px-3 py-1.5 rounded-lg bg-[#161210] text-[#FAF6F0] text-xs font-semibold whitespace-nowrap shadow-xl border border-white/15 z-50"
+                    style="display: none;"
+                >
+                    Pengaturan Akun &amp; Sandi
+                </span>
+            </a>
+
             <!-- Pintasan Toko Publik (Tersedia rapi di Expanded, Mobile Drawer, maupun Mini-Rail) -->
             <div class="border-t border-white/10 mt-3 pt-3">
                 <a

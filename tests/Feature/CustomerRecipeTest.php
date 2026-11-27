@@ -270,4 +270,39 @@ class CustomerRecipeTest extends TestCase
             ->assertSet('customFlourRatio', 250)
             ->assertSet('showSaveModal', true);
     }
+
+    public function test_deleting_last_recipe_on_second_page_returns_to_previous_page_without_empty_state(): void
+    {
+        $customer = User::create([
+            'name' => 'Pelanggan Banyak Resep',
+            'email' => 'banyak-resep@example.com',
+            'password' => bcrypt('password123'),
+        ]);
+
+        $recipes = [];
+        for ($i = 1; $i <= 13; $i++) {
+            $recipe = SavedRecipe::create([
+                'user_id' => $customer->id,
+                'name' => sprintf('Resep Paginasi %02d', $i),
+                'meat_weight' => 500,
+                'start_type' => 'start_from_zero',
+                'preference' => 'seimbang',
+                'recipe_details' => [],
+                'estimated_total' => 88000,
+            ]);
+            $recipe->forceFill(['created_at' => now()->subMinutes(20 - $i)])->save();
+            $recipes[] = $recipe;
+        }
+
+        // Resep tertua berada di halaman 2 (item ke-13 pada paginate(12))
+        $pageTwoRecipe = $recipes[0];
+
+        Livewire::actingAs($customer)
+            ->test(MyRecipeLab::class)
+            ->call('setPage', 2)
+            ->assertSee($pageTwoRecipe->name)
+            ->call('deleteRecipe', $pageTwoRecipe->id)
+            ->assertDontSee('Belum Ada Racikan Tersimpan')
+            ->assertViewHas('recipes', fn ($paginator) => $paginator->currentPage() === 1 && $paginator->count() === 12);
+    }
 }

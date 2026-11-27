@@ -24,6 +24,12 @@
 
     <!-- Form Card -->
     <div class="bg-[#FAF7F2] rounded-3xl p-6 sm:p-8 shadow-sm border border-[#26221E]/10">
+        @if (session()->has('status'))
+            <div role="status" class="mb-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 px-4 py-3 text-xs font-semibold leading-relaxed">
+                {{ session('status') }}
+            </div>
+        @endif
+
         <form wire:submit.prevent="authenticate" class="space-y-5">
             
             <!-- Field: Email -->
@@ -56,6 +62,9 @@
                     <label for="password" class="block text-xs font-bold uppercase tracking-wider text-[#26221E]">
                         Kata Sandi
                     </label>
+                    <a href="{{ route('password.request') }}" wire:navigate class="text-[11px] font-semibold text-[#B84E26] hover:underline">
+                        Lupa kata sandi?
+                    </a>
                 </div>
                 <input
                     type="password"

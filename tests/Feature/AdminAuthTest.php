@@ -198,6 +198,8 @@ class AdminAuthTest extends TestCase
         Livewire::actingAs($admin)
             ->test(Dashboard::class)
             ->assertSee('Kustom')
+            ->assertSee('Tren 6 Bulan')
+            ->assertSee('Distribusi Status')
             ->assertViewHas('topPreference', fn (array $top) => ($top['label'] ?? null) === 'Kustom' && ($top['count'] ?? 0) === 2)
             ->assertViewHas('cancelledCount', 1);
     }

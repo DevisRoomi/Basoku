@@ -110,4 +110,83 @@ class TrackOrderTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Lacak Status Pesanan');
     }
+
+    public function test_track_order_displays_bawa_sendiri_for_own_meat_order(): void
+    {
+        $order = Order::create([
+            'customer_name' => 'Pak Hendra Own Meat',
+            'customer_phone' => '081234567899',
+            'pickup_at' => now()->addDay()->setTime(8, 0),
+            'start_type' => 'own_meat',
+            'meat_weight' => 1000,
+            'preference' => 'seimbang',
+            'grinding_fee' => 15000,
+            'total_price' => 30000,
+            'status' => 'pending',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'material_name' => 'Daging Sapi (Bawa Sendiri)',
+            'quantity' => 1000,
+            'unit' => 'gram',
+            'unit_price' => 0,
+            'subtotal' => 0,
+        ]);
+
+        Livewire::test(TrackOrder::class)
+            ->set('orderCode', '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT))
+            ->set('phoneNumber', '081234567899')
+            ->call('searchOrder')
+            ->assertSee('Daging Sapi (Bawa Sendiri)')
+            ->assertSee('Bawa Sendiri');
+    }
+
+    public function test_guest_can_self_cancel_verified_pending_order_but_not_processing_order(): void
+    {
+        $pendingOrder = Order::create([
+            'customer_name' => 'Tamu Batal Mandiri',
+            'customer_phone' => '081234567801',
+            'pickup_at' => now()->addDay()->setTime(8, 0),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 500,
+            'preference' => 'seimbang',
+            'grinding_fee' => 7500,
+            'total_price' => 88000,
+            'status' => 'pending',
+        ]);
+
+        $processingOrder = Order::create([
+            'customer_name' => 'Tamu Sedang Giling',
+            'customer_phone' => '081234567802',
+            'pickup_at' => now()->addDay()->setTime(8, 0),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 500,
+            'preference' => 'seimbang',
+            'grinding_fee' => 7500,
+            'total_price' => 88000,
+            'status' => 'processing',
+        ]);
+
+        Livewire::test(TrackOrder::class)
+            ->set('orderCode', '#BSK-'.str_pad((string) $pendingOrder->id, 5, '0', STR_PAD_LEFT))
+            ->set('phoneNumber', '081234567801')
+            ->call('searchOrder')
+            ->assertSee('Batalkan Pesanan')
+            ->call('cancelTrackedOrder')
+            ->assertSee('berhasil dibatalkan')
+            ->assertSee('Pesanan Dibatalkan');
+
+        $this->assertSame('cancelled', $pendingOrder->fresh()->status);
+
+        Livewire::test(TrackOrder::class)
+            ->set('orderCode', '#BSK-'.str_pad((string) $processingOrder->id, 5, '0', STR_PAD_LEFT))
+            ->set('phoneNumber', '081234567802')
+            ->call('searchOrder')
+            ->assertDontSee('Batalkan Pesanan')
+            ->call('cancelTrackedOrder')
+            ->assertSee('tidak dapat dibatalkan secara mandiri');
+
+        $this->assertSame('processing', $processingOrder->fresh()->status);
+    }
 }

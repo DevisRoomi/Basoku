@@ -19,7 +19,6 @@
             aria-hidden="true"
         >
             <source src="{{ asset('videos/basoku-hero-opt.mp4') }}" type="video/mp4">
-            <source src="{{ asset('videos/basoku-hero.mp4') }}" type="video/mp4">
         </video>
 
         <!-- Dark Cinematic Editorial Scrim (Kontras Sempurna untuk Tipografi) -->

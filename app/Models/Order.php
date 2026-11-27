@@ -12,6 +12,18 @@ class Order extends Model
     use HasFactory;
 
     /**
+     * Peta alias status kanonik Inggris & legacy Indonesia sebagai satu sumber kebenaran.
+     *
+     * @var array<string, list<string>>
+     */
+    public const STATUS_ALIASES = [
+        'pending' => ['pending', 'menunggu'],
+        'processing' => ['processing', 'diproses'],
+        'completed' => ['completed', 'selesai'],
+        'cancelled' => ['cancelled', 'batal', 'dibatalkan'],
+    ];
+
+    /**
      * The table associated with the model.
      *
      * @var string
@@ -60,18 +72,46 @@ class Order extends Model
     }
 
     /**
-     * Get the recipe configuration used for the order (optional).
-     */
-    public function recipeConfiguration(): BelongsTo
-    {
-        return $this->belongsTo(RecipeConfiguration::class);
-    }
-
-    /**
      * Get the items in the order.
      */
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Cek apakah pesanan memakai mode bawa daging sendiri (mendukung 'own_meat' dan legacy 'bring_own_meat').
+     */
+    public function isOwnMeat(): bool
+    {
+        return in_array((string) $this->start_type, ['own_meat', 'bring_own_meat'], true);
+    }
+
+    /**
+     * Normalisasi status pesanan ke nilai kanonik Inggris.
+     */
+    public static function normalizeStatus(?string $status): string
+    {
+        $clean = strtolower(trim((string) $status));
+
+        foreach (self::STATUS_ALIASES as $canonical => $aliases) {
+            if (in_array($clean, $aliases, true)) {
+                return $canonical;
+            }
+        }
+
+        return $clean !== '' ? $clean : 'pending';
+    }
+
+    /**
+     * Ambil seluruh alias database untuk satu status kanonik.
+     *
+     * @return list<string>
+     */
+    public static function aliasesFor(string $canonical): array
+    {
+        $clean = strtolower(trim($canonical));
+
+        return self::STATUS_ALIASES[$clean] ?? [$clean];
     }
 }

@@ -167,7 +167,13 @@ html {
         radial-gradient(circle at 10% 15%, rgba(217, 107, 67, 0.04) 0%, transparent 40%),
         radial-gradient(circle at 90% 85%, rgba(45, 66, 53, 0.05) 0%, transparent 45%),
         url("data:image/svg+xml,%3Csvg width='56' height='56' viewBox='0 0 56 56' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%232D4235' stroke-width='0.9' stroke-opacity='0.065'%3E%3Cellipse cx='28' cy='14' rx='7' ry='12'/%3E%3Cellipse cx='28' cy='42' rx='7' ry='12'/%3E%3Cellipse cx='14' cy='28' rx='12' ry='7'/%3E%3Cellipse cx='42' cy='28' rx='12' ry='7'/%3E%3Ccircle cx='28' cy='28' r='2.5' fill='%23D96B43' fill-opacity='0.09' stroke='none'/%3E%3Ccircle cx='0' cy='0' r='1.5' fill='%232D4235' fill-opacity='0.05' stroke='none'/%3E%3Ccircle cx='56' cy='0' r='1.5' fill='%232D4235' fill-opacity='0.05' stroke='none'/%3E%3Ccircle cx='0' cy='56' r='1.5' fill='%232D4235' fill-opacity='0.05' stroke='none'/%3E%3Ccircle cx='56' cy='56' r='1.5' fill='%232D4235' fill-opacity='0.05' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
-    background-attachment: fixed;
+    background-attachment: scroll;
+}
+
+@media (min-width: 1024px) and (hover: hover) {
+    .bg-motif-kawung {
+        background-attachment: fixed;
+    }
 }
 
 /* Giant Serif Display Background Watermark */

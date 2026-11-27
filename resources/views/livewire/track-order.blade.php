@@ -69,8 +69,14 @@
             </form>
 
             @if ($lookupError)
-                <div class="mt-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 p-4 text-xs font-semibold">
+                <div role="alert" class="mt-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 p-4 text-xs font-semibold">
                     {{ $lookupError }}
+                </div>
+            @endif
+
+            @if ($actionNotice)
+                <div role="status" class="mt-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 text-xs font-semibold">
+                    {{ $actionNotice }}
                 </div>
             @endif
         </div>
@@ -130,8 +136,8 @@
 
                 <!-- Step Progress Bar -->
                 @if (! $isCancelled)
-                    <div class="px-6 sm:px-8 py-6 bg-white border-b border-[#26221E]/10">
-                        <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="px-5 sm:px-8 py-5 sm:py-6 bg-white border-b border-[#26221E]/10">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-center">
                             <div class="p-3 rounded-2xl border {{ ($isPending || $isProcessing || $isCompleted) ? 'border-[#2D4235] bg-[#E8ECE4]/60 text-[#2D4235]' : 'border-[#26221E]/10 text-[#5A534A]' }}">
                                 <span class="block text-[10px] font-mono font-bold uppercase">Tahap 1</span>
                                 <span class="block text-xs font-bold mt-0.5">Konfirmasi Kios</span>
@@ -153,7 +159,7 @@
                     <div class="bg-white rounded-2xl border border-[#26221E]/10 divide-y divide-[#26221E]/10 overflow-hidden">
                         @foreach ($order->orderItems as $item)
                             @php
-                                $isOwnMeatTrack = $order->start_type === 'bring_own_meat' && (float) $item->subtotal <= 0;
+                                $isOwnMeatTrack = $order->isOwnMeat() && (float) $item->subtotal <= 0;
                             @endphp
                             <div wire:key="track-item-{{ $item->id }}" class="px-4 py-3 flex items-center justify-between text-xs">
                                 <div>
@@ -183,6 +189,16 @@
                             >
                                 Hubungi Kios via WhatsApp
                             </a>
+                            @if ($isPending)
+                                <button
+                                    type="button"
+                                    wire:click="cancelTrackedOrder"
+                                    wire:confirm="Yakin ingin membatalkan pesanan {{ $orderCodeLabel }}? Pesanan yang dibatalkan tidak akan diproses oleh kios."
+                                    class="px-4 py-2.5 rounded-full border border-rose-300 bg-rose-50 hover:bg-rose-700 hover:text-white text-xs font-bold text-rose-800 transition-colors cursor-pointer"
+                                >
+                                    Batalkan Pesanan
+                                </button>
+                            @endif
                             <button
                                 type="button"
                                 wire:click="resetSearch"

@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class RecipeFormula extends Model
 {
     use HasFactory;
+
+    public const CACHE_KEY = 'basoku.recipe_formulas.all';
 
     /**
      * The table associated with the model.
@@ -44,6 +49,54 @@ class RecipeFormula extends Model
             'spice_ratio' => 'decimal:4',
             'is_simulation' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn (): null => self::clearCache());
+        static::deleted(fn (): null => self::clearCache());
+    }
+
+    /**
+     * Ambil seluruh formula rasio dengan cache ringan (otomatis terinvalidasi saat admin mengubah formula).
+     *
+     * @return EloquentCollection<int, RecipeFormula>
+     */
+    public static function cachedAll(): EloquentCollection
+    {
+        $cached = Cache::get(self::CACHE_KEY);
+
+        if (is_array($cached)) {
+            return self::hydrate($cached);
+        }
+
+        if ($cached !== null) {
+            self::clearCache();
+        }
+
+        $formulas = self::query()->orderBy('id')->get();
+
+        Cache::put(
+            self::CACHE_KEY,
+            $formulas->map(fn (self $formula): array => $formula->getAttributes())->all(),
+            now()->addMinutes(10)
+        );
+
+        return $formulas;
+    }
+
+    /**
+     * Bersihkan cache formula rasio.
+     */
+    public static function clearCache(): null
+    {
+        try {
+            Cache::forget(self::CACHE_KEY);
+        } catch (\Throwable) {
+            // Abaikan bila cache store belum siap
+        }
+
+        return null;
     }
 
     /**
@@ -145,8 +198,13 @@ class RecipeFormula extends Model
         $order = ['enak', 'seimbang', 'ekonomis'];
 
         try {
-            $dbFormulas = self::whereIn('code', $order)->get()->keyBy('code');
-        } catch (\Throwable) {
+            $dbFormulas = self::cachedAll()
+                ->whereIn('code', $order)
+                ->keyBy('code');
+        } catch (\Throwable $e) {
+            Log::error('RecipeFormula::orderedPresets gagal memuat formula dari database.', [
+                'error' => $e->getMessage(),
+            ]);
             $dbFormulas = collect();
         }
 

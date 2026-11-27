@@ -182,14 +182,27 @@ class RecipeCalculatorTest extends TestCase
             'subtotal' => 9000.00,
         ]);
 
-        // 3. Assert redirect to WhatsApp with unified #BSK- order prefix and single Jasa Selepan entry
-        $test->assertRedirect();
-        $redirectUrl = $test->effects['redirect'] ?? '';
-        $decodedWa = urldecode($redirectUrl);
-        $this->assertStringContainsString('https://wa.me/6285122797969', $redirectUrl);
-        $this->assertStringContainsString(urlencode('Pak Sukadi'), $redirectUrl);
-        $this->assertStringContainsString(urlencode('#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT)), $redirectUrl);
+        // 3. Assert confirmation modal stays open with #BSK- order code, single Jasa Selepan WA URL, and track URL
+        $expectedOrderCode = '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
+        $test->assertSet('showCheckoutModal', true)
+            ->assertSet('confirmedOrderCode', $expectedOrderCode)
+            ->assertSee('Pesanan Berhasil Dicatat')
+            ->assertSee($expectedOrderCode);
+
+        $waUrl = (string) $test->get('confirmedWaUrl');
+        $decodedWa = urldecode($waUrl);
+        $this->assertStringContainsString('https://wa.me/6285122797969', $waUrl);
+        $this->assertStringContainsString(urlencode('Pak Sukadi'), $waUrl);
+        $this->assertStringContainsString(urlencode($expectedOrderCode), $waUrl);
         $this->assertSame(1, substr_count($decodedWa, 'Jasa Selepan'));
+
+        $trackUrl = (string) $test->get('confirmedTrackUrl');
+        $this->assertStringContainsString('/lacak-pesanan', $trackUrl);
+        $this->assertStringContainsString(urlencode($expectedOrderCode), $trackUrl);
+
+        // 4. Calling processCheckout again while confirmation is active must NOT create a duplicate order
+        $test->call('processCheckout');
+        $this->assertSame(1, Order::where('customer_name', 'Pak Sukadi')->count());
     }
 
     public function test_flour_packaging_market_rules(): void
@@ -351,7 +364,7 @@ class RecipeCalculatorTest extends TestCase
 
     public function test_calculator_blocks_checkout_when_selected_core_material_is_unavailable(): void
     {
-        Material::where('name', 'Daging Sapi')->update(['is_available' => false]);
+        Material::where('name', 'Daging Sapi')->firstOrFail()->update(['is_available' => false]);
         $pickupDate = now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
 
         Livewire::test(RecipeCalculator::class)
@@ -389,11 +402,14 @@ class RecipeCalculatorTest extends TestCase
 
     public function test_ingredients_only_mode_without_meat(): void
     {
+        $tapioka = Material::where('name', 'Tepung Tapioka')->firstOrFail();
+        $garlic = Material::where('name', 'Bawang Putih Kupas')->firstOrFail();
+
         Livewire::test(RecipeCalculator::class)
             ->set('startType', 'ingredients_only')
-            ->set('flourType', 'tapioka')
-            ->set('ingredientFlourPacks', 2)
-            ->set('ingredientGarlicPacks', 1)
+            ->call('incrementExtra', $tapioka->id)
+            ->call('incrementExtra', $tapioka->id)
+            ->call('incrementExtra', $garlic->id)
             ->assertSet('meatWeight', 0)
             ->assertSet('useGrinding', false)
             ->assertSee('Beli Bahan Saja')
@@ -435,7 +451,6 @@ class RecipeCalculatorTest extends TestCase
         // 1. Pindah ke Beli Bahan Saja -> tepung tidak dipaksa (0 item) & checkout diblokir sampai pilih bahan
         $component = Livewire::test(RecipeCalculator::class)
             ->set('startType', 'ingredients_only')
-            ->assertSet('ingredientFlourPacks', 0)
             ->assertSet('breakdown', [])
             ->assertSet('totalMarketCost', 0.0)
             ->assertSee('Belum Ada Bahan Dipilih')
@@ -521,8 +536,8 @@ class RecipeCalculatorTest extends TestCase
             ->call('processCheckout')
             ->assertHasNoErrors();
 
-        $redirectUrl = $checkout->effects['redirect'] ?? '';
-        $this->assertStringContainsString('Kustom (350% Tepung)', urldecode($redirectUrl));
+        $waUrl = (string) $checkout->get('confirmedWaUrl');
+        $this->assertStringContainsString('Kustom (350% Tepung)', urldecode($waUrl));
     }
 
     public function test_curah_seasonings_round_cash_without_forcing_whole_packs_while_flour_stays_packaged(): void
@@ -564,7 +579,6 @@ class RecipeCalculatorTest extends TestCase
             ->assertHasNoErrors()
             ->assertSet('totalProportionalCost', 0.0)
             ->set('startType', 'ingredients_only')
-            ->set('ingredientFlourPacks', '')
             ->assertHasNoErrors()
             ->assertSet('totalMarketCost', 0.0);
     }
@@ -650,13 +664,14 @@ class RecipeCalculatorTest extends TestCase
 
     public function test_ingredients_only_checkout_persists_bahan_saja_and_accurate_pack_order_items(): void
     {
+        $tapioka = Material::where('name', 'Tepung Tapioka')->firstOrFail();
         $egg = Material::where('name', 'Telur Ayam')->firstOrFail();
         $pickupDate = now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
 
         Livewire::test(RecipeCalculator::class)
             ->set('startType', 'ingredients_only')
-            ->set('flourType', 'tapioka')
-            ->set('ingredientFlourPacks', 2)
+            ->call('incrementExtra', $tapioka->id)
+            ->call('incrementExtra', $tapioka->id)
             ->call('incrementExtra', $egg->id)
             ->call('incrementExtra', $egg->id)
             ->call('incrementExtra', $egg->id)
@@ -690,7 +705,7 @@ class RecipeCalculatorTest extends TestCase
 
     public function test_unavailable_seasoning_or_probakso_blocks_checkout_without_silent_fallback(): void
     {
-        Material::where('name', 'Bawang Putih Kupas')->update(['is_available' => false]);
+        Material::where('name', 'Bawang Putih Kupas')->firstOrFail()->update(['is_available' => false]);
 
         Livewire::test(RecipeCalculator::class)
             ->set('startType', 'start_from_zero')
@@ -698,8 +713,8 @@ class RecipeCalculatorTest extends TestCase
             ->call('openCheckout')
             ->assertSet('showCheckoutModal', false);
 
-        Material::where('name', 'Bawang Putih Kupas')->update(['is_available' => true]);
-        Material::where('name', 'Tepung ProBakso')->update(['is_available' => false]);
+        Material::where('name', 'Bawang Putih Kupas')->firstOrFail()->update(['is_available' => true]);
+        Material::where('name', 'Tepung ProBakso')->firstOrFail()->update(['is_available' => false]);
 
         $probaksoTest = Livewire::test(RecipeCalculator::class)
             ->set('flourType', 'probakso')
@@ -721,5 +736,119 @@ class RecipeCalculatorTest extends TestCase
             ->set('pickupTime', 'bukan-tanggal-valid')
             ->call('processCheckout')
             ->assertHasErrors(['pickupTime']);
+    }
+
+    public function test_own_meat_checkout_stores_zero_unit_price_and_subtotal_for_customer_meat(): void
+    {
+        $validPickup = now()->addDay()->setTime(9, 0)->format('Y-m-d\TH:i');
+
+        Livewire::test(RecipeCalculator::class)
+            ->set('startType', 'own_meat')
+            ->set('meatType', 'sapi')
+            ->set('meatWeight', 1000)
+            ->set('preference', 'enak')
+            ->call('openCheckout')
+            ->set('customerName', 'Bu Dewi Own Meat')
+            ->set('customerPhone', '081234567811')
+            ->set('pickupTime', $validPickup)
+            ->call('processCheckout')
+            ->assertHasNoErrors();
+
+        $order = Order::where('customer_name', 'Bu Dewi Own Meat')->firstOrFail();
+        $this->assertSame('own_meat', $order->start_type);
+        $this->assertTrue($order->isOwnMeat());
+
+        $this->assertDatabaseHas('order_items', [
+            'order_id' => $order->id,
+            'material_name' => 'Daging Sapi',
+            'quantity' => 1000.000,
+            'unit_price' => 0.00,
+            'subtotal' => 0.00,
+        ]);
+    }
+
+    public function test_checkout_accepts_and_normalizes_formatted_whatsapp_phone_numbers(): void
+    {
+        $validPickup = now()->addDay()->setTime(9, 0)->format('Y-m-d\TH:i');
+
+        $component = Livewire::test(RecipeCalculator::class)
+            ->set('meatWeight', 500)
+            ->call('openCheckout')
+            ->set('customerName', 'Pak Agus Format WA')
+            ->set('customerPhone', '0812-3456 7890')
+            ->set('pickupTime', $validPickup)
+            ->call('processCheckout')
+            ->assertHasNoErrors()
+            ->assertSet('customerPhone', '081234567890')
+            ->assertSet('showCheckoutModal', true);
+
+        $this->assertDatabaseHas('orders', [
+            'customer_name' => 'Pak Agus Format WA',
+            'customer_phone' => '081234567890',
+        ]);
+        $this->assertStringContainsString('081234567890', urldecode((string) $component->get('confirmedWaUrl')));
+    }
+
+    public function test_transferring_only_non_meat_items_from_catalog_switches_to_ingredients_only_without_double_flour(): void
+    {
+        $tapioka = Material::where('name', 'Tepung Tapioka')->firstOrFail();
+        $pepper = Material::where('name', 'Merica Bubuk Sachet')->firstOrFail();
+
+        session(['selected_materials' => [
+            $tapioka->id => 2,
+            $pepper->id => 1,
+        ]]);
+
+        $component = Livewire::test(RecipeCalculator::class)
+            ->assertSet('startType', 'ingredients_only')
+            ->assertSet('meatWeight', 0)
+            ->assertSet('useGrinding', false)
+            ->assertSet('extraItems', [
+                $tapioka->id => 2,
+                $pepper->id => 1,
+            ]);
+
+        $breakdown = collect($component->get('breakdown'));
+        $this->assertCount(1, $breakdown->where('name', 'Tepung Tapioka'));
+        $this->assertCount(1, $breakdown->where('name', 'Merica Bubuk Sachet'));
+        $this->assertCount(0, $breakdown->where('name', 'Daging Sapi'));
+    }
+
+    public function test_transferring_meat_and_flour_from_catalog_maps_primary_flour_without_duplication(): void
+    {
+        $chicken = Material::where('name', 'Daging Ayam')->firstOrFail();
+        $probakso = Material::where('name', 'Tepung ProBakso')->firstOrFail();
+        $egg = Material::where('name', 'Telur Ayam')->firstOrFail();
+
+        session(['selected_materials' => [
+            $chicken->id => 2,
+            $probakso->id => 1,
+            $egg->id => 1,
+        ]]);
+
+        $component = Livewire::test(RecipeCalculator::class)
+            ->assertSet('startType', 'start_from_zero')
+            ->assertSet('meatType', 'ayam')
+            ->assertSet('meatWeight', 2000)
+            ->assertSet('flourType', 'probakso')
+            ->assertSet('extraItems', [$egg->id => 1]);
+
+        $breakdown = collect($component->get('breakdown'));
+        $this->assertCount(1, $breakdown->where('name', 'Tepung ProBakso'));
+        $this->assertCount(0, $breakdown->where('name', 'Tepung Tapioka'));
+    }
+
+    public function test_manual_numeric_inputs_bind_on_blur_instead_of_live_debounce_to_prevent_mid_typing_overwrite(): void
+    {
+        $html = Livewire::test(RecipeCalculator::class)
+            ->set('preference', 'kustom')
+            ->html();
+
+        $this->assertStringContainsString('wire:model.live.blur="meatWeight"', $html);
+        $this->assertStringNotContainsString('wire:model.blur="meatWeight"', $html);
+        $this->assertStringNotContainsString('wire:model.live.debounce.300ms="meatWeight"', $html);
+        $this->assertStringContainsString('wire:model.live.blur="customFlourRatio"', $html);
+        $this->assertStringNotContainsString('wire:model.blur="customFlourRatio"', $html);
+        $this->assertStringNotContainsString('wire:model.live.debounce.200ms="customFlourRatio"', $html);
     }
 }

@@ -34,7 +34,7 @@
                 wire:click="$set('selectedCategory', 'semua')"
                 class="px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer shrink-0 {{ $selectedCategory === 'semua' ? 'bg-[#161210] text-[#FAF6F0]' : 'bg-[#FAF6F0] text-[#161210]/70 hover:bg-white hover:text-[#161210] border border-[#161210]/10' }}"
             >
-                Semua Kategori ({{ \App\Models\Material::count() }})
+                Semua Kategori ({{ $totalMaterialsCount }})
             </button>
             @foreach ($allCategories as $cat)
                 <button
@@ -62,6 +62,16 @@
                     <span>{{ session('success') }}</span>
                 </div>
                 <button type="button" @click="show = false" aria-label="Tutup notifikasi" class="text-emerald-700 hover:text-emerald-900 cursor-pointer px-1">
+                    &times;
+                </button>
+            </div>
+        @endif
+
+        <!-- Flash Message Error -->
+        @if (session()->has('error'))
+            <div x-data="{ show: true }" x-show="show" role="alert" class="bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-sm">
+                <span>{{ session('error') }}</span>
+                <button type="button" @click="show = false" aria-label="Tutup peringatan" class="text-rose-700 hover:text-rose-900 cursor-pointer px-1">
                     &times;
                 </button>
             </div>
@@ -158,17 +168,41 @@
                                 </td>
 
                                 <!-- Kolom 8: Aksi -->
-                                <td class="py-4 px-5 text-right space-x-2">
-                                    <button
-                                        type="button"
-                                        wire:click="openEditModal({{ $material->id }})"
-                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#FAF6F0] hover:bg-[#161210] hover:text-white text-[#161210] font-semibold text-xs border border-[#161210]/10 transition-colors cursor-pointer"
-                                    >
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                        <span>Edit</span>
-                                    </button>
+                                <td class="py-4 px-5 text-right whitespace-nowrap">
+                                    <div class="inline-flex items-center justify-end gap-1.5">
+                                        <button
+                                            type="button"
+                                            wire:click="openEditModal({{ $material->id }})"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#FAF6F0] hover:bg-[#161210] hover:text-white text-[#161210] font-semibold text-xs border border-[#161210]/10 transition-colors cursor-pointer"
+                                        >
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            <span>Edit</span>
+                                        </button>
+
+                                        @if ($material->isCoreMaterial())
+                                            <span
+                                                title="Bahan inti kalkulator tidak dapat dihapus permanen. Ubah status menjadi Habis bila kosong."
+                                                class="inline-flex items-center px-2 py-1.5 rounded-lg bg-[#FAF6F0] text-[#161210]/45 font-mono text-[10px] font-bold border border-[#161210]/10 select-none"
+                                            >
+                                                Inti
+                                            </span>
+                                        @else
+                                            <button
+                                                type="button"
+                                                wire:click="deleteMaterial({{ $material->id }})"
+                                                wire:confirm="Yakin ingin menghapus bahan '{{ $material->name }}' secara permanen dari katalog?"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-700 hover:text-white text-rose-700 font-semibold text-xs border border-rose-200 transition-colors cursor-pointer"
+                                                aria-label="Hapus bahan {{ $material->name }}"
+                                            >
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                <span>Hapus</span>
+                                            </button>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -198,11 +232,13 @@
             role="dialog"
             aria-modal="true"
             aria-labelledby="material-modal-title"
+            x-data
+            x-init="window.basokuFocusFirst($el)"
+            @keydown.tab="window.basokuTrapFocus($el, $event)"
             @keydown.escape.window="$wire.closeModal()"
         >
             <div
                 class="bg-[#FAF6F0] rounded-2xl w-full max-w-lg my-auto max-h-[90dvh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-[#161210]/10 relative z-10"
-                @click.away="$wire.closeModal()"
             >
                 <!-- Header Modal -->
                 <div class="flex items-start justify-between pb-4 border-b border-[#161210]/10">
@@ -285,8 +321,8 @@
                         @enderror
                     </div>
 
-                    <!-- Field 2: Kategori & Satuan Kemasan (2 Kolom) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Field 2: Kategori, Bentuk Kemasan & Satuan Acuan -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                         <!-- Kategori -->
                         <div>
                             <label for="material-category" class="block text-xs font-bold uppercase tracking-wider text-[#161210] mb-1.5">
@@ -312,16 +348,45 @@
                         <!-- Bentuk Kemasan Pasar -->
                         <div>
                             <label for="material-package-unit" class="block text-xs font-bold uppercase tracking-wider text-[#161210] mb-1.5">
-                                Bentuk Kemasan (Pack/Kg)
+                                Kemasan Jual
                             </label>
                             <input
                                 type="text"
                                 id="material-package-unit"
-                                wire:model="package_unit"
-                                placeholder="Contoh: Pack, Kg, Butir"
+                                wire:model.live.debounce.250ms="package_unit"
+                                x-model="packageUnit"
+                                placeholder="Pack, Kg, Butir, Ikat"
                                 class="w-full rounded-xl border-2 border-[#161210]/10 bg-white px-3 py-2.5 text-xs sm:text-sm font-medium text-[#161210] focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
                             >
                             @error('package_unit')
+                                <p class="text-[11px] text-[#C83B2B] mt-1 font-medium">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Satuan Acuan (unit) -->
+                        <div>
+                            <label for="material-unit" class="block text-xs font-bold uppercase tracking-wider text-[#161210] mb-1.5">
+                                Satuan Acuan <span class="text-[#C83B2B]">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="material-unit"
+                                list="material-unit-options"
+                                wire:model="unit"
+                                placeholder="gram, Kg, Pack, Ikat"
+                                class="w-full rounded-xl border-2 border-[#161210]/10 bg-white px-3 py-2.5 text-xs sm:text-sm font-medium text-[#161210] focus:outline-none focus:border-[#C83B2B] focus:ring-2 focus:ring-[#C83B2B]/20 transition-all"
+                            >
+                            <datalist id="material-unit-options">
+                                <option value="gram"></option>
+                                <option value="Kg"></option>
+                                <option value="Pack"></option>
+                                <option value="Butir"></option>
+                                <option value="Sachet"></option>
+                                <option value="Ikat"></option>
+                                <option value="Bungkus"></option>
+                                <option value="Botol"></option>
+                            </datalist>
+                            @error('unit')
                                 <p class="text-[11px] text-[#C83B2B] mt-1 font-medium">{{ $message }}</p>
                             @enderror
                         </div>

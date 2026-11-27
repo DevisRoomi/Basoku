@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Middleware\EnsureAdmin;
+use App\Models\KioskSetting;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -25,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
         Livewire::addPersistentMiddleware([
             EnsureAdmin::class,
         ]);
+
+        KioskSetting::applyToConfig();
 
         if ($this->app->environment('production')) {
             URL::forceScheme('https');

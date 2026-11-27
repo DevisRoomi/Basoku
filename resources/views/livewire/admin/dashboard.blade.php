@@ -194,8 +194,19 @@
                 </div>
             </div>
 
-            <!-- Grafik 2: Tren Status & Distribusi Pesanan (Bar / Line) -->
-            <div class="lg:col-span-7 bg-[#FAF7F2] rounded-3xl p-6 sm:p-7 border border-[#26221E]/10 shadow-sm flex flex-col justify-between">
+            <!-- Grafik 2: Tren 6 Bulan & Distribusi Status Pesanan (Bar + Line Combo / Status Bar) -->
+            <div
+                x-data="{
+                    chartMode: 'monthly',
+                    switchMode(mode) {
+                        this.chartMode = mode;
+                        if (window.__basokuRenderOrderChart) {
+                            window.__basokuRenderOrderChart(mode);
+                        }
+                    }
+                }"
+                class="lg:col-span-7 bg-[#FAF7F2] rounded-3xl p-6 sm:p-7 border border-[#26221E]/10 shadow-sm flex flex-col justify-between"
+            >
                 <div>
                     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div>
@@ -203,15 +214,33 @@
                                 Analisis Operasional
                             </span>
                             <h3 class="text-lg sm:text-xl font-bold text-[#26221E]" style="font-family: 'Playfair Display', Georgia, serif;">
-                                Tren Volume & Distribusi Status Pesanan
+                                Tren Volume &amp; Distribusi Status Pesanan
                             </h3>
-                            <p class="text-xs text-[#5A534A] mt-1">
-                                Perkembangan pesanan masuk bulanan dan status pemrosesan di meja penggilingan.
+                            <p class="text-xs text-[#5A534A] mt-1" x-text="chartMode === 'monthly' ? 'Volume pesanan masuk dan realisasi omzet valid 6 bulan terakhir.' : 'Sebaran jumlah pesanan berdasarkan status pengerjaan saat ini.'">
+                                Volume pesanan masuk dan realisasi omzet valid 6 bulan terakhir.
                             </p>
                         </div>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#2D4235]/10 text-[#2D4235] border border-[#2D4235]/20 self-start sm:self-auto shrink-0">
-                            <span class="w-2 h-2 rounded-full bg-[#2D4235]"></span>
-                            Status Pengerjaan
+                        <div class="inline-flex items-center p-1 rounded-full bg-white border border-[#26221E]/10 self-start sm:self-auto shrink-0" role="tablist" aria-label="Mode tampilan grafik pesanan">
+                            <button
+                                type="button"
+                                role="tab"
+                                :aria-selected="chartMode === 'monthly'"
+                                @click="switchMode('monthly')"
+                                :class="chartMode === 'monthly' ? 'bg-[#2D4235] text-white shadow-xs' : 'text-[#5A534A] hover:text-[#26221E]'"
+                                class="px-3 py-1 rounded-full text-[11px] font-bold transition-colors cursor-pointer"
+                            >
+                                Tren 6 Bulan
+                            </button>
+                            <button
+                                type="button"
+                                role="tab"
+                                :aria-selected="chartMode === 'status'"
+                                @click="switchMode('status')"
+                                :class="chartMode === 'status' ? 'bg-[#2D4235] text-white shadow-xs' : 'text-[#5A534A] hover:text-[#26221E]'"
+                                class="px-3 py-1 rounded-full text-[11px] font-bold transition-colors cursor-pointer"
+                            >
+                                Distribusi Status
+                            </button>
                         </div>
                     </div>
 
@@ -529,38 +558,135 @@
                     });
                 }
 
-                // 2. Chart Status & Tren Pesanan (Bar Chart)
-                if (statusCanvas) {
+                // 2. Chart Tren 6 Bulanan (Default) & Distribusi Status Pesanan
+                window.__basokuRenderOrderChart = function(mode = 'monthly') {
+                    const canvas = document.getElementById('orderStatusChart');
+                    const data = window.__basokuDashboardChartData;
+                    if (!canvas || !data || typeof Chart === 'undefined') {
+                        return;
+                    }
+
                     if (window.basokuStatusChartInstance) {
                         window.basokuStatusChartInstance.destroy();
                     }
 
-                    const statusCtx = statusCanvas.getContext('2d');
+                    const statusCtx = canvas.getContext('2d');
+
+                    if (mode === 'status') {
+                        window.basokuStatusChartInstance = new Chart(statusCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: data.status.labels,
+                                datasets: [{
+                                    label: 'Jumlah Pesanan',
+                                    data: data.status.data,
+                                    backgroundColor: [
+                                        'rgba(45, 66, 53, 0.85)',
+                                        'rgba(22, 101, 52, 0.85)',
+                                        'rgba(217, 119, 6, 0.85)',
+                                        'rgba(153, 27, 27, 0.85)'
+                                    ],
+                                    borderColor: ['#2D4235', '#166534', '#D97706', '#991B1B'],
+                                    borderWidth: 1.5,
+                                    borderRadius: 12,
+                                    borderSkipped: false,
+                                    maxBarThickness: 44
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        backgroundColor: '#26221E',
+                                        titleColor: '#FAF7F2',
+                                        bodyColor: '#FAF7F2',
+                                        padding: 12,
+                                        cornerRadius: 12,
+                                        callbacks: {
+                                            label: function(context) {
+                                                return `Total: ${context.raw} pesanan`;
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            precision: 0,
+                                            color: '#5A534A',
+                                            font: { family: "'Instrument Sans', sans-serif", size: 11 }
+                                        },
+                                        grid: { color: 'rgba(38, 34, 30, 0.06)' }
+                                    },
+                                    x: {
+                                        ticks: {
+                                            color: '#26221E',
+                                            font: { family: "'Instrument Sans', sans-serif", size: 11, weight: '600' }
+                                        },
+                                        grid: { display: false }
+                                    }
+                                }
+                            }
+                        });
+
+                        return;
+                    }
+
                     window.basokuStatusChartInstance = new Chart(statusCtx, {
                         type: 'bar',
                         data: {
-                            labels: chartData.status.labels,
-                            datasets: [{
-                                label: 'Jumlah Pesanan',
-                                data: chartData.status.data,
-                                backgroundColor: [
-                                    'rgba(45, 66, 53, 0.85)',
-                                    'rgba(22, 101, 52, 0.85)',
-                                    'rgba(217, 119, 6, 0.85)',
-                                    'rgba(153, 27, 27, 0.85)'
-                                ],
-                                borderColor: ['#2D4235', '#166534', '#D97706', '#991B1B'],
-                                borderWidth: 1.5,
-                                borderRadius: 12,
-                                borderSkipped: false,
-                                maxBarThickness: 44
-                            }]
+                            labels: data.status.monthlyLabels,
+                            datasets: [
+                                {
+                                    type: 'bar',
+                                    label: 'Volume Pesanan',
+                                    data: data.status.monthlyOrders,
+                                    yAxisID: 'yOrders',
+                                    backgroundColor: 'rgba(45, 66, 53, 0.82)',
+                                    borderColor: '#2D4235',
+                                    borderWidth: 1.5,
+                                    borderRadius: 10,
+                                    borderSkipped: false,
+                                    maxBarThickness: 36,
+                                    order: 2
+                                },
+                                {
+                                    type: 'line',
+                                    label: 'Omzet Valid (Rp)',
+                                    data: data.status.monthlyRevenue,
+                                    yAxisID: 'yRevenue',
+                                    borderColor: '#B84E26',
+                                    backgroundColor: 'rgba(184, 78, 38, 0.14)',
+                                    borderWidth: 2.5,
+                                    tension: 0.35,
+                                    fill: true,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6,
+                                    pointBackgroundColor: '#B84E26',
+                                    pointBorderColor: '#FAF7F2',
+                                    pointBorderWidth: 2,
+                                    order: 1
+                                }
+                            ]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
                             plugins: {
-                                legend: { display: false },
+                                legend: {
+                                    display: true,
+                                    position: 'bottom',
+                                    labels: {
+                                        usePointStyle: true,
+                                        boxWidth: 8,
+                                        color: '#26221E',
+                                        font: { family: "'Instrument Sans', sans-serif", size: 11, weight: '600' }
+                                    }
+                                },
                                 tooltip: {
                                     backgroundColor: '#26221E',
                                     titleColor: '#FAF7F2',
@@ -569,20 +695,40 @@
                                     cornerRadius: 12,
                                     callbacks: {
                                         label: function(context) {
-                                            return `Total: ${context.raw} pesanan`;
+                                            if (context.dataset.yAxisID === 'yRevenue') {
+                                                return `Omzet Valid: Rp ${new Intl.NumberFormat('id-ID').format(context.raw || 0)}`;
+                                            }
+                                            return `Volume: ${context.raw || 0} pesanan`;
                                         }
                                     }
                                 }
                             },
                             scales: {
-                                y: {
+                                yOrders: {
+                                    type: 'linear',
+                                    position: 'left',
                                     beginAtZero: true,
                                     ticks: {
                                         precision: 0,
-                                        color: '#5A534A',
+                                        color: '#2D4235',
                                         font: { family: "'Instrument Sans', sans-serif", size: 11 }
                                     },
                                     grid: { color: 'rgba(38, 34, 30, 0.06)' }
+                                },
+                                yRevenue: {
+                                    type: 'linear',
+                                    position: 'right',
+                                    beginAtZero: true,
+                                    ticks: {
+                                        color: '#B84E26',
+                                        font: { family: "'Instrument Sans', sans-serif", size: 10 },
+                                        callback: function(value) {
+                                            if (value >= 1000000) return 'Rp ' + (value / 1000000).toFixed(1) + 'jt';
+                                            if (value >= 1000) return 'Rp ' + Math.round(value / 1000) + 'rb';
+                                            return 'Rp ' + value;
+                                        }
+                                    },
+                                    grid: { drawOnChartArea: false }
                                 },
                                 x: {
                                     ticks: {
@@ -594,6 +740,10 @@
                             }
                         }
                     });
+                };
+
+                if (statusCanvas) {
+                    window.__basokuRenderOrderChart('monthly');
                 }
             }
 

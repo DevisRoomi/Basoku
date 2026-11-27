@@ -152,7 +152,7 @@
                     <div class="flex items-center gap-4 sm:gap-5 min-w-0">
                         <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-[#26221E]/15 shrink-0 bg-[#26221E]">
                             <img
-                                src="{{ asset('images/curated/bakso-asli.jpg') }}"
+                                src="{{ asset('images/curated/bakso-asli.webp') }}"
                                 alt="Dokumentasi Semangkuk Bakso Nusantara Asli"
                                 width="96"
                                 height="96"

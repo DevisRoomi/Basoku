@@ -33,6 +33,30 @@ class MyOrders extends Component
         $this->selectedOrderId = ($this->selectedOrderId === $orderId) ? null : $orderId;
     }
 
+    /**
+     * Batalkan pesanan milik pelanggan sendiri selama status masih 'pending' (menunggu konfirmasi kios).
+     */
+    public function cancelOrder(int $orderId): void
+    {
+        $order = Order::query()
+            ->where('user_id', Auth::id())
+            ->find($orderId);
+
+        if (! $order) {
+            return;
+        }
+
+        if (Order::normalizeStatus((string) $order->status) !== 'pending') {
+            session()->flash('order_error', 'Pesanan yang sudah diproses, selesai, atau dibatalkan tidak dapat dibatalkan secara mandiri.');
+
+            return;
+        }
+
+        $order->update(['status' => 'cancelled']);
+        $code = '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
+        session()->flash('order_notice', "Pesanan {$code} berhasil dibatalkan.");
+    }
+
     public function render(): View
     {
         $userId = Auth::id();
@@ -42,28 +66,28 @@ class MyOrders extends Component
             ->where('user_id', $userId);
 
         if ($this->statusFilter !== 'all') {
-            $statusMap = [
-                'pending' => ['pending', 'menunggu'],
-                'processing' => ['processing', 'diproses'],
-                'completed' => ['completed', 'selesai'],
-                'cancelled' => ['cancelled', 'batal', 'dibatalkan'],
-            ];
-            $query->whereIn('status', $statusMap[$this->statusFilter] ?? [$this->statusFilter]);
+            $aliases = Order::aliasesFor($this->statusFilter);
+            $placeholders = implode(', ', array_fill(0, count($aliases), '?'));
+            $query->whereRaw("LOWER(TRIM(status)) IN ({$placeholders})", $aliases);
         }
 
         $orders = $query->latest()->paginate(8);
 
         $statusCounts = Order::query()
             ->where('user_id', $userId)
-            ->selectRaw('LOWER(status) as status_key, count(*) as total')
+            ->selectRaw('LOWER(TRIM(status)) as status_key, count(*) as total')
             ->groupBy('status_key')
             ->pluck('total', 'status_key');
 
+        $sumAliases = fn (string $canonical): int => (int) collect(Order::aliasesFor($canonical))
+            ->sum(fn (string $alias): int => (int) ($statusCounts[$alias] ?? 0));
+
         $counts = [
             'all' => (int) $statusCounts->sum(),
-            'pending' => (int) (($statusCounts['pending'] ?? 0) + ($statusCounts['menunggu'] ?? 0)),
-            'processing' => (int) (($statusCounts['processing'] ?? 0) + ($statusCounts['diproses'] ?? 0)),
-            'completed' => (int) (($statusCounts['completed'] ?? 0) + ($statusCounts['selesai'] ?? 0)),
+            'pending' => $sumAliases('pending'),
+            'processing' => $sumAliases('processing'),
+            'completed' => $sumAliases('completed'),
+            'cancelled' => $sumAliases('cancelled'),
         ];
 
         return view('livewire.customer.my-orders', [

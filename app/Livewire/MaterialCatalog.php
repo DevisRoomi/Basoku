@@ -5,9 +5,11 @@ namespace App\Livewire;
 use App\Models\Material;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Support\CheckoutHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -34,6 +36,22 @@ class MaterialCatalog extends Component
 
     #[Locked]
     public string $sellerWaNumber = '6285122797969';
+
+    /** State layar konfirmasi pasca-checkout (anti-hilang kode & anti-double-order) */
+    #[Locked]
+    public ?string $confirmedOrderCode = null;
+
+    #[Locked]
+    public float $confirmedOrderTotal = 0.0;
+
+    #[Locked]
+    public ?string $confirmedPickupLabel = null;
+
+    #[Locked]
+    public ?string $confirmedWaUrl = null;
+
+    #[Locked]
+    public ?string $confirmedTrackUrl = null;
 
     public function mount(): void
     {
@@ -125,24 +143,42 @@ class MaterialCatalog extends Component
             $this->pickupTime = now()->addDay()->setTime(8, 0)->format('Y-m-d\TH:i');
         }
 
+        $this->resetConfirmedOrder();
         $this->resetErrorBag();
         $this->showDirectCheckoutModal = true;
     }
 
     /**
-     * Tutup modal pemesanan langsung.
+     * Tutup modal pemesanan langsung dan bersihkan state konfirmasi lama.
      */
     public function closeDirectCheckout(): void
     {
         $this->showDirectCheckoutModal = false;
+        $this->resetConfirmedOrder();
         $this->resetErrorBag();
     }
 
     /**
-     * Proses pesanan belanja bahan langsung ke WhatsApp & Database.
+     * Bersihkan state layar konfirmasi pesanan sebelumnya.
      */
-    public function processDirectCheckout()
+    protected function resetConfirmedOrder(): void
     {
+        $this->confirmedOrderCode = null;
+        $this->confirmedOrderTotal = 0.0;
+        $this->confirmedPickupLabel = null;
+        $this->confirmedWaUrl = null;
+        $this->confirmedTrackUrl = null;
+    }
+
+    /**
+     * Proses pesanan belanja bahan langsung ke Database lalu tampilkan layar konfirmasi & tombol WhatsApp.
+     */
+    public function processDirectCheckout(): void
+    {
+        if ($this->confirmedOrderCode !== null) {
+            return;
+        }
+
         $throttleKey = 'catalog-checkout|'.request()->ip();
         if (RateLimiter::tooManyAttempts($throttleKey, 10)) {
             $seconds = RateLimiter::availableIn($throttleKey);
@@ -151,48 +187,12 @@ class MaterialCatalog extends Component
             return;
         }
 
-        $this->validate([
-            'customerName' => ['required', 'string', 'min:2', 'max:100'],
-            'customerPhone' => ['required', 'string', 'regex:/^(\+62|62|08)[0-9]{8,13}$/'],
-            'pickupTime' => [
-                'bail',
-                'required',
-                'date',
-                function ($attribute, $value, $fail) {
-                    try {
-                        $pickup = Carbon::parse($value);
-                    } catch (\Throwable) {
-                        $fail('Format jam pengambilan tidak valid.');
+        $this->customerPhone = CheckoutHelper::normalizePhone($this->customerPhone);
 
-                        return;
-                    }
-
-                    $minPickup = now()->addHour();
-                    if ($pickup->lt($minPickup)) {
-                        $fail('Waktu pengambilan minimal 1 jam dari pemesanan (paling awal pukul '.$minPickup->format('H:i').' WIB).');
-
-                        return;
-                    }
-
-                    $openHour = (int) config('services.kiosk.open_hour', 4);
-                    $closeHour = (int) config('services.kiosk.close_hour', 12);
-
-                    $hour = (int) $pickup->format('H');
-                    $minute = (int) $pickup->format('i');
-
-                    if ($hour < $openHour || ($hour == $closeHour && $minute > 0) || $hour > $closeHour) {
-                        $fail(sprintf('Jam pengambilan harus pada jam operasional kios (%02d.00 – %02d.00 WIB).', $openHour, $closeHour));
-                    }
-                },
-            ],
-        ], [
-            'customerName.required' => 'Nama lengkap wajib diisi.',
-            'customerName.min' => 'Nama minimal 2 karakter.',
-            'customerPhone.required' => 'Nomor WhatsApp pembeli wajib diisi.',
-            'customerPhone.regex' => 'Format nomor WhatsApp tidak valid (contoh: 08123456789 atau 628123456789).',
-            'pickupTime.required' => 'Jam pengambilan wajib diisi.',
-            'pickupTime.date' => 'Format jam pengambilan tidak valid.',
-        ]);
+        $this->validate(
+            CheckoutHelper::validationRules(),
+            CheckoutHelper::validationMessages()
+        );
 
         $activeItems = array_filter($this->selectedItems, fn ($qty) => (int) $qty > 0);
         if (empty($activeItems)) {
@@ -270,11 +270,12 @@ class MaterialCatalog extends Component
         });
 
         // Susun pesan WhatsApp
+        $orderCode = CheckoutHelper::formatOrderCode($order->id);
         $pickupFormatted = Carbon::parse($this->pickupTime)->format('d M Y, H:i');
         $lines = [];
         $lines[] = '*PESANAN BELANJA BAHAN KIOS - BASOKU*';
         $lines[] = '-----------------------------------';
-        $lines[] = '*No. Pesanan:* #BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
+        $lines[] = '*No. Pesanan:* '.$orderCode;
         $lines[] = '*Nama Pemesan:* '.trim($this->customerName);
         $lines[] = '*No. WhatsApp:* '.trim($this->customerPhone);
         $lines[] = '*Jadwal Ambil:* '.$pickupFormatted.' WIB';
@@ -296,28 +297,42 @@ class MaterialCatalog extends Component
         $waNumber = (string) config('services.kiosk.wa_number', '6285122797969');
         $waText = urlencode(implode("\n", $lines));
 
-        $this->showDirectCheckoutModal = false;
         $this->clearCart();
-
-        return $this->redirect('https://wa.me/'.$waNumber.'?text='.$waText, navigate: false);
+        $this->confirmedOrderCode = $orderCode;
+        $this->confirmedOrderTotal = round($totalPrice, 2);
+        $this->confirmedPickupLabel = $pickupFormatted.' WIB';
+        $this->confirmedWaUrl = 'https://wa.me/'.$waNumber.'?text='.$waText;
+        $this->confirmedTrackUrl = CheckoutHelper::trackOrderUrl($order->id);
+        $this->showDirectCheckoutModal = true;
     }
 
     public function render()
     {
         try {
-            $query = Material::where('is_available', true);
+            // Muat seluruh bahan tersedia 1x dari cache ringan agar pencarian, filter kategori, dan hitungan keranjang tidak menjalankan query ganda
+            $availableMaterials = Material::cachedAll()
+                ->where('is_available', true)
+                ->values();
 
-            // Filter search
-            if (! empty(trim($this->search))) {
-                $query->where('name', 'like', '%'.trim($this->search).'%');
+            $filtered = $availableMaterials;
+            $trimmedSearch = trim($this->search);
+
+            if ($trimmedSearch !== '') {
+                $needle = mb_strtolower($trimmedSearch);
+                $filtered = $filtered->filter(
+                    fn (Material $material) => str_contains(mb_strtolower((string) $material->name), $needle)
+                );
             }
 
-            // Filter category
             if ($this->activeCategory !== 'all') {
                 if ($this->activeCategory === 'pelengkap') {
-                    $query->whereIn('category', ['pengikat', 'tambahan', 'penyedap']);
+                    $filtered = $filtered->filter(
+                        fn (Material $material) => in_array(strtolower((string) $material->category), ['pengikat', 'tambahan', 'penyedap'], true)
+                    );
                 } else {
-                    $query->where('category', $this->activeCategory);
+                    $filtered = $filtered->filter(
+                        fn (Material $material) => strtolower((string) $material->category) === strtolower($this->activeCategory)
+                    );
                 }
             }
 
@@ -328,33 +343,32 @@ class MaterialCatalog extends Component
                 'pelengkap' => 4,
             ];
 
-            $materials = $query->orderBy('name')->get();
-            $groupedMaterials = $materials
-                ->groupBy(fn (Material $material) => in_array(strtolower($material->category), ['pengikat', 'tambahan', 'penyedap'], true)
+            $groupedMaterials = $filtered
+                ->groupBy(fn (Material $material) => in_array(strtolower((string) $material->category), ['pengikat', 'tambahan', 'penyedap'], true)
                     ? 'pelengkap'
-                    : strtolower($material->category))
+                    : strtolower((string) $material->category))
                 ->sortBy(fn ($items, string $cat) => $categoryOrder[$cat] ?? 99);
 
-            // Hitung total belanja keranjang HANYA dari bahan yang masih aktif & tersedia
+            // Hitung total belanja keranjang dari koleksi bahan tersedia yang sama (0 query tambahan)
             $activeItems = array_filter($this->selectedItems, fn ($qty) => (int) $qty > 0);
             $totalSelectedPacks = 0;
             $totalSelectedCost = 0.0;
 
             if (! empty($activeItems)) {
-                $allMaterials = Material::whereIn('id', array_keys($activeItems))
-                    ->where('is_available', true)
-                    ->get()
-                    ->keyBy('id');
+                $materialsById = $availableMaterials->keyBy('id');
                 foreach ($activeItems as $matId => $qty) {
                     $safeQty = min(100, max(0, (int) $qty));
-                    if ($safeQty > 0 && isset($allMaterials[$matId])) {
-                        $mat = $allMaterials[$matId];
+                    if ($safeQty > 0 && isset($materialsById[$matId])) {
+                        $mat = $materialsById[$matId];
                         $totalSelectedPacks += $safeQty;
                         $totalSelectedCost += ($safeQty * $mat->effectivePackagePrice());
                     }
                 }
             }
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            Log::error('MaterialCatalog::render gagal memuat daftar bahan baku.', [
+                'error' => $e->getMessage(),
+            ]);
             $groupedMaterials = collect();
             $totalSelectedPacks = 0;
             $totalSelectedCost = 0.0;

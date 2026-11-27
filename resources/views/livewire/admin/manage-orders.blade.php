@@ -142,7 +142,8 @@
                                     </p>
                                     @if ($order->customer_phone && $waUrl)
                                         <a href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-emerald-700 hover:text-emerald-900 mt-0.5">
-                                            <span>📱 {{ $order->customer_phone }}</span>
+                                            <span aria-hidden="true">📱</span>
+                                            <span>{{ $order->customer_phone }}</span>
                                         </a>
                                     @endif
                                     <div class="mt-1">
@@ -290,6 +291,8 @@
             aria-modal="true"
             aria-labelledby="order-detail-title"
             x-data
+            x-init="window.basokuFocusFirst($el)"
+            @keydown.tab="window.basokuTrapFocus($el, $event)"
             @keydown.escape.window="$wire.closeModal()"
             class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-[#161210]/80 backdrop-blur-sm animate-fade-in"
         >
@@ -325,7 +328,7 @@
                         </h2>
                         @if ($selectedOrder->customer_phone && $selectedWaUrl)
                             <p class="text-xs text-[#161210]/70 mt-1">
-                                Kontak WhatsApp: <a href="{{ $selectedWaUrl }}" target="_blank" rel="noopener noreferrer" class="font-mono font-bold text-emerald-700 hover:underline">📱 {{ $selectedOrder->customer_phone }}</a>
+                                Kontak WhatsApp: <a href="{{ $selectedWaUrl }}" target="_blank" rel="noopener noreferrer" class="font-mono font-bold text-emerald-700 hover:underline"><span aria-hidden="true">📱</span> {{ $selectedOrder->customer_phone }}</a>
                             </p>
                         @endif
                     </div>
@@ -390,7 +393,7 @@
                                 <tbody class="divide-y divide-[#161210]/5">
                                     @forelse ($materialOnlyItems as $item)
                                         @php
-                                            $isOwnMeatItem = $selectedOrder->start_type === 'bring_own_meat' && (float) $item->subtotal <= 0;
+                                            $isOwnMeatItem = $selectedOrder->isOwnMeat() && (float) $item->subtotal <= 0;
                                         @endphp
                                         <tr wire:key="modal-order-item-{{ $item->id }}" class="hover:bg-[#FAF6F0]/20">
                                             <td class="py-2.5 px-4 font-semibold text-[#161210]">
@@ -555,7 +558,7 @@
                 <div style="font-weight: bold; margin-bottom: 4px;">RINCIAN KOMPONEN:</div>
                 @foreach ($materialOnlyItems as $item)
                     @php
-                        $isOwnMeatReceipt = $selectedOrder->start_type === 'bring_own_meat' && (float) $item->subtotal <= 0;
+                        $isOwnMeatReceipt = $selectedOrder->isOwnMeat() && (float) $item->subtotal <= 0;
                     @endphp
                     <div style="margin-bottom: 3px;">
                         <div style="display: flex; justify-content: space-between;">

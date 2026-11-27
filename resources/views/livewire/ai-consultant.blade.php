@@ -1,7 +1,8 @@
 <div
     x-data="{ open: @entangle('isOpen').live }"
     @keydown.escape.window="if (open) { open = false }"
-    class="pointer-events-none fixed inset-0 z-40 overflow-hidden font-sans"
+    :class="open ? 'z-[55]' : 'z-40'"
+    class="pointer-events-none fixed inset-0 overflow-hidden font-sans"
 >
     <!-- 1. TOMBOL FLOATING WIDGET (TRIGGER) -->
     <div class="pointer-events-auto absolute bottom-5 right-4 sm:bottom-6 sm:right-6">
@@ -56,11 +57,11 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-        class="pointer-events-auto absolute bottom-20 sm:bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[420px] max-h-[calc(100dvh-6.5rem)] h-[72dvh] sm:h-[560px] bg-[#FAF7F2] rounded-3xl border border-[#26221E]/15 shadow-2xl flex flex-col overflow-hidden"
+        class="pointer-events-auto absolute bottom-20 sm:bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[420px] max-h-[calc(100dvh-11.75rem)] sm:max-h-[calc(100dvh-13.5rem)] h-[70dvh] sm:h-[520px] bg-[#FAF7F2] rounded-3xl border border-[#26221E]/15 shadow-2xl flex flex-col overflow-hidden"
         style="display: none; box-shadow: 0 25px 50px -12px rgba(38, 34, 30, 0.35);"
     >
         <!-- Header Chat -->
-        <div class="bg-[#2D4235] text-[#FAF7F2] px-5 py-4 flex items-center justify-between shrink-0 border-b border-white/10 select-none">
+        <div class="bg-[#2D4235] text-[#FAF7F2] px-4 py-3.5 sm:px-5 flex items-center justify-between shrink-0 border-b border-white/10 select-none">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-2xl bg-[#8B231A] text-white flex items-center justify-center font-bold text-sm shadow-inner shrink-0" aria-hidden="true">
                     🥩
@@ -115,7 +116,7 @@
             id="basokuChatContainer"
             x-init="$watch('$wire.chatHistory', () => { $nextTick(() => { $el.scrollTop = $el.scrollHeight; }); })"
             x-effect="if (open) { $nextTick(() => { $el.scrollTop = $el.scrollHeight; }); }"
-            class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#F4EFE6]/50 scroll-smooth"
+            class="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#F4EFE6]/50 scroll-smooth"
             aria-live="polite"
         >
             @foreach ($chatHistory as $idx => $chat)

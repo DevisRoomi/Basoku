@@ -11,7 +11,7 @@
         <!-- Fonts -->
         @fonts
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700|playfair-display:400,600,700,800,900&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=playfair-display:400,600,700,800,900&display=swap" rel="stylesheet" />
 
         <!-- Styles / Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -34,7 +34,6 @@
                     aria-hidden="true"
                 >
                     <source src="{{ asset('videos/basoku-hero-opt.mp4') }}" type="video/mp4">
-                    <source src="{{ asset('videos/basoku-hero.mp4') }}" type="video/mp4">
                 </video>
 
                 <!-- Dark Scrim Overlay -->

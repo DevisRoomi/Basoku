@@ -1,7 +1,9 @@
 <?php
 
+use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
+use App\Livewire\Auth\ResetPassword;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +13,8 @@ Route::middleware('guest')->group(function () {
     Route::redirect('/login', '/masuk');
     Route::get('/daftar', Register::class)->name('register');
     Route::redirect('/register', '/daftar');
+    Route::get('/lupa-kata-sandi', ForgotPassword::class)->name('password.request');
+    Route::get('/reset-kata-sandi/{token}', ResetPassword::class)->name('password.reset');
 });
 
 // Logout Global (Auth Only)

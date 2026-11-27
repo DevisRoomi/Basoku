@@ -1,11 +1,43 @@
+// Reusable lightweight focus-trap & initial-focus helpers for accessible modal dialogs (UX-06)
+window.basokuFocusableElements = (container) => {
+    if (!container) return [];
+    return Array.from(
+        container.querySelectorAll(
+            'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+    ).filter((el) => el.offsetParent !== null);
+};
+
+window.basokuFocusFirst = (container) => {
+    requestAnimationFrame(() => {
+        const focusables = window.basokuFocusableElements(container);
+        const preferred = focusables.find((el) => ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) || focusables[0];
+        if (preferred) {
+            preferred.focus({ preventScroll: true });
+        }
+    });
+};
+
+window.basokuTrapFocus = (container, event) => {
+    const focusables = window.basokuFocusableElements(container);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Video playback error handling / fallback
+    // Sembunyikan elemen video jika gagal dimuat agar latar gelap editorial tetap tampil rapi
     const heroVideo = document.getElementById('hero-video');
-    const heroFallback = document.getElementById('hero-fallback');
-    if (heroVideo && heroFallback) {
+    if (heroVideo) {
         heroVideo.addEventListener('error', () => {
             heroVideo.style.display = 'none';
-            heroFallback.style.display = 'block';
         });
     }
 

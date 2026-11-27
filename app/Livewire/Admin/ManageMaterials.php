@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\Material;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -174,7 +175,20 @@ class ManageMaterials extends Component
 
     public function updatedSellingMode(): void
     {
+        if ($this->selling_mode === 'satuan' && trim($this->package_unit) !== '') {
+            $this->unit = trim($this->package_unit);
+        } elseif ($this->selling_mode !== 'satuan' && trim($this->unit) === '') {
+            $this->unit = 'gram';
+        }
+
         $this->syncBasePriceFromPackage();
+    }
+
+    public function updatedPackageUnit(): void
+    {
+        if ($this->selling_mode === 'satuan' && trim($this->package_unit) !== '') {
+            $this->unit = trim($this->package_unit);
+        }
     }
 
     public function updatedManualPriceOverride(bool $value): void
@@ -233,8 +247,22 @@ class ManageMaterials extends Component
             $this->syncBasePriceFromPackage();
         }
 
+        $this->name = trim($this->name);
+        $this->package_unit = trim($this->package_unit);
+        $this->unit = trim($this->unit);
+
+        // Sinkronisasi otomatis unit jika kosong atau bahan baru mode satuan masih memakai default 'gram'
+        if ($this->unit === '' || (! $this->isEditing && $this->selling_mode === 'satuan' && strtolower($this->unit) === 'gram' && $this->package_unit !== '')) {
+            $this->unit = $this->package_unit !== '' ? $this->package_unit : 'gram';
+        }
+
         $this->validate([
-            'name' => ['required', 'string', 'max:100'],
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('materials', 'name')->ignore($this->materialId),
+            ],
             'category' => ['required', 'string', 'in:daging,tepung,bumbu,penyedap,pengikat,tambahan'],
             'selling_mode' => ['required', 'in:curah,kemasan,satuan'],
             'unit' => ['required', 'string', 'max:20'],
@@ -245,10 +273,11 @@ class ManageMaterials extends Component
             'is_available' => ['boolean'],
         ], [
             'name.required' => 'Nama bahan baku wajib diisi.',
+            'name.unique' => 'Nama bahan baku ini sudah terdaftar di katalog.',
             'category.required' => 'Kategori bahan wajib dipilih.',
             'category.in' => 'Kategori bahan tidak valid.',
             'selling_mode.required' => 'Mode jual bahan wajib dipilih.',
-            'unit.required' => 'Satuan acuan wajib dipilih.',
+            'unit.required' => 'Satuan acuan wajib diisi.',
             'package_weight.gt' => 'Berat kemasan harus lebih dari 0 gram.',
             'package_price.gt' => 'Harga kemasan harus lebih dari Rp 0.',
             'price.required' => 'Harga bahan wajib diisi.',
@@ -270,11 +299,11 @@ class ManageMaterials extends Component
         }
 
         $payload = [
-            'name' => trim($this->name),
+            'name' => $this->name,
             'category' => strtolower(trim($this->category)),
             'selling_mode' => $this->selling_mode,
-            'unit' => trim($this->unit),
-            'package_unit' => $this->package_unit ? trim($this->package_unit) : null,
+            'unit' => $this->unit,
+            'package_unit' => $this->package_unit !== '' ? $this->package_unit : null,
             'package_weight' => $finalWeight,
             'package_price' => $finalPkgPrice,
             'price' => $finalPrice,
@@ -283,10 +312,12 @@ class ManageMaterials extends Component
 
         if ($this->isEditing && $this->materialId) {
             $material = Material::findOrFail($this->materialId);
+            // Pertahankan slug kanonik lama saat nama bahan diedit agar referensi kalkulator tetap stabil
             $material->update($payload);
 
             session()->flash('success', "Harga dan data bahan '{$material->name}' berhasil diperbarui.");
         } else {
+            $payload['slug'] = Material::generateUniqueSlug($this->name);
             $material = Material::create($payload);
 
             session()->flash('success', "Bahan baru '{$material->name}' berhasil ditambahkan ke katalog.");
@@ -296,11 +327,18 @@ class ManageMaterials extends Component
     }
 
     /**
-     * Hapus bahan baku dari katalog.
+     * Hapus bahan baku non-inti dari katalog (bahan inti kalkulator diproteksi agar kalkulasi tetap stabil).
      */
-    public function deleteMaterial(int $id)
+    public function deleteMaterial(int $id): void
     {
         $material = Material::findOrFail($id);
+
+        if ($material->isCoreMaterial()) {
+            session()->flash('error', "Bahan inti '{$material->name}' digunakan langsung oleh Kalkulator Racikan sehingga tidak dapat dihapus permanen. Ubah statusnya menjadi 'Habis' bila stok kosong.");
+
+            return;
+        }
+
         $name = $material->name;
         $material->delete();
 
@@ -350,12 +388,16 @@ class ManageMaterials extends Component
 
         $materials = $query->orderBy('category')->orderBy('name')->get();
 
-        // Ambil daftar kategori unik untuk filter tab
+        // Ambil daftar kategori unik dan jumlah total untuk filter tab (tanpa query di dalam Blade)
         $allCategories = Material::select('category')->distinct()->pluck('category')->toArray();
+        $totalMaterialsCount = $this->selectedCategory === 'semua'
+            ? $materials->count()
+            : Material::count();
 
         return view('livewire.admin.manage-materials', [
             'materials' => $materials,
             'allCategories' => $allCategories,
+            'totalMaterialsCount' => $totalMaterialsCount,
         ]);
     }
 }

@@ -13,8 +13,6 @@ use Livewire\Component;
 #[Title('Dasbor Analitik Pengelola — BASOKU')]
 class Dashboard extends Component
 {
-    public string $currentTab = 'beranda';
-
     /**
      * Pastikan pengguna memiliki peran admin pada setiap lifecycle request.
      */
@@ -50,11 +48,6 @@ class Dashboard extends Component
         return $this->redirect('/masuk', navigate: true);
     }
 
-    public function setTab(string $tab): void
-    {
-        $this->currentTab = $tab;
-    }
-
     /**
      * Render dasbor analitik menggunakan agregasi SQL terukur (tanpa full-table scan Order::all).
      */
@@ -71,15 +64,15 @@ class Dashboard extends Component
         $sumStatusRevenue = fn (array $keys): float => (float) collect($keys)->sum(fn (string $k) => (float) ($statusRows[$k]->total_sum ?? 0.0));
 
         $totalOrders = (int) $statusRows->sum('total_count');
-        $processingCount = $sumStatusCount(['processing', 'diproses']);
-        $completedCount = $sumStatusCount(['completed', 'selesai']);
-        $pendingCount = $sumStatusCount(['pending', 'menunggu']);
-        $cancelledCount = $sumStatusCount(['cancelled', 'batal', 'dibatalkan']);
+        $processingCount = $sumStatusCount(Order::aliasesFor('processing'));
+        $completedCount = $sumStatusCount(Order::aliasesFor('completed'));
+        $pendingCount = $sumStatusCount(Order::aliasesFor('pending'));
+        $cancelledCount = $sumStatusCount(Order::aliasesFor('cancelled'));
 
-        $validStatuses = ['diproses', 'selesai', 'processing', 'completed'];
+        $validStatuses = array_merge(Order::aliasesFor('processing'), Order::aliasesFor('completed'));
         $validOrdersCount = $processingCount + $completedCount;
         $validRevenue = $sumStatusRevenue($validStatuses);
-        $pendingRevenue = $sumStatusRevenue(['pending', 'menunggu']);
+        $pendingRevenue = $sumStatusRevenue(Order::aliasesFor('pending'));
 
         // 2. Agregasi Preferensi Racikan langsung via SQL (1 query ringan)
         $prefRows = Order::query()

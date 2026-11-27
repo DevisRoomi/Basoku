@@ -16,18 +16,6 @@ class ManageOrders extends Component
 {
     use WithPagination;
 
-    /**
-     * Peta alias status Inggris & Indonesia agar filter, tab, dan ekspor selalu sinkron.
-     *
-     * @var array<string, array<int, string>>
-     */
-    private const STATUS_ALIASES = [
-        'pending' => ['pending', 'menunggu'],
-        'processing' => ['processing', 'diproses'],
-        'completed' => ['completed', 'selesai'],
-        'cancelled' => ['cancelled', 'batal', 'dibatalkan'],
-    ];
-
     public bool $showDetailModal = false;
 
     public ?Order $selectedOrder = null;
@@ -40,15 +28,7 @@ class ManageOrders extends Component
      */
     public function normalizeStatus(?string $status): string
     {
-        $clean = strtolower(trim((string) $status));
-
-        foreach (self::STATUS_ALIASES as $canonical => $aliases) {
-            if (in_array($clean, $aliases, true)) {
-                return $canonical;
-            }
-        }
-
-        return $clean !== '' ? $clean : 'pending';
+        return Order::normalizeStatus($status);
     }
 
     public function updatedStatusFilter(): void
@@ -178,7 +158,9 @@ class ManageOrders extends Component
 
             $query = Order::with('orderItems.material')->orderBy('created_at', 'desc');
             if ($statusFilter !== 'all') {
-                $query->whereIn('status', self::STATUS_ALIASES[$statusFilter] ?? [$statusFilter]);
+                $aliases = Order::aliasesFor($statusFilter);
+                $placeholders = implode(', ', array_fill(0, count($aliases), '?'));
+                $query->whereRaw("LOWER(TRIM(status)) IN ({$placeholders})", $aliases);
             }
 
             foreach ($query->lazy(200) as $order) {
@@ -275,20 +257,22 @@ class ManageOrders extends Component
         $query = Order::query()->with('user:id')->orderBy('created_at', 'desc');
 
         if ($this->statusFilter !== 'all') {
-            $query->whereIn('status', self::STATUS_ALIASES[$this->statusFilter] ?? [$this->statusFilter]);
+            $aliases = Order::aliasesFor($this->statusFilter);
+            $placeholders = implode(', ', array_fill(0, count($aliases), '?'));
+            $query->whereRaw("LOWER(TRIM(status)) IN ({$placeholders})", $aliases);
         }
 
         $orders = $query->paginate(15);
 
-        // Hitung total pesanan berdasarkan status untuk badge filter tab secara teragregasi (1 query)
+        // Hitung total pesanan berdasarkan status untuk badge filter tab secara teragregasi (1 query, tahan kapital/spasi)
         $statusCounts = Order::query()
-            ->selectRaw('status, count(*) as count')
-            ->groupBy('status')
-            ->pluck('count', 'status');
+            ->selectRaw('LOWER(TRIM(status)) as status_key, count(*) as count')
+            ->groupBy('status_key')
+            ->pluck('count', 'status_key');
 
         $countAliases = function (string $canonical) use ($statusCounts): int {
             $total = 0;
-            foreach (self::STATUS_ALIASES[$canonical] ?? [$canonical] as $alias) {
+            foreach (Order::aliasesFor($canonical) as $alias) {
                 $total += (int) ($statusCounts[$alias] ?? 0);
             }
 

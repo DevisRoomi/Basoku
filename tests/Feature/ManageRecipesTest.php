@@ -173,7 +173,7 @@ class ManageRecipesTest extends TestCase
         $admin = $this->getAdminUser();
 
         // Modifikasi data formula
-        RecipeFormula::where('code', 'seimbang')->update([
+        RecipeFormula::where('code', 'seimbang')->firstOrFail()->update([
             'flour_ratio' => 0.4500,
             'is_simulation' => true,
         ]);
@@ -193,7 +193,7 @@ class ManageRecipesTest extends TestCase
 
     public function test_calculator_normalizes_ratios_when_meat_ratio_differs_from_one(): void
     {
-        RecipeFormula::where('code', 'enak')->update([
+        RecipeFormula::where('code', 'enak')->firstOrFail()->update([
             'meat_ratio' => 2.0000,
             'flour_ratio' => 0.4000, // 0.4 / 2.0 = 20% tepung
             'spice_ratio' => 0.1000, // 0.1 / 2.0 = 5% bumbu

@@ -27,7 +27,7 @@ class GeminiConsultantService
         }
 
         $baseUrl = rtrim((string) config('services.gemini.base_url', 'https://generativelanguage.googleapis.com/v1beta'), '/');
-        $model = (string) config('services.gemini.model', 'gemini-2.0-flash');
+        $model = (string) config('services.gemini.model', 'gemini-2.5-flash');
         // Kirim API key HANYA melalui HTTP header (x-goog-api-key), jangan di query string agar tidak bocor ke log error/proxy
         $endpoint = "{$baseUrl}/models/{$model}:generateContent";
 
@@ -173,11 +173,14 @@ class GeminiConsultantService
     protected function buildLiveCatalogPriceLines(): string
     {
         try {
-            $materials = Material::where('is_available', true)
-                ->orderBy('category')
-                ->orderBy('name')
-                ->get();
-        } catch (\Throwable) {
+            $materials = Material::cachedAll()
+                ->where('is_available', true)
+                ->sortBy(fn (Material $m) => strtolower((string) $m->category).'|'.strtolower((string) $m->name))
+                ->values();
+        } catch (\Throwable $e) {
+            Log::error('GeminiConsultantService::buildLiveCatalogPriceLines gagal memuat bahan dari database.', [
+                'error' => $e->getMessage(),
+            ]);
             $materials = collect();
         }
 

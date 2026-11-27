@@ -10,6 +10,7 @@ use App\Models\User;
 use Database\Seeders\AdminUserSeeder;
 use Database\Seeders\MaterialSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -363,5 +364,78 @@ class ManageOrdersTest extends TestCase
         $this->assertStringContainsString("'+081234567890", $csvContent);
         // 2 Pack Tapioka @500g = 1000 gram tepung pada kolom Berat Tepung (g)
         $this->assertStringContainsString(',0,1000,0,18000,', $csvContent);
+    }
+
+    public function test_admin_order_detail_and_receipt_display_bawa_sendiri_for_own_meat_order(): void
+    {
+        $order = Order::create([
+            'customer_name' => 'Pak Joko Own Meat',
+            'pickup_at' => now()->addDay(),
+            'start_type' => 'own_meat',
+            'meat_weight' => 1000,
+            'preference' => 'enak',
+            'grinding_fee' => 15000,
+            'total_price' => 27000,
+            'status' => 'pending',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'material_name' => 'Daging Sapi',
+            'quantity' => 1000,
+            'unit' => 'gram',
+            'unit_price' => 0,
+            'subtotal' => 0,
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageOrders::class)
+            ->call('viewOrder', $order->id)
+            ->assertSee('Bawa Sendiri')
+            ->assertSee('daging milik pelanggan');
+    }
+
+    public function test_status_counts_and_filter_handle_uppercase_and_whitespace_statuses(): void
+    {
+        Order::create([
+            'customer_name' => 'Order Kapital Spasi',
+            'pickup_at' => now()->addDay(),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 500,
+            'preference' => 'seimbang',
+            'grinding_fee' => 7500,
+            'total_price' => 88000,
+            'status' => ' Pending ',
+        ]);
+
+        Order::create([
+            'customer_name' => 'Order Kapital Selesai',
+            'pickup_at' => now()->addDay(),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 500,
+            'preference' => 'seimbang',
+            'grinding_fee' => 7500,
+            'total_price' => 88000,
+            'status' => 'SELESAI',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ManageOrders::class)
+            ->assertViewHas('counts', fn (array $counts) => $counts['pending'] === 1 && $counts['completed'] === 1)
+            ->set('statusFilter', 'pending')
+            ->assertSee('Order Kapital Spasi')
+            ->assertDontSee('Order Kapital Selesai');
+    }
+
+    public function test_admin_redirect_routes_have_no_duplicate_admin_dot_name(): void
+    {
+        $routes = collect(Route::getRoutes()->getRoutes());
+        $duplicateAdminDot = $routes->filter(fn ($route) => $route->getName() === 'admin.');
+
+        $this->assertCount(0, $duplicateAdminDot);
+
+        $this->actingAs($this->admin)->get('/admin/materials')->assertRedirect('/admin/bahan');
+        $this->actingAs($this->admin)->get('/admin/recipes')->assertRedirect('/admin/resep');
+        $this->actingAs($this->admin)->get('/admin/orders')->assertRedirect('/admin/pesanan');
     }
 }

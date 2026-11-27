@@ -313,12 +313,12 @@
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 -translate-y-2"
-            class="mt-3 bg-[#FAF7F2] border border-[#26221E]/10 rounded-2xl p-5 shadow-xl flex flex-col gap-2.5 lg:hidden"
+            class="mt-3 bg-[#FAF7F2] border border-[#26221E]/10 rounded-2xl p-4 shadow-xl flex flex-col gap-1.5 lg:hidden"
         >
             <a
                 href="{{ request()->is('/') ? '#hero' : url('/') }}"
                 @click="mobileOpen = false; activeNav = 'beranda'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
+                class="flex items-center min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === 'beranda' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
                 Beranda
@@ -326,7 +326,7 @@
             <a
                 href="{{ request()->is('/') ? '#racikan-saya' : url('/#racikan-saya') }}"
                 @click="mobileOpen = false; activeNav = 'kalkulator'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
+                class="flex items-center min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === 'kalkulator' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
                 Kalkulator
@@ -334,7 +334,7 @@
             <a
                 href="{{ request()->is('/') ? '#daftar-harga' : url('/#daftar-harga') }}"
                 @click="mobileOpen = false; activeNav = 'daftar-harga'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
+                class="flex items-center min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === 'daftar-harga' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
                 Daftar Harga
@@ -342,7 +342,7 @@
             <a
                 href="{{ request()->is('/') ? '#cara-kerja' : url('/#cara-kerja') }}"
                 @click="mobileOpen = false; activeNav = '#cara-kerja'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
+                class="flex items-center min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === '#cara-kerja' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
                 Cara Kerja
@@ -350,7 +350,7 @@
             <a
                 href="{{ url('/') }}#lokasi-kios"
                 @click="mobileOpen = false; activeNav = '#lokasi-kios'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
+                class="flex items-center min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === '#lokasi-kios' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
                 Lokasi Kios
@@ -358,7 +358,7 @@
             <a
                 href="{{ route('bakso.history') }}"
                 @click="mobileOpen = false; activeNav = 'sejarah'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
+                class="flex items-center min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-medium transition-colors"
                 :class="activeNav === 'sejarah' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
             >
                 Sejarah &amp; Dokumentasi
@@ -368,7 +368,7 @@
                 <a
                     href="{{ url('/racikan-saya') }}"
                     @click="mobileOpen = false; activeNav = 'racikan-saya'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                    class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
+                    class="flex items-center min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-medium transition-colors"
                     :class="activeNav === 'racikan-saya' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                 >
                     Racikan Saya
@@ -376,7 +376,7 @@
                 <a
                     href="{{ url('/pesanan-saya') }}"
                     @click="mobileOpen = false; activeNav = 'pesanan-saya'; isClicking = true; setTimeout(() => isClicking = false, 800)"
-                    class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-between"
+                    class="min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-medium transition-colors flex items-center justify-between"
                     :class="activeNav === 'pesanan-saya' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                 >
                     <span>Pesanan Saya</span>
@@ -386,7 +386,7 @@
                 <a
                     href="{{ route('orders.track') }}"
                     @click="mobileOpen = false; activeNav = 'lacak-pesanan'"
-                    class="block py-2 px-3 rounded-xl text-sm font-medium transition-colors"
+                    class="flex items-center min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-medium transition-colors"
                     :class="activeNav === 'lacak-pesanan' ? 'bg-[#2D4235] text-[#F4EFE6] shadow-sm' : 'text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5'"
                 >
                     Lacak Pesanan
@@ -397,22 +397,25 @@
 
             @auth
                 @if (auth()->user()->role === 'admin')
-                    <a href="{{ route('admin.dashboard') }}" class="block py-2 px-3 rounded-xl text-sm font-semibold text-[#2D4235]">
+                    <a href="{{ route('admin.dashboard') }}" class="flex items-center min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-semibold text-[#2D4235]">
                         Panel Admin
                     </a>
                 @endif
+                <a href="{{ route('account.settings') }}" @click="mobileOpen = false" class="flex items-center min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-medium text-[#5A534A] hover:text-[#26221E] hover:bg-[#26221E]/5">
+                    Pengaturan Akun
+                </a>
                 <form method="POST" action="{{ route('logout') }}" class="block">
                     @csrf
-                    <button type="submit" class="w-full text-left py-2 px-3 rounded-xl text-sm font-medium text-[#8B231A] hover:bg-black/5">
+                    <button type="submit" class="w-full text-left flex items-center min-h-[44px] py-2.5 px-3.5 rounded-xl text-sm font-medium text-[#8B231A] hover:bg-black/5 cursor-pointer">
                         Keluar
                     </button>
                 </form>
             @else
                 <div class="grid grid-cols-2 gap-2 pt-1">
-                    <a href="{{ route('login') }}" class="text-center py-2 px-3 rounded-full text-sm font-medium border border-[#26221E]/20 text-[#26221E]">
+                    <a href="{{ route('login') }}" class="flex items-center justify-center min-h-[44px] py-2.5 px-3 rounded-full text-sm font-medium border border-[#26221E]/20 text-[#26221E]">
                         Masuk
                     </a>
-                    <a href="{{ route('register') }}" class="text-center py-2 px-3 rounded-full text-sm font-medium bg-[#2D4235] text-white">
+                    <a href="{{ route('register') }}" class="flex items-center justify-center min-h-[44px] py-2.5 px-3 rounded-full text-sm font-medium bg-[#2D4235] text-white">
                         Daftar
                     </a>
                 </div>

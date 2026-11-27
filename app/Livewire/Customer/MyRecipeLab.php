@@ -42,9 +42,14 @@ class MyRecipeLab extends Component
 
     public function render()
     {
-        $recipes = SavedRecipe::where('user_id', Auth::id())
-            ->latest()
-            ->paginate(12);
+        $query = SavedRecipe::where('user_id', Auth::id())->latest();
+        $recipes = $query->paginate(12);
+
+        if ($recipes->isEmpty() && $recipes->currentPage() > 1) {
+            $targetPage = max(1, $recipes->lastPage());
+            $this->setPage($targetPage);
+            $recipes = $query->paginate(12, ['*'], 'page', $targetPage);
+        }
 
         return view('livewire.customer.my-recipe-lab', [
             'recipes' => $recipes,

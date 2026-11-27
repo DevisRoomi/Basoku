@@ -92,7 +92,7 @@
                         <!-- Curated Authentic Raw Meat Fig. 01 -->
                         <div class="my-6 rounded-2xl overflow-hidden border border-[#26221E]/15 shadow-sm bg-[#26221E]">
                             <img
-                                src="{{ asset('images/curated/daging-segar.jpg') }}"
+                                src="{{ asset('images/curated/daging-segar.webp') }}"
                                 alt="Daging Sapi Segar Paha Pasar"
                                 width="800"
                                 height="320"
@@ -152,13 +152,13 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-3 text-xs sm:text-sm">
                             <div class="bg-[#F4EFE6] p-5 rounded-2xl border border-[#26221E]/10">
-                                <h4 class="font-bold text-[#26221E] mb-1">Transisi Bahan Daging</h4>
+                                <h3 class="font-bold text-[#26221E] mb-1">Transisi Bahan Daging</h3>
                                 <p class="text-[#5A534A] leading-relaxed text-xs">
                                     Daging babi digantikan secara luas oleh daging sapi segar dan dada ayam halal demi menyesuaikan dengan mayoritas masyarakat Muslim kepulauan.
                                 </p>
                             </div>
                             <div class="bg-[#F4EFE6] p-5 rounded-2xl border border-[#26221E]/10">
-                                <h4 class="font-bold text-[#26221E] mb-1">Sentuhan Rempah Tropis</h4>
+                                <h3 class="font-bold text-[#26221E] mb-1">Sentuhan Rempah Tropis</h3>
                                 <p class="text-[#5A534A] leading-relaxed text-xs">
                                     Penggunaan bawang putih kating lokal, lada putih Bangka, pala, garam kasar laut, serta taburan renyah bawang merah goreng Sumenep.
                                 </p>
@@ -169,7 +169,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
                             <div class="rounded-2xl overflow-hidden border border-[#26221E]/15 shadow-sm bg-[#26221E]">
                                 <img
-                                    src="{{ asset('images/curated/bakso-asli.jpg') }}"
+                                    src="{{ asset('images/curated/bakso-asli.webp') }}"
                                     alt="Semangkuk Bakso Nusantara Asli"
                                     width="400"
                                     height="224"
@@ -182,7 +182,7 @@
                             </div>
                             <div class="rounded-2xl overflow-hidden border border-[#26221E]/15 shadow-sm bg-[#26221E]">
                                 <img
-                                    src="{{ asset('images/curated/bawang-goreng.jpg') }}"
+                                    src="{{ asset('images/curated/bawang-goreng.webp') }}"
                                     alt="Bawang Merah Goreng Renyah"
                                     width="400"
                                     height="224"
@@ -282,7 +282,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4">
                             <div class="rounded-2xl overflow-hidden border border-[#26221E]/15 shadow-sm bg-[#26221E]">
                                 <img
-                                    src="{{ asset('images/curated/tepung-tapioka.jpg') }}"
+                                    src="{{ asset('images/curated/tepung-tapioka.webp') }}"
                                     alt="Tepung Tapioka Super"
                                     width="400"
                                     height="192"
@@ -295,7 +295,7 @@
                             </div>
                             <div class="rounded-2xl overflow-hidden border border-[#26221E]/15 shadow-sm bg-[#26221E]">
                                 <img
-                                    src="{{ asset('images/curated/bawang-putih.jpg') }}"
+                                    src="{{ asset('images/curated/bawang-putih.webp') }}"
                                     alt="Bawang Putih Kating"
                                     width="400"
                                     height="192"
@@ -350,7 +350,7 @@
                                 <span class="text-[10px] font-mono font-bold uppercase text-[#B84E26] tracking-widest block mb-1">
                                     ATURAN 01 &bull; KAPASITAS MINIMAL MESIN
                                 </span>
-                                <h4 class="font-bold text-[#26221E] text-base mb-1">Batas Minimal 500 Gram Daging</h4>
+                                <h3 class="font-bold text-[#26221E] text-base mb-1">Batas Minimal 500 Gram Daging</h3>
                                 <p class="text-xs sm:text-sm text-[#5A534A] leading-relaxed">
                                     Mesin selepan pasar dirancang dengan tabung dan pisau giling industri skala menengah. Volume daging di bawah 500 gram akan tersangkut di dinding tabung gilingan dan tidak tergilas rata. Karena itu, BASOKU mengunci batas minimal takaran 500g demi menjaga keberhasilan adonan.
                                 </p>
@@ -361,7 +361,7 @@
                                 <span class="text-[10px] font-mono font-bold uppercase text-[#2D4235] tracking-widest block mb-1">
                                     ATURAN 02 &bull; TRANSPARANSI DUA ESTIMASI BIAYA
                                 </span>
-                                <h4 class="font-bold text-[#26221E] text-base mb-1">Biaya Bahan Terpakai vs Uang Belanja Pasar</h4>
+                                <h3 class="font-bold text-[#26221E] text-base mb-1">Biaya Bahan Terpakai vs Uang Belanja Pasar</h3>
                                 <p class="text-xs sm:text-sm text-[#5A534A] leading-relaxed">
                                     Resep adonan hanya membutuhkan 120 gram tapioka dan 1 bungkus penyedap, namun pedagang kios pasar tidak menjual eceran per gram — mereka menjual 1 bungkus tapioka utuh 500 gram. BASOKU menampilkan <strong>Biaya Bahan Terpakai</strong> (nilai riil adonan Anda) berdampingan dengan <strong>Uang Belanja Pasar</strong> (uang tunai kemasan utuh yang harus Anda siapkan di kasir pasar).
                                 </p>
@@ -372,7 +372,7 @@
                                 <span class="text-[10px] font-mono font-bold uppercase text-[#8B231A] tracking-widest block mb-1">
                                     ATURAN 03 &bull; REVERSE SCALING ANGGARAN
                                 </span>
-                                <h4 class="font-bold text-[#26221E] text-base mb-1">Perhitungan Terbalik Tanpa Merusak Rasio</h4>
+                                <h3 class="font-bold text-[#26221E] text-base mb-1">Perhitungan Terbalik Tanpa Merusak Rasio</h3>
                                 <p class="text-xs sm:text-sm text-[#5A534A] leading-relaxed">
                                     Pada Mode Anggaran, sistem menghitung mundur dari batas rupiah Anda untuk mencari berat daging maksimal yang tetap memenuhi syarat adonan standar, bukan dengan cara mengurangi garam atau merusak formula rasa secara sembarangan.
                                 </p>
@@ -392,9 +392,9 @@
                     <span class="text-xs font-mono uppercase tracking-[0.2em] text-[#D8E0D3] block">
                         UJI LANGSUNG ILMU &amp; FORMULANYA
                     </span>
-                    <h3 class="text-2xl sm:text-4xl font-serif font-bold text-white tracking-tight leading-snug" style="font-family: 'Playfair Display', Georgia, serif;">
+                    <h2 class="text-2xl sm:text-4xl font-serif font-bold text-white tracking-tight leading-snug" style="font-family: 'Playfair Display', Georgia, serif;">
                         Rancang Racikan Bakso Anda Sekarang
-                    </h3>
+                    </h2>
                     <p class="text-xs sm:text-sm text-[#D8E0D3]/85 leading-relaxed">
                         Gunakan kalkulator interaktif BASOKU untuk menerapkan prinsip biokimia dan takaran presisi pasar langsung dari dapur Anda.
                     </p>

@@ -308,8 +308,10 @@
                                             min="500"
                                             max="50000"
                                             step="1"
-                                            wire:model.live.debounce.300ms="meatWeight"
-                                            x-model.number="weight"
+                                            wire:model.live.blur="meatWeight"
+                                            x-model="weight"
+                                            @blur="const n = Math.min(50000, Math.max(500, Math.round(Number($event.target.value) || 500))); weight = n; if (String($event.target.value) !== String(n)) { $event.target.value = n; $wire.set('meatWeight', n); }"
+                                            @keydown.enter.prevent="$event.target.blur()"
                                             class="w-24 text-center font-mono font-bold text-sm text-[#26221E] bg-[#FAF7F2] border border-[#26221E]/20 rounded-xl py-1 px-2 focus:outline-none focus:border-[#2D4235] tabular-nums"
                                         >
                                     </div>
@@ -436,7 +438,7 @@
                         class="p-2.5 rounded-xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'sagu' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
                     >
                         <span class="block font-bold text-xs text-[#26221E]">Sagu Aren</span>
-                        <span class="block text-[10px] text-[#5A534A] mt-0.5 leading-tight">{{ $catalogPrices['sagu_unit'] ?? 'Pack' }} {{ number_format($catalogPrices['sagu_weight'] ?? 250, 0, ',', '.') }}g (Rp {{ number_format($catalogPrices['sagu_price'] ?? 5000, 0, ',', '.') }})</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5 leading-tight">{{ $catalogPrices['sagu_unit'] ?? 'Pack' }} {{ number_format($catalogPrices['sagu_weight'] ?? 250, 0, ',', '.') }}g (Rp {{ number_format($catalogPrices['sagu_price'] ?? 6000, 0, ',', '.') }})</span>
                         <span class="block text-[9px] font-mono {{ ($catalogPrices['sagu_available'] ?? true) ? 'text-[#8B5E00]' : 'text-[#8B231A]' }} mt-1 font-semibold">{{ ($catalogPrices['sagu_available'] ?? true) ? 'Renyah Garing' : 'Stok Habis' }}</span>
                     </button>
 
@@ -447,7 +449,7 @@
                         class="p-2.5 rounded-xl border text-left cursor-pointer transition-all duration-200 {{ $flourType === 'terigu' ? 'border-[#D96B43] bg-[#FAF7F2] ring-1 ring-[#D96B43]/30 shadow-xs' : 'border-[#26221E]/10 bg-white hover:border-[#26221E]/25' }}"
                     >
                         <span class="block font-bold text-xs text-[#26221E]">Terigu</span>
-                        <span class="block text-[10px] text-[#5A534A] mt-0.5 leading-tight">{{ $catalogPrices['terigu_unit'] ?? 'Kg' }} / {{ number_format($catalogPrices['terigu_weight'] ?? 1000, 0, ',', '.') }}g (Rp {{ number_format($catalogPrices['terigu_price'] ?? 10000, 0, ',', '.') }})</span>
+                        <span class="block text-[10px] text-[#5A534A] mt-0.5 leading-tight">{{ $catalogPrices['terigu_unit'] ?? 'Pack' }} {{ number_format($catalogPrices['terigu_weight'] ?? 500, 0, ',', '.') }}g (Rp {{ number_format($catalogPrices['terigu_price'] ?? 6000, 0, ',', '.') }})</span>
                         <span class="block text-[9px] font-mono {{ ($catalogPrices['terigu_available'] ?? true) ? 'text-[#5A534A]' : 'text-[#8B231A]' }} mt-1 font-semibold">{{ ($catalogPrices['terigu_available'] ?? true) ? 'Campuran Padat' : 'Stok Habis' }}</span>
                     </button>
                 </div>
@@ -557,7 +559,9 @@
                                         min="10"
                                         max="450"
                                         step="5"
-                                        wire:model.live.debounce.200ms="customFlourRatio"
+                                        wire:model.live.blur="customFlourRatio"
+                                        @blur="const n = Math.min(450, Math.max(10, Math.round(Number($event.target.value) || 20))); if (String($event.target.value) !== String(n)) { $event.target.value = n; $wire.set('customFlourRatio', n); }"
+                                        @keydown.enter.prevent="$event.target.blur()"
                                         aria-label="Persentase rasio tepung kustom"
                                         class="w-16 px-2 py-1 text-center font-mono font-extrabold text-sm text-[#B84E26] focus:outline-none"
                                     />
@@ -565,17 +569,17 @@
                                 </div>
                             </div>
 
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-white border border-[#26221E]/10 text-[11px] text-[#26221E] font-semibold">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#26221E]/10 text-[11px] text-[#26221E] font-semibold">
                                 @if ($safeCustomFlour <= 30)
-                                    🥩 Super Daging (Bakso Padat Premium)
+                                    <span aria-hidden="true">🥩</span><span>Super Daging (Bakso Padat Premium)</span>
                                 @elseif ($safeCustomFlour <= 75)
-                                    🥣 Bakso Daging Kenyal (Sedang)
+                                    <span aria-hidden="true">🥣</span><span>Bakso Daging Kenyal (Sedang)</span>
                                 @elseif ($safeCustomFlour <= 130)
-                                    ⚖️ Seimbang Warung (Sekitar 1 : 1)
+                                    <span aria-hidden="true">⚖️</span><span>Seimbang Warung (Sekitar 1 : 1)</span>
                                 @elseif ($safeCustomFlour <= 220)
-                                    🥟 Ekonomis Usaha (Sekitar 1 : 2)
+                                    <span aria-hidden="true">🥟</span><span>Ekonomis Usaha (Sekitar 1 : 2)</span>
                                 @else
-                                    🍡 Bakso Aci / Cilok Daging (1 : 2,5 s/d 1 : 4,5)
+                                    <span aria-hidden="true">🍡</span><span>Bakso Aci / Cilok Daging (1 : 2,5 s/d 1 : 4,5)</span>
                                 @endif
                             </span>
                         </div>
@@ -741,7 +745,7 @@
                                             type="button"
                                             wire:click="decrementExtra({{ $extraMat->id }})"
                                             aria-label="Kurangi {{ $extraMat->name }}"
-                                            class="w-7 h-7 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                                            class="w-9 h-9 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] font-bold text-sm flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                                             title="Kurangi"
                                         >
                                             -
@@ -754,7 +758,7 @@
                                         type="button"
                                         wire:click="incrementExtra({{ $extraMat->id }})"
                                         aria-label="Tambah {{ $extraMat->name }}"
-                                        class="w-7 h-7 rounded-full bg-[#2D4235] hover:bg-[#B84E26] text-white font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                                        class="w-9 h-9 rounded-full bg-[#2D4235] hover:bg-[#B84E26] text-white font-bold text-sm flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                                         title="Tambah"
                                     >
                                         +
@@ -867,7 +871,7 @@
                                             type="button"
                                             wire:click="decrementExtra({{ $extraMat->id }})"
                                             aria-label="Kurangi {{ $extraMat->name }}"
-                                            class="w-7 h-7 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                                            class="w-9 h-9 rounded-full bg-[#EAE3D5] hover:bg-[#D8E0D3] text-[#26221E] font-bold text-sm flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                                             title="Kurangi"
                                         >
                                             -
@@ -880,7 +884,7 @@
                                         type="button"
                                         wire:click="incrementExtra({{ $extraMat->id }})"
                                         aria-label="Tambah {{ $extraMat->name }}"
-                                        class="w-7 h-7 rounded-full bg-[#2D4235] hover:bg-[#B84E26] text-white font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                                        class="w-9 h-9 rounded-full bg-[#2D4235] hover:bg-[#B84E26] text-white font-bold text-sm flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                                         title="Tambah"
                                     >
                                         +
@@ -892,19 +896,19 @@
                 </fieldset>
             @endif
 
-            <!-- Mobile Sticky Bottom Summary Bar (Tampil hanya saat scroll form di HP/Tablet, bebas tabrakan AI FAB) -->
+            <!-- Mobile Sticky Bottom Summary Bar (Tampil hanya saat scroll form di HP/Tablet, bebas tabrakan AI FAB di 320px–1023px) -->
             @if (!$showCheckoutModal && !$showSaveModal && !$budgetError)
-                <div class="lg:hidden sticky bottom-3 z-30 mr-24">
-                    <div class="rounded-2xl bg-[#2D4235]/95 backdrop-blur-md text-[#F4EFE6] px-4 py-2.5 shadow-2xl border border-white/15 flex items-center justify-between gap-3">
+                <div class="lg:hidden sticky bottom-3 z-30 mr-20 sm:mr-48">
+                    <div class="rounded-2xl bg-[#2D4235]/95 backdrop-blur-md text-[#F4EFE6] px-3 sm:px-4 py-2.5 shadow-2xl border border-white/15 flex items-center justify-between gap-2 sm:gap-3">
                         <div class="min-w-0">
-                            <span class="block text-[9.5px] font-mono uppercase tracking-wider text-[#D8E0D3]/80">Uang Belanja Pasar</span>
-                            <span class="block text-sm font-extrabold text-white tabular-nums truncate" style="font-family: 'Playfair Display', Georgia, serif;">
+                            <span class="block text-[9px] sm:text-[9.5px] font-mono uppercase tracking-wider text-[#D8E0D3]/80 truncate">Uang Belanja Pasar</span>
+                            <span class="block text-xs sm:text-sm font-extrabold text-white tabular-nums truncate" style="font-family: 'Playfair Display', Georgia, serif;">
                                 {{ \Illuminate\Support\Number::currency($totalMarketCost, 'IDR', 'id', precision: 0) }}
                             </span>
                         </div>
                         <a
                             href="#panel-struk-racikan"
-                            class="px-3.5 py-2 rounded-xl bg-[#B84E26] hover:bg-[#9E3F1C] text-white text-xs font-bold whitespace-nowrap shadow-xs transition-colors"
+                            class="px-3 sm:px-3.5 py-2 rounded-xl bg-[#B84E26] hover:bg-[#9E3F1C] text-white text-[11px] sm:text-xs font-bold whitespace-nowrap shadow-xs transition-colors shrink-0"
                         >
                             Lihat Struk &darr;
                         </a>
@@ -954,7 +958,7 @@
                         $receiptMeatWeight = is_numeric($meatWeight) ? (int) $meatWeight : 0;
                         $receiptCustomRatio = is_numeric($customFlourRatio) ? max(10, min(450, (int) $customFlourRatio)) : 20;
                     @endphp
-                    <div class="grid grid-cols-4 gap-1.5 py-2 px-2.5 rounded-xl bg-black/15 border border-white/10 text-xs mb-2.5 text-center">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-1.5 py-2.5 sm:py-2 px-2.5 rounded-xl bg-black/15 border border-white/10 text-xs mb-2.5 text-center">
                         <div class="min-w-0">
                             <span class="text-[#D8E0D3]/85 block text-[8.5px] uppercase font-mono">Daging</span>
                             <span class="font-semibold text-white truncate block text-[10.5px]">
@@ -1216,6 +1220,9 @@
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-checkout-title"
+            x-data
+            x-init="window.basokuFocusFirst($el)"
+            @keydown.tab="window.basokuTrapFocus($el, $event)"
             @keydown.escape.window="$wire.closeCheckout()"
         >
             <div
@@ -1233,6 +1240,88 @@
                     </svg>
                 </button>
 
+                @if ($confirmedOrderCode)
+                    <!-- LAYAR KONFIRMASI SUKSES PASCA-CHECKOUT -->
+                    <div class="space-y-5" x-data="{ copied: false, copyCode(code) { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(code).then(() => { this.copied = true; setTimeout(() => this.copied = false, 2200); }); } } }">
+                        <div class="pr-8 space-y-2">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[11px] font-mono font-bold uppercase tracking-wider">
+                                <svg class="w-3.5 h-3.5 text-emerald-700" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                Pesanan Berhasil Dicatat
+                            </span>
+                            <h3 id="modal-checkout-title" class="text-[#26221E] text-2xl font-bold leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
+                                Simpan Kode &amp; Kirim ke WhatsApp
+                            </h3>
+                            <p class="text-xs text-[#5A534A] leading-relaxed">
+                                Pesanan Anda sudah aman tersimpan di antrean kios BASOKU. Kirim rincian via WhatsApp atau simpan nomor pesanan untuk melacak status.
+                            </p>
+                        </div>
+
+                        <!-- Kartu Kode Pesanan + Salin -->
+                        <div class="p-4 rounded-2xl bg-[#2D4235] text-white flex items-center justify-between gap-3 shadow-md">
+                            <div>
+                                <span class="text-[10px] font-mono uppercase tracking-wider text-[#D8E0D3] block">Nomor Pesanan Anda</span>
+                                <span class="text-2xl font-mono font-extrabold tracking-wider text-white select-all">{{ $confirmedOrderCode }}</span>
+                            </div>
+                            <button
+                                type="button"
+                                x-on:click="copyCode(@js($confirmedOrderCode))"
+                                class="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-xs font-semibold text-white transition-colors cursor-pointer shrink-0"
+                            >
+                                <span x-show="!copied">Salin Kode</span>
+                                <span x-show="copied" x-cloak class="text-emerald-200">Tersalin ✓</span>
+                            </button>
+                        </div>
+
+                        <!-- Ringkasan Konfirmasi -->
+                        <div class="p-4 rounded-2xl bg-white border border-[#26221E]/10 text-xs space-y-2 shadow-xs">
+                            <div class="flex justify-between text-[#5A534A]">
+                                <span>Pemesan:</span>
+                                <span class="font-bold text-[#26221E]">{{ $customerName }} ({{ $customerPhone }})</span>
+                            </div>
+                            <div class="flex justify-between text-[#5A534A]">
+                                <span>Jadwal Pengambilan:</span>
+                                <span class="font-mono font-bold text-[#26221E]">{{ $confirmedPickupLabel }}</span>
+                            </div>
+                            <div class="flex justify-between text-[#5A534A] pt-1.5 border-t border-[#26221E]/10">
+                                <span>Total Belanja Pasar:</span>
+                                <span class="font-bold font-mono text-sm text-[#B84E26] tabular-nums">{{ \Illuminate\Support\Number::currency($confirmedOrderTotal, 'IDR', 'id', precision: 0) }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Aksi Utama & Sekunder -->
+                        <div class="space-y-2.5 pt-1">
+                            <a
+                                href="{{ $confirmedWaUrl }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="w-full py-3.5 px-5 rounded-2xl bg-[#15803D] hover:bg-[#166534] text-white font-bold text-sm shadow transition-all flex items-center justify-center gap-2"
+                            >
+                                <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                </svg>
+                                <span>Buka WhatsApp &amp; Kirim Rincian</span>
+                            </a>
+
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <a
+                                    href="{{ $confirmedTrackUrl }}"
+                                    class="py-2.5 px-4 rounded-xl bg-white hover:bg-[#EAE3D5]/70 border border-[#26221E]/20 text-[#26221E] font-semibold text-xs text-center transition-colors"
+                                >
+                                    Lacak Pesanan
+                                </a>
+                                <button
+                                    type="button"
+                                    wire:click="closeCheckout"
+                                    class="py-2.5 px-4 rounded-xl bg-[#EAE3D5]/70 hover:bg-[#EAE3D5] text-[#26221E] font-semibold text-xs transition-colors cursor-pointer"
+                                >
+                                    Selesai / Tutup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @else
                 <!-- Judul Modal -->
                 <div class="mb-5 pr-8">
                     <p class="text-[#B84E26] font-bold tracking-widest text-xs uppercase mb-1 font-mono">Konfirmasi Pesanan</p>
@@ -1240,7 +1329,7 @@
                         Data Pengambilan
                     </h3>
                     <p class="text-xs text-[#5A534A] mt-1">
-                        Lengkapi nama dan jadwal ke pasar sebelum mengirim pesanan ke WhatsApp penjual.
+                        Lengkapi nama dan jadwal ke pasar sebelum menyimpan pesanan &amp; mengirim ke WhatsApp penjual.
                     </p>
                 </div>
 
@@ -1304,14 +1393,14 @@
                             type="tel"
                             id="customerPhone"
                             wire:model="customerPhone"
-                            placeholder="Contoh: 08123456789 atau 628123456789"
+                            placeholder="Contoh: 0812-3456-7890 atau 628123456789"
                             class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/35 focus:outline-none focus:border-[#2D4235] focus:ring-2 focus:ring-[#2D4235]/15 transition-all duration-200"
                         >
                         @error('customerPhone')
                             <p class="text-[11px] text-[#8B231A] mt-1 font-semibold">{{ $message }}</p>
                         @enderror
                         <p class="text-[11px] text-[#5A534A] mt-1">
-                            Pihak kios akan menghubungi nomor ini jika ada konfirmasi ketersediaan bahan.
+                            Pihak kios akan menghubungi nomor ini jika ada konfirmasi ketersediaan bahan. Spasi atau tanda strip (-) otomatis dirapikan.
                         </p>
                     </div>
 
@@ -1326,6 +1415,21 @@
                             wire:model="pickupTime"
                             class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#2D4235] focus:ring-2 focus:ring-[#2D4235]/15 transition-all duration-200"
                         >
+                        @php
+                            $pickupShortcuts = \App\Support\CheckoutHelper::pickupShortcuts();
+                        @endphp
+                        <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                            <span class="text-[10.5px] font-semibold text-[#5A534A]">Pilih cepat:</span>
+                            @foreach ($pickupShortcuts as $shortcut)
+                                <button
+                                    type="button"
+                                    wire:click="$set('pickupTime', '{{ $shortcut['value'] }}')"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-semibold border transition-colors cursor-pointer {{ $pickupTime === $shortcut['value'] ? 'bg-[#2D4235] text-white border-[#2D4235]' : 'bg-white text-[#26221E] border-[#26221E]/15 hover:bg-[#EAE3D5]/70' }}"
+                                >
+                                    {{ $shortcut['label'] }}
+                                </button>
+                            @endforeach
+                        </div>
                         @error('pickupTime')
                             <p class="text-[11px] text-[#8B231A] mt-1 font-semibold">{{ $message }}</p>
                         @enderror
@@ -1351,7 +1455,7 @@
                             <svg wire:loading.remove wire:target="processCheckout" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                             </svg>
-                            <span wire:loading.remove wire:target="processCheckout">Konfirmasi &amp; Kirim WA</span>
+                            <span wire:loading.remove wire:target="processCheckout">Simpan &amp; Siapkan WhatsApp</span>
                             <span wire:loading wire:target="processCheckout" class="flex items-center gap-2">
                                 <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -1362,6 +1466,7 @@
                         </button>
                     </div>
                 </form>
+                @endif
             </div>
         </div>
     @endif
@@ -1375,6 +1480,9 @@
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-save-title"
+            x-data
+            x-init="window.basokuFocusFirst($el)"
+            @keydown.tab="window.basokuTrapFocus($el, $event)"
             @keydown.escape.window="$wire.closeSaveModal()"
         >
             <div

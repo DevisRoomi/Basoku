@@ -16,9 +16,9 @@
                     TITIK KOORDINAT KIOS &bull; 7°59'31.5"S 113°14'58.9"E
                 </div>
 
-                <h3 class="text-2xl sm:text-4xl font-serif font-bold text-[#26221E] tracking-tight leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
+                <h2 class="text-2xl sm:text-4xl font-serif font-bold text-[#26221E] tracking-tight leading-tight" style="font-family: 'Playfair Display', Georgia, serif;">
                     Kami Tunggu di Los Selepan Pasar.
-                </h3>
+                </h2>
 
                 <p class="text-[#5A534A] text-xs sm:text-sm leading-relaxed max-w-lg">
                     Bahan segar tiba setiap subuh dari los jagal. Bawa racikan hasil kalkulator Anda atau hubungi kami terlebih dahulu agar belanja &amp; giling adonan Anda lebih tenang dan cepat.
@@ -100,7 +100,7 @@
 
             <!-- Navigasi -->
             <div>
-                <h4 class="text-xs font-bold uppercase tracking-wider text-[#26221E] mb-3 font-mono">Navigasi</h4>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-[#26221E] mb-3 font-mono">Navigasi</h3>
                 <ul class="space-y-2 text-xs text-[#5A534A]">
                     <li><a href="{{ url('/') }}" class="hover:text-[#D96B43] transition-colors">Beranda</a></li>
                     <li><a href="{{ route('bakso.history') }}" class="hover:text-[#D96B43] transition-colors">Sejarah &amp; Dokumentasi</a></li>
@@ -114,7 +114,7 @@
 
             <!-- Bahan Pasar -->
             <div>
-                <h4 class="text-xs font-bold uppercase tracking-wider text-[#26221E] mb-3 font-mono">Bahan Baku</h4>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-[#26221E] mb-3 font-mono">Bahan Baku</h3>
                 <ul class="space-y-2 text-xs text-[#5A534A]">
                     <li><a href="{{ url('/') }}#daftar-harga" class="hover:text-[#D96B43] transition-colors">Daging Sapi &amp; Ayam</a></li>
                     <li><a href="{{ url('/') }}#daftar-harga" class="hover:text-[#D96B43] transition-colors">Tepung Tapioka Super</a></li>
@@ -125,7 +125,7 @@
 
             <!-- Catatan -->
             <div>
-                <h4 class="text-xs font-bold uppercase tracking-wider text-[#26221E] mb-3 font-mono">Transparansi</h4>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-[#26221E] mb-3 font-mono">Transparansi</h3>
                 <p class="text-xs text-[#5A534A] leading-relaxed">
                     Data harga mengacu pada harga pasar tradisional hari ini dan ukuran kemasan utuh di kios. Tidak ada biaya tersembunyi.
                 </p>

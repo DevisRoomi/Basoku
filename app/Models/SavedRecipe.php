@@ -24,7 +24,6 @@ class SavedRecipe extends Model
      */
     protected $fillable = [
         'user_id',
-        'recipe_configuration_id',
         'name',
         'meat_weight',
         'start_type',
@@ -53,13 +52,5 @@ class SavedRecipe extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Get the recipe configuration referenced by the saved recipe.
-     */
-    public function recipeConfiguration(): BelongsTo
-    {
-        return $this->belongsTo(RecipeConfiguration::class);
     }
 }

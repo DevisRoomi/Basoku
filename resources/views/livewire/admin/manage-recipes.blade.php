@@ -222,11 +222,12 @@
             aria-modal="true"
             aria-labelledby="recipe-modal-title"
             x-data
+            x-init="window.basokuFocusFirst($el)"
+            @keydown.tab="window.basokuTrapFocus($el, $event)"
             @keydown.escape.window="$wire.closeModal()"
             class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-black/60 backdrop-blur-sm animate-fade-in"
         >
             <div
-                @click.away="$wire.closeModal()"
                 class="bg-[#FAF7F2] rounded-3xl max-w-lg w-full max-h-[90dvh] overflow-y-auto p-6 sm:p-8 border border-[#26221E]/20 shadow-2xl relative"
             >
                 <!-- Header Modal -->

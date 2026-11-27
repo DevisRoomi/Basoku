@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="{{ $description ?? 'Platform pintar kalkulator racikan bakso pasar dan pemesanan instan via WhatsApp. Hitung komposisi daging, tepung, dan bumbu secara presisi.' }}">
-        <meta name="theme-color" content="#8B231A">
+        <meta name="theme-color" content="#2D4235">
 
         <title>{{ $title ?? 'BASOKU — Asisten Racikan & Belanja Bakso Pasar' }}</title>
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
