@@ -185,4 +185,41 @@ class SecurityAndAccountTest extends TestCase
 
         $this->assertTrue(Hash::check('adminBaru999', (string) $admin->fresh()->password));
     }
+
+    public function test_auth_and_account_forms_render_password_visibility_toggle_and_throttle_failed_password_changes(): void
+    {
+        $this->get('/masuk')
+            ->assertStatus(200)
+            ->assertSee('Tampilkan kata sandi');
+
+        $this->get('/daftar')
+            ->assertStatus(200)
+            ->assertSee('Tampilkan kata sandi');
+
+        $customer = User::factory()->create([
+            'password' => Hash::make('rahasia123'),
+            'role' => 'customer',
+        ]);
+
+        $this->actingAs($customer)
+            ->get('/pengaturan-akun')
+            ->assertStatus(200)
+            ->assertSee('Tampilkan kata sandi');
+
+        // Percobaan current_password salah 10x wajib memicu throttle pada percobaan ke-11
+        $component = Livewire::actingAs($customer)->test(ManageAccount::class);
+        for ($i = 0; $i < 10; $i++) {
+            $component->set('current_password', 'salah-terus')
+                ->set('password', 'sandiBaru999')
+                ->set('password_confirmation', 'sandiBaru999')
+                ->call('updatePassword')
+                ->assertHasErrors(['current_password']);
+        }
+
+        $component->set('current_password', 'rahasia123')
+            ->set('password', 'sandiBaru999')
+            ->set('password_confirmation', 'sandiBaru999')
+            ->call('updatePassword')
+            ->assertSee('Terlalu banyak percobaan ubah sandi');
+    }
 }

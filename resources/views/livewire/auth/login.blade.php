@@ -66,14 +66,12 @@
                         Lupa kata sandi?
                     </a>
                 </div>
-                <input
-                    type="password"
+                <x-password-input
                     id="password"
                     wire:model="password"
                     autocomplete="current-password"
                     placeholder="••••••••"
-                    class="w-full rounded-2xl border-2 border-[#26221E]/10 bg-white px-4 py-3 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/30 focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
-                >
+                />
                 @error('password')
                     <p class="text-[11px] text-[#8B231A] mt-1.5 font-medium flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">

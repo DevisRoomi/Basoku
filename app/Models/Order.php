@@ -46,6 +46,8 @@ class Order extends Model
         'grinding_fee',
         'total_price',
         'status',
+        'cancelled_by',
+        'cancelled_at',
     ];
 
     /**
@@ -57,6 +59,7 @@ class Order extends Model
     {
         return [
             'pickup_at' => 'datetime',
+            'cancelled_at' => 'datetime',
             'meat_weight' => 'decimal:3',
             'grinding_fee' => 'decimal:2',
             'total_price' => 'decimal:2',
@@ -85,6 +88,42 @@ class Order extends Model
     public function isOwnMeat(): bool
     {
         return in_array((string) $this->start_type, ['own_meat', 'bring_own_meat'], true);
+    }
+
+    /**
+     * Cek apakah status pesanan sudah dibatalkan (mendukung alias Inggris/Indonesia).
+     */
+    public function isCancelled(): bool
+    {
+        return self::normalizeStatus($this->status) === 'cancelled';
+    }
+
+    /**
+     * Cek apakah pesanan dibatalkan langsung oleh pembeli (terkunci permanen terhadap perubahan status admin).
+     */
+    public function isCancelledByCustomer(): bool
+    {
+        return $this->isCancelled() && $this->cancelled_by === 'customer';
+    }
+
+    /**
+     * Cek apakah pesanan dibatalkan oleh pihak admin/kios.
+     */
+    public function isCancelledByAdmin(): bool
+    {
+        return $this->isCancelled() && $this->cancelled_by === 'admin';
+    }
+
+    /**
+     * Label status pembatalan yang membedakan pembatalan dari pembeli vs kios.
+     */
+    public function cancellationActorLabel(bool $forCustomer = false): string
+    {
+        return match ($this->cancelled_by) {
+            'customer' => $forCustomer ? 'Pesanan Dibatalkan oleh Anda' : 'Dibatalkan Pembeli',
+            'admin' => $forCustomer ? 'Pesanan Dibatalkan oleh Kios' : 'Dibatalkan Kios',
+            default => $forCustomer ? 'Pesanan Dibatalkan' : 'Dibatalkan',
+        };
     }
 
     /**

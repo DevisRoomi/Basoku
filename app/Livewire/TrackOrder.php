@@ -127,7 +127,11 @@ class TrackOrder extends Component
             return;
         }
 
-        $order->update(['status' => 'cancelled']);
+        $order->update([
+            'status' => 'cancelled',
+            'cancelled_by' => 'customer',
+            'cancelled_at' => now(),
+        ]);
         $code = CheckoutHelper::formatOrderCode($order->id);
         $this->actionNotice = "Pesanan {$code} berhasil dibatalkan.";
     }

@@ -128,7 +128,7 @@
                             </span>
                         @elseif ($isCancelled)
                             <span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-rose-100 text-rose-900">
-                                Pesanan Dibatalkan
+                                {{ $order->cancellationActorLabel(true) }}
                             </span>
                         @endif
                     </div>

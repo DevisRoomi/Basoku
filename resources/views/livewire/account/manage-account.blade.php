@@ -150,14 +150,13 @@
                         <label for="account-current-password" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
                             Kata Sandi Saat Ini
                         </label>
-                        <input
+                        <x-password-input
                             id="account-current-password"
-                            type="password"
                             wire:model="current_password"
                             autocomplete="current-password"
                             placeholder="••••••••"
-                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#2D4235]"
-                        >
+                            input-class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white pl-4 pr-11 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#2D4235]"
+                        />
                         @error('current_password')
                             <p class="text-[11px] text-[#8B231A] mt-1 font-semibold">{{ $message }}</p>
                         @enderror
@@ -167,14 +166,13 @@
                         <label for="account-new-password" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
                             Kata Sandi Baru
                         </label>
-                        <input
+                        <x-password-input
                             id="account-new-password"
-                            type="password"
                             wire:model="password"
                             autocomplete="new-password"
                             placeholder="Minimal 8 karakter"
-                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#2D4235]"
-                        >
+                            input-class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white pl-4 pr-11 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#2D4235]"
+                        />
                         @error('password')
                             <p class="text-[11px] text-[#8B231A] mt-1 font-semibold">{{ $message }}</p>
                         @enderror
@@ -184,14 +182,13 @@
                         <label for="account-password-confirmation" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
                             Konfirmasi Kata Sandi Baru
                         </label>
-                        <input
+                        <x-password-input
                             id="account-password-confirmation"
-                            type="password"
                             wire:model="password_confirmation"
                             autocomplete="new-password"
                             placeholder="Ulangi kata sandi baru"
-                            class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white px-4 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#2D4235]"
-                        >
+                            input-class="w-full rounded-2xl border-2 border-[#26221E]/15 bg-white pl-4 pr-11 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#2D4235]"
+                        />
                     </div>
 
                     <div class="pt-1">

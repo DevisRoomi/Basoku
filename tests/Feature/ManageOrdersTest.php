@@ -438,4 +438,71 @@ class ManageOrdersTest extends TestCase
         $this->actingAs($this->admin)->get('/admin/recipes')->assertRedirect('/admin/resep');
         $this->actingAs($this->admin)->get('/admin/orders')->assertRedirect('/admin/pesanan');
     }
+
+    public function test_buyer_cancelled_order_is_locked_from_admin_status_changes_while_admin_cancelled_remains_editable(): void
+    {
+        $buyerCancelled = Order::create([
+            'customer_name' => 'Pembeli Batal Sendiri',
+            'customer_phone' => '081234567891',
+            'pickup_at' => now()->addDay(),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 500,
+            'preference' => 'seimbang',
+            'grinding_fee' => 7500,
+            'total_price' => 88000,
+            'status' => 'cancelled',
+            'cancelled_by' => 'customer',
+            'cancelled_at' => now(),
+        ]);
+
+        $adminPending = Order::create([
+            'customer_name' => 'Pesanan Dibatalkan Kios',
+            'customer_phone' => '081234567892',
+            'pickup_at' => now()->addDay(),
+            'start_type' => 'start_from_zero',
+            'meat_weight' => 500,
+            'preference' => 'seimbang',
+            'grinding_fee' => 7500,
+            'total_price' => 88000,
+            'status' => 'pending',
+        ]);
+
+        // 1. Admin tidak dapat mengubah status pesanan yang dibatalkan pembeli (terkunci di UI & backend)
+        $component = Livewire::actingAs($this->admin)
+            ->test(ManageOrders::class)
+            ->assertSee('Dibatalkan Pembeli')
+            ->assertSee('Terkunci')
+            ->assertDontSeeHtml('id="order-status-'.$buyerCancelled->id.'"')
+            ->call('updateStatus', $buyerCancelled->id, 'processing')
+            ->assertSee('terkunci permanen');
+
+        $this->assertSame('cancelled', $buyerCancelled->fresh()->status);
+        $this->assertSame('customer', $buyerCancelled->fresh()->cancelled_by);
+
+        // Modal detail juga menampilkan pesan terkunci
+        $component->call('viewOrder', $buyerCancelled->id)
+            ->assertSee('Status Terkunci — Dibatalkan oleh Pembeli');
+
+        // 2. Pembatalan oleh admin mencatat cancelled_by = 'admin' dan tetap bisa dipulihkan admin
+        $component->call('updateStatus', $adminPending->id, 'cancelled');
+        $adminPending->refresh();
+        $this->assertSame('cancelled', $adminPending->status);
+        $this->assertSame('admin', $adminPending->cancelled_by);
+        $this->assertNotNull($adminPending->cancelled_at);
+
+        // CSV membedakan Dibatalkan (Pembeli) vs Dibatalkan (Kios)
+        $response = $component->instance()->exportCsv();
+        ob_start();
+        $response->sendContent();
+        $csvContent = ob_get_clean();
+        $this->assertStringContainsString('Dibatalkan (Pembeli)', $csvContent);
+        $this->assertStringContainsString('Dibatalkan (Kios)', $csvContent);
+
+        // Admin memulihkan pesanan yang dibatalkan kios -> membersihkan cancelled_by & cancelled_at
+        $component->call('updateStatus', $adminPending->id, 'processing');
+        $adminPending->refresh();
+        $this->assertSame('processing', $adminPending->status);
+        $this->assertNull($adminPending->cancelled_by);
+        $this->assertNull($adminPending->cancelled_at);
+    }
 }

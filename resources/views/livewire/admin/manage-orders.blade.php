@@ -76,7 +76,7 @@
 
         <!-- Flash Message Sukses -->
         @if (session()->has('success'))
-            <div x-data="{ show: true }" x-show="show" class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-sm animate-fade-in">
+            <div x-data="{ show: true }" x-show="show" role="status" class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-sm animate-fade-in">
                 <div class="flex items-center gap-2.5">
                     <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -89,19 +89,34 @@
             </div>
         @endif
 
+        <!-- Flash Message Error / Terkunci -->
+        @if (session()->has('error'))
+            <div x-data="{ show: true }" x-show="show" role="alert" class="bg-rose-50 border border-rose-200 text-rose-900 rounded-2xl p-4 text-xs font-semibold flex items-center justify-between shadow-sm animate-fade-in">
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span>{{ session('error') }}</span>
+                </div>
+                <button type="button" @click="show = false" aria-label="Tutup peringatan" class="text-rose-700 hover:text-rose-900 cursor-pointer text-base px-1">
+                    &times;
+                </button>
+            </div>
+        @endif
+
         <!-- Card Tabel Data -->
         <div class="bg-white rounded-3xl border border-[#161210]/10 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-[#161210]/10 bg-[#FAF6F0]/60 text-[11px] font-bold uppercase tracking-wider text-[#161210]/70">
-                            <th scope="col" class="py-4 px-6">ID Pesanan</th>
-                            <th scope="col" class="py-4 px-6">Waktu Pengambilan</th>
-                            <th scope="col" class="py-4 px-6">Nama Pemesan</th>
-                            <th scope="col" class="py-4 px-6">Mode Racikan</th>
-                            <th scope="col" class="py-4 px-6 text-right">Total Estimasi</th>
-                            <th scope="col" class="py-4 px-6 text-center">Status</th>
-                            <th scope="col" class="py-4 px-6 text-right">Aksi</th>
+                            <th scope="col" class="py-3.5 px-3.5 xl:px-5">ID Pesanan</th>
+                            <th scope="col" class="py-3.5 px-3.5 xl:px-5">Waktu Ambil</th>
+                            <th scope="col" class="py-3.5 px-3.5 xl:px-5">Pemesan</th>
+                            <th scope="col" class="py-3.5 px-3.5 xl:px-5">Mode Racikan</th>
+                            <th scope="col" class="py-3.5 px-3.5 xl:px-5 text-right">Total</th>
+                            <th scope="col" class="py-3.5 px-3.5 xl:px-5 text-center">Status</th>
+                            <th scope="col" class="py-3.5 px-3.5 xl:px-5 text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#161210]/5 text-xs font-medium text-[#161210]">
@@ -110,10 +125,12 @@
                                 $orderCode = '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
                                 $waUrl = $this->getCustomerWaUrl($order);
                                 $normalizedStatus = $this->normalizeStatus($order->status);
+                                $isCancelledByCustomer = $order->isCancelledByCustomer();
+                                $isCancelledByAdmin = $order->isCancelledByAdmin();
                             @endphp
                             <tr wire:key="admin-order-{{ $order->id }}" class="hover:bg-[#FAF6F0]/40 transition-colors">
                                 <!-- Kolom 1: ID & Waktu Pemesanan -->
-                                <td class="py-4 px-6">
+                                <td class="py-3.5 px-3.5 xl:px-5 whitespace-nowrap">
                                     <span class="font-extrabold text-[#161210] font-mono text-xs">
                                         {{ $orderCode }}
                                     </span>
@@ -123,9 +140,9 @@
                                 </td>
 
                                 <!-- Kolom 2: Waktu Pengambilan -->
-                                <td class="py-4 px-6">
-                                    <div class="flex items-center gap-1.5 font-bold text-[#161210]">
-                                        <svg class="w-3.5 h-3.5 text-[#C83B2B] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <td class="py-3.5 px-3.5 xl:px-5">
+                                    <div class="flex items-center gap-1.5 font-bold text-[#161210] whitespace-nowrap">
+                                        <svg class="w-3.5 h-3.5 text-[#C83B2B] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         <span>
@@ -136,7 +153,7 @@
                                 </td>
 
                                 <!-- Kolom 3: Nama Pemesan & Kontak -->
-                                <td class="py-4 px-6">
+                                <td class="py-3.5 px-3.5 xl:px-5">
                                     <p class="font-bold text-sm text-[#161210]">
                                         {{ $order->customer_name }}
                                     </p>
@@ -160,7 +177,7 @@
                                 </td>
 
                                 <!-- Kolom 4: Mode Racikan -->
-                                <td class="py-4 px-6 space-y-1">
+                                <td class="py-3.5 px-3.5 xl:px-5 space-y-1">
                                     <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ match($order->start_type) {
                                         'start_from_zero' => 'bg-[#C83B2B]/10 text-[#C83B2B] border border-[#C83B2B]/20',
                                         'ingredients_only' => 'bg-emerald-100 text-emerald-800 border border-emerald-200',
@@ -182,7 +199,7 @@
                                 </td>
 
                                 <!-- Kolom 5: Total Estimasi -->
-                                <td class="py-4 px-6 text-right font-extrabold text-[#C83B2B] text-sm whitespace-nowrap">
+                                <td class="py-3.5 px-3.5 xl:px-5 text-right font-extrabold text-[#C83B2B] text-sm whitespace-nowrap">
                                     {{ \Illuminate\Support\Number::currency($order->total_price, 'IDR', 'id', precision: 0) }}
                                     @if ((float) $order->grinding_fee > 0)
                                         <span class="block text-[10px] font-normal text-[#161210]/50">
@@ -191,38 +208,55 @@
                                     @endif
                                 </td>
 
-                                <!-- Kolom 6: Status Pesanan (Interactive Dropdown Selector) -->
-                                <td class="py-4 px-6 text-center">
-                                    <div class="relative inline-block text-left">
-                                        <select
-                                            id="order-status-{{ $order->id }}"
-                                            name="order_status_{{ $order->id }}"
-                                            wire:key="order-status-{{ $order->id }}-{{ $normalizedStatus }}"
-                                            wire:change="updateStatus({{ $order->id }}, $event.target.value)"
-                                            wire:loading.attr="disabled"
-                                            wire:target="updateStatus"
-                                            aria-label="Ubah status pesanan #{{ $order->id }}"
-                                            class="text-xs font-bold rounded-xl py-1.5 pl-3 pr-8 border cursor-pointer focus:outline-none transition-colors appearance-none disabled:opacity-50 {{ match($normalizedStatus) {
-                                                'pending' => 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100',
-                                                'processing' => 'bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100',
-                                                'completed' => 'bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100',
-                                                'cancelled' => 'bg-rose-50 text-rose-900 border-rose-300 hover:bg-rose-100',
-                                                default => 'bg-[#FAF6F0] text-[#161210] border-[#161210]/20'
-                                            } }}"
-                                        >
-                                            <option value="pending" @selected($normalizedStatus === 'pending')>Menunggu</option>
-                                            <option value="processing" @selected($normalizedStatus === 'processing')>Diproses</option>
-                                            <option value="completed" @selected($normalizedStatus === 'completed')>Selesai</option>
-                                            <option value="cancelled" @selected($normalizedStatus === 'cancelled')>Dibatalkan</option>
-                                        </select>
-                                        <svg class="w-3.5 h-3.5 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-current opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
+                                <!-- Kolom 6: Status Pesanan (Terkunci permanen jika dibatalkan pembeli) -->
+                                <td class="py-3.5 px-3.5 xl:px-5 text-center">
+                                    @if ($isCancelledByCustomer)
+                                        <div class="inline-flex flex-col items-center gap-1" title="Pesanan dibatalkan langsung oleh pembeli — status terkunci permanen">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-rose-50 text-rose-900 border border-rose-300 whitespace-nowrap">
+                                                <svg class="w-3 h-3 text-rose-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                </svg>
+                                                <span>Dibatalkan Pembeli</span>
+                                            </span>
+                                            <span class="text-[10px] font-semibold text-rose-700/80">Terkunci</span>
+                                        </div>
+                                    @else
+                                        <div class="inline-flex flex-col items-center gap-1">
+                                            <div class="relative inline-block text-left">
+                                                <select
+                                                    id="order-status-{{ $order->id }}"
+                                                    name="order_status_{{ $order->id }}"
+                                                    wire:key="order-status-{{ $order->id }}-{{ $normalizedStatus }}"
+                                                    wire:change="updateStatus({{ $order->id }}, $event.target.value)"
+                                                    wire:loading.attr="disabled"
+                                                    wire:target="updateStatus"
+                                                    aria-label="Ubah status pesanan #{{ $order->id }}"
+                                                    class="text-xs font-bold rounded-xl py-1.5 pl-3 pr-8 border cursor-pointer focus:outline-none transition-colors appearance-none disabled:opacity-50 {{ match($normalizedStatus) {
+                                                        'pending' => 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100',
+                                                        'processing' => 'bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100',
+                                                        'completed' => 'bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100',
+                                                        'cancelled' => 'bg-rose-50 text-rose-900 border-rose-300 hover:bg-rose-100',
+                                                        default => 'bg-[#FAF6F0] text-[#161210] border-[#161210]/20'
+                                                    } }}"
+                                                >
+                                                    <option value="pending" @selected($normalizedStatus === 'pending')>Menunggu</option>
+                                                    <option value="processing" @selected($normalizedStatus === 'processing')>Diproses</option>
+                                                    <option value="completed" @selected($normalizedStatus === 'completed')>Selesai</option>
+                                                    <option value="cancelled" @selected($normalizedStatus === 'cancelled')>Dibatalkan</option>
+                                                </select>
+                                                <svg class="w-3.5 h-3.5 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-current opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                            @if ($isCancelledByAdmin)
+                                                <span class="text-[10px] font-semibold text-rose-700/80">Oleh Kios</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </td>
 
                                 <!-- Kolom 7: Aksi -->
-                                <td class="py-4 px-6 text-right whitespace-nowrap">
+                                <td class="py-3.5 px-3.5 xl:px-5 text-right whitespace-nowrap">
                                     <div class="inline-flex items-center gap-1.5">
                                         @if ($waUrl)
                                             <a
@@ -238,13 +272,14 @@
                                         <button
                                             type="button"
                                             wire:click="viewOrder({{ $order->id }})"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FAF6F0] hover:bg-[#161210] hover:text-white text-[#161210] font-semibold text-xs border border-[#161210]/10 transition-colors cursor-pointer"
+                                            aria-label="Lihat rincian pesanan {{ $orderCode }}"
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#FAF6F0] hover:bg-[#161210] hover:text-white text-[#161210] font-semibold text-xs border border-[#161210]/10 transition-colors cursor-pointer"
                                         >
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                             </svg>
-                                            <span>Lihat Rincian</span>
+                                            <span>Rincian</span>
                                         </button>
                                     </div>
                                 </td>
@@ -318,10 +353,15 @@
                                     'pending' => 'Menunggu Konfirmasi',
                                     'processing' => 'Sedang Diproses',
                                     'completed' => 'Selesai',
-                                    'cancelled' => 'Dibatalkan',
+                                    'cancelled' => $selectedOrder->cancellationActorLabel(),
                                     default => $selectedOrder->status
                                 } }}
                             </span>
+                            @if ($selectedNormalizedStatus === 'cancelled' && $selectedOrder->cancelled_at)
+                                <span class="text-[10px] font-mono text-rose-700/80">
+                                    {{ $selectedOrder->cancelled_at->format('d M Y, H:i') }} WIB
+                                </span>
+                            @endif
                         </div>
                         <h2 id="order-detail-title" class="text-xl sm:text-2xl font-bold text-[#161210] mt-1" style="font-family: 'Playfair Display', Georgia, serif;">
                             Pesanan: {{ $selectedOrder->customer_name }}
@@ -447,47 +487,61 @@
                     </div>
 
                     <!-- Pengubah Status Cepat di Dalam Modal -->
-                    <div class="p-3.5 bg-[#FAF6F0] rounded-xl border border-[#161210]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                        <span class="font-bold text-[#161210]">Ubah Status Pesanan Ini:</span>
-                        <div class="flex flex-wrap gap-1.5">
-                            <button
-                                type="button"
-                                wire:click="updateStatus({{ $selectedOrder->id }}, 'pending')"
-                                wire:loading.attr="disabled"
-                                wire:target="updateStatus"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'pending' ? 'bg-amber-700 text-white font-bold' : 'bg-white text-amber-900 border border-amber-300 hover:bg-amber-50' }}"
-                            >
-                                Menunggu
-                            </button>
-                            <button
-                                type="button"
-                                wire:click="updateStatus({{ $selectedOrder->id }}, 'processing')"
-                                wire:loading.attr="disabled"
-                                wire:target="updateStatus"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'processing' ? 'bg-blue-700 text-white font-bold' : 'bg-white text-blue-900 border border-blue-300 hover:bg-blue-50' }}"
-                            >
-                                Diproses
-                            </button>
-                            <button
-                                type="button"
-                                wire:click="updateStatus({{ $selectedOrder->id }}, 'completed')"
-                                wire:loading.attr="disabled"
-                                wire:target="updateStatus"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'completed' ? 'bg-emerald-700 text-white font-bold' : 'bg-white text-emerald-900 border border-emerald-300 hover:bg-emerald-50' }}"
-                            >
-                                Selesai
-                            </button>
-                            <button
-                                type="button"
-                                wire:click="updateStatus({{ $selectedOrder->id }}, 'cancelled')"
-                                wire:loading.attr="disabled"
-                                wire:target="updateStatus"
-                                class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'cancelled' ? 'bg-rose-700 text-white font-bold' : 'bg-white text-rose-900 border border-rose-300 hover:bg-rose-50' }}"
-                            >
-                                Dibatalkan
-                            </button>
+                    @if ($selectedOrder->isCancelledByCustomer())
+                        <div class="p-3.5 bg-rose-50 rounded-xl border border-rose-200 flex items-start gap-2.5 text-xs text-rose-900">
+                            <svg class="w-4 h-4 text-rose-700 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <div>
+                                <p class="font-bold">Status Terkunci — Dibatalkan oleh Pembeli</p>
+                                <p class="text-[11px] text-rose-800/85 mt-0.5 leading-relaxed">
+                                    Pesanan ini dibatalkan langsung oleh pembeli{{ $selectedOrder->cancelled_at ? ' pada '.$selectedOrder->cancelled_at->format('d M Y, H:i').' WIB' : '' }} sehingga tidak dapat diubah kembali oleh pengelola kios.
+                                </p>
+                            </div>
                         </div>
-                    </div>
+                    @else
+                        <div class="p-3.5 bg-[#FAF6F0] rounded-xl border border-[#161210]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                            <span class="font-bold text-[#161210]">Ubah Status Pesanan Ini:</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button
+                                    type="button"
+                                    wire:click="updateStatus({{ $selectedOrder->id }}, 'pending')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="updateStatus"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'pending' ? 'bg-amber-700 text-white font-bold' : 'bg-white text-amber-900 border border-amber-300 hover:bg-amber-50' }}"
+                                >
+                                    Menunggu
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="updateStatus({{ $selectedOrder->id }}, 'processing')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="updateStatus"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'processing' ? 'bg-blue-700 text-white font-bold' : 'bg-white text-blue-900 border border-blue-300 hover:bg-blue-50' }}"
+                                >
+                                    Diproses
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="updateStatus({{ $selectedOrder->id }}, 'completed')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="updateStatus"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'completed' ? 'bg-emerald-700 text-white font-bold' : 'bg-white text-emerald-900 border border-emerald-300 hover:bg-emerald-50' }}"
+                                >
+                                    Selesai
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="updateStatus({{ $selectedOrder->id }}, 'cancelled')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="updateStatus"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 {{ $selectedNormalizedStatus === 'cancelled' ? 'bg-rose-700 text-white font-bold' : 'bg-white text-rose-900 border border-rose-300 hover:bg-rose-50' }}"
+                                >
+                                    Dibatalkan
+                                </button>
+                            </div>
+                        </div>
+                    @endif
 
                 </div>
 
@@ -551,6 +605,9 @@
                 } }}</div>
                 @if ($selectedOrder->start_type !== 'ingredients_only')
                     <div>Racikan: {{ (int) $selectedOrder->meat_weight }}g Daging &bull; {{ ucfirst(str_replace('_', ' ', $selectedOrder->preference)) }}</div>
+                @endif
+                @if ($selectedNormalizedStatus === 'cancelled')
+                    <div style="font-weight: bold; margin-top: 2px;">STATUS: {{ strtoupper($selectedOrder->cancellationActorLabel()) }}</div>
                 @endif
             </div>
 

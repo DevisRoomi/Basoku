@@ -91,10 +91,14 @@ class ManageAccount extends Component
 
         if (RateLimiter::tooManyAttempts($throttleKey, 10)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+            $this->resetErrorBag();
             $this->addError('current_password', "Terlalu banyak percobaan ubah sandi. Harap tunggu {$seconds} detik.");
 
             return;
         }
+
+        // Hit sebelum validasi agar percobaan tebak current_password yang gagal benar-benar dihitung oleh RateLimiter
+        RateLimiter::hit($throttleKey, 300);
 
         $this->validate([
             'current_password' => ['required', 'string', 'current_password'],
@@ -107,8 +111,6 @@ class ManageAccount extends Component
             'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
             'password.different' => 'Kata sandi baru harus berbeda dari kata sandi saat ini.',
         ]);
-
-        RateLimiter::hit($throttleKey, 300);
 
         $user->forceFill([
             'password' => Hash::make($this->password),

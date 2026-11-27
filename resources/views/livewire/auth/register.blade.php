@@ -78,14 +78,13 @@
                 <label for="password" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
                     Kata Sandi
                 </label>
-                <input
-                    type="password"
+                <x-password-input
                     id="password"
                     wire:model="password"
                     autocomplete="new-password"
                     placeholder="Minimal 8 karakter"
-                    class="w-full rounded-2xl border-2 border-[#26221E]/10 bg-white px-4 py-2.5 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/30 focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
-                >
+                    input-class="w-full rounded-2xl border-2 border-[#26221E]/10 bg-white pl-4 pr-11 py-2.5 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/30 focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
+                />
                 @error('password')
                     <p class="text-[11px] text-[#8B231A] mt-1 font-medium flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -101,14 +100,13 @@
                 <label for="password_confirmation" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
                     Konfirmasi Kata Sandi
                 </label>
-                <input
-                    type="password"
+                <x-password-input
                     id="password_confirmation"
                     wire:model="password_confirmation"
                     autocomplete="new-password"
                     placeholder="Ketik ulang kata sandi"
-                    class="w-full rounded-2xl border-2 border-[#26221E]/10 bg-white px-4 py-2.5 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/30 focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
-                >
+                    input-class="w-full rounded-2xl border-2 border-[#26221E]/10 bg-white pl-4 pr-11 py-2.5 text-sm font-medium text-[#26221E] placeholder:text-[#26221E]/30 focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
+                />
             </div>
 
             <!-- Submit Button -->

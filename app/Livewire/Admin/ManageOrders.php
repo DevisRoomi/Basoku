@@ -75,18 +75,33 @@ class ManageOrders extends Component
     }
 
     /**
-     * Perbarui status pesanan.
+     * Perbarui status pesanan (pesanan yang dibatalkan pembeli terkunci permanen).
      */
     public function updateStatus(int $id, string $newStatus)
     {
         $allowedStatuses = ['pending', 'processing', 'completed', 'cancelled'];
 
-        if (! in_array($newStatus, $allowedStatuses)) {
+        if (! in_array($newStatus, $allowedStatuses, true)) {
             return;
         }
 
         $order = Order::findOrFail($id);
+        $orderCode = '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
+
+        if ($order->isCancelledByCustomer()) {
+            session()->flash('error', "Pesanan {$orderCode} ({$order->customer_name}) telah dibatalkan oleh pembeli sehingga statusnya terkunci permanen dan tidak dapat diubah kembali.");
+
+            return;
+        }
+
         $order->status = $newStatus;
+        if ($newStatus === 'cancelled') {
+            $order->cancelled_by = 'admin';
+            $order->cancelled_at = now();
+        } else {
+            $order->cancelled_by = null;
+            $order->cancelled_at = null;
+        }
         $order->save();
 
         // Refresh selectedOrder jika sedang terbuka di modal
@@ -98,11 +113,11 @@ class ManageOrders extends Component
             'pending' => 'Menunggu Konfirmasi',
             'processing' => 'Sedang Diproses',
             'completed' => 'Selesai',
-            'cancelled' => 'Dibatalkan',
+            'cancelled' => 'Dibatalkan oleh Kios',
         ];
 
         $label = $statusLabels[$newStatus] ?? $newStatus;
-        session()->flash('success', "Status pesanan #{$order->id} ({$order->customer_name}) berhasil diubah menjadi: {$label}.");
+        session()->flash('success', "Status pesanan {$orderCode} ({$order->customer_name}) berhasil diubah menjadi: {$label}.");
     }
 
     /**
@@ -197,7 +212,11 @@ class ManageOrders extends Component
                         'pending' => 'Menunggu Konfirmasi',
                         'processing' => 'Sedang Diproses',
                         'completed' => 'Selesai',
-                        'cancelled' => 'Dibatalkan',
+                        'cancelled' => match ($order->cancelled_by) {
+                            'customer' => 'Dibatalkan (Pembeli)',
+                            'admin' => 'Dibatalkan (Kios)',
+                            default => 'Dibatalkan',
+                        },
                         default => $this->sanitizeCsvCell($order->status),
                     },
                     $order->pickup_at ? Carbon::parse($order->pickup_at)->format('Y-m-d H:i') : '-',
@@ -233,7 +252,9 @@ class ManageOrders extends Component
         $message = match ($this->normalizeStatus($order->status)) {
             'processing' => "Halo {$order->customer_name}, pesanan BASOKU Anda ({$orderCode}) sedang kami siapkan dan proses giling di los selepan. Total estimasi: {$totalFormatted}. Jadwal ambil: {$pickupText}.",
             'completed' => "Halo {$order->customer_name}, pesanan BASOKU Anda ({$orderCode}) sudah SELESAI dan siap diambil di Kios BASOKU Pasar Klakah! Total pembayaran: {$totalFormatted}. Ditunggu kedatangannya ya.",
-            'cancelled' => "Halo {$order->customer_name}, menginformasikan bahwa pesanan BASOKU Anda ({$orderCode}) tercatat dibatalkan. Jika ada kekeliruan atau ingin memesan ulang, silakan balas pesan ini.",
+            'cancelled' => $order->isCancelledByCustomer()
+                ? "Halo {$order->customer_name}, kami telah menerima pembatalan pesanan BASOKU Anda ({$orderCode}) dari sisi pembeli. Jika ingin memesan ulang kapan saja, silakan hubungi kami kembali."
+                : "Halo {$order->customer_name}, mohon maaf pesanan BASOKU Anda ({$orderCode}) dibatalkan oleh pihak kios. Jika ada kekeliruan atau ingin penjadwalan ulang, silakan balas pesan ini.",
             default => "Halo {$order->customer_name}, terima kasih telah memesan di BASOKU ({$orderCode}). Mohon konfirmasi pesanan Anda (Total: {$totalFormatted}, Jadwal ambil: {$pickupText}) agar segera kami proses.",
         };
 
@@ -262,7 +283,11 @@ class ManageOrders extends Component
             $query->whereRaw("LOWER(TRIM(status)) IN ({$placeholders})", $aliases);
         }
 
-        $orders = $query->paginate(15);
+        $orders = (clone $query)->paginate(15);
+        if ($orders->currentPage() > $orders->lastPage() && $orders->lastPage() >= 1) {
+            $this->setPage($orders->lastPage());
+            $orders = (clone $query)->paginate(15, ['*'], 'page', $orders->lastPage());
+        }
 
         // Hitung total pesanan berdasarkan status untuk badge filter tab secara teragregasi (1 query, tahan kapital/spasi)
         $statusCounts = Order::query()

@@ -156,7 +156,7 @@
                                 </span>
                             @elseif ($isCancelled)
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-900 border border-rose-200">
-                                    Pesanan Dibatalkan
+                                    {{ $order->cancellationActorLabel(true) }}
                                 </span>
                             @endif
                         </div>

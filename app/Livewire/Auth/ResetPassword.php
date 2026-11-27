@@ -44,6 +44,7 @@ class ResetPassword extends Component
         $throttleKey = 'reset-password|'.request()->ip();
         if (RateLimiter::tooManyAttempts($throttleKey, 10)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+            $this->resetErrorBag();
             $this->addError('email', "Terlalu banyak percobaan reset kata sandi. Harap tunggu {$seconds} detik.");
 
             return;

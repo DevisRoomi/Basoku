@@ -326,7 +326,7 @@
                                 <!-- ID & Waktu -->
                                 <td class="py-4 px-6 whitespace-nowrap">
                                     <span class="font-extrabold font-mono text-[#26221E]">
-                                        #{{ str_pad((string)$order->id, 4, '0', STR_PAD_LEFT) }}
+                                        #BSK-{{ str_pad((string) $order->id, 5, '0', STR_PAD_LEFT) }}
                                     </span>
                                     <span class="block text-[10px] text-[#5A534A] mt-0.5">
                                         {{ $order->created_at ? $order->created_at->format('d M Y, H:i') : '-' }}
@@ -397,7 +397,7 @@
                                             'completed', 'selesai' => 'Selesai',
                                             'processing', 'diproses' => 'Diproses',
                                             'pending', 'menunggu' => 'Menunggu',
-                                            'cancelled', 'batal', 'dibatalkan' => 'Dibatalkan',
+                                            'cancelled', 'batal', 'dibatalkan' => $order->cancellationActorLabel(),
                                             default => ucfirst($order->status),
                                         };
                                     @endphp

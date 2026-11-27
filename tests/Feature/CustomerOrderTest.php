@@ -279,7 +279,30 @@ class CustomerOrderTest extends TestCase
             ->call('cancelOrder', $otherPending->id);
 
         $this->assertSame('cancelled', $ownPending->fresh()->status);
+        $this->assertSame('customer', $ownPending->fresh()->cancelled_by);
+        $this->assertNotNull($ownPending->fresh()->cancelled_at);
         $this->assertSame('processing', $ownProcessing->fresh()->status);
         $this->assertSame('pending', $otherPending->fresh()->status);
+
+        // Membedakan tampilan badge pembatalan oleh pembeli vs oleh kios
+        Order::create([
+            'user_id' => $owner->id,
+            'customer_name' => $owner->name,
+            'start_type' => 'start_from_zero',
+            'preference' => 'enak',
+            'meat_weight' => 500,
+            'grinding_fee' => 7500,
+            'total_price' => 88000,
+            'status' => 'cancelled',
+            'cancelled_by' => 'admin',
+            'cancelled_at' => now(),
+            'pickup_at' => now()->addHours(2),
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(MyOrders::class)
+            ->call('filterByStatus', 'cancelled')
+            ->assertSee('Pesanan Dibatalkan oleh Anda')
+            ->assertSee('Pesanan Dibatalkan oleh Kios');
     }
 }

@@ -30,6 +30,7 @@ class Register extends Component
         $throttleKey = 'register|'.request()->ip();
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+            $this->resetErrorBag();
             $this->addError('email', "Terlalu banyak pendaftaran dari perangkat ini. Harap tunggu {$seconds} detik sebelum mencoba kembali.");
 
             return;

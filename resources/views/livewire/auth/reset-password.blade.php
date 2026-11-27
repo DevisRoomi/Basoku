@@ -46,14 +46,12 @@
                 <label for="reset-password" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
                     Kata Sandi Baru
                 </label>
-                <input
-                    type="password"
+                <x-password-input
                     id="reset-password"
                     wire:model="password"
                     autocomplete="new-password"
                     placeholder="Minimal 8 karakter"
-                    class="w-full rounded-2xl border-2 border-[#26221E]/10 bg-white px-4 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
-                >
+                />
                 @error('password')
                     <p class="text-[11px] text-[#8B231A] mt-1.5 font-medium">{{ $message }}</p>
                 @enderror
@@ -63,14 +61,12 @@
                 <label for="reset-password-confirmation" class="block text-xs font-bold uppercase tracking-wider text-[#26221E] mb-1.5">
                     Konfirmasi Kata Sandi Baru
                 </label>
-                <input
-                    type="password"
+                <x-password-input
                     id="reset-password-confirmation"
                     wire:model="password_confirmation"
                     autocomplete="new-password"
                     placeholder="Ulangi kata sandi baru"
-                    class="w-full rounded-2xl border-2 border-[#26221E]/10 bg-white px-4 py-3 text-sm font-medium text-[#26221E] focus:outline-none focus:border-[#D96B43] focus:ring-2 focus:ring-[#D96B43]/15 transition-all duration-200"
-                >
+                />
             </div>
 
             <div class="pt-1">

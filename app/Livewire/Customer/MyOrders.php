@@ -52,7 +52,11 @@ class MyOrders extends Component
             return;
         }
 
-        $order->update(['status' => 'cancelled']);
+        $order->update([
+            'status' => 'cancelled',
+            'cancelled_by' => 'customer',
+            'cancelled_at' => now(),
+        ]);
         $code = '#BSK-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT);
         session()->flash('order_notice', "Pesanan {$code} berhasil dibatalkan.");
     }
@@ -71,7 +75,11 @@ class MyOrders extends Component
             $query->whereRaw("LOWER(TRIM(status)) IN ({$placeholders})", $aliases);
         }
 
-        $orders = $query->latest()->paginate(8);
+        $orders = (clone $query)->latest()->paginate(8);
+        if ($orders->currentPage() > $orders->lastPage() && $orders->lastPage() >= 1) {
+            $this->setPage($orders->lastPage());
+            $orders = (clone $query)->latest()->paginate(8, ['*'], 'page', $orders->lastPage());
+        }
 
         $statusCounts = Order::query()
             ->where('user_id', $userId)

@@ -178,6 +178,8 @@ class TrackOrderTest extends TestCase
             ->assertSee('Pesanan Dibatalkan');
 
         $this->assertSame('cancelled', $pendingOrder->fresh()->status);
+        $this->assertSame('customer', $pendingOrder->fresh()->cancelled_by);
+        $this->assertNotNull($pendingOrder->fresh()->cancelled_at);
 
         Livewire::test(TrackOrder::class)
             ->set('orderCode', '#BSK-'.str_pad((string) $processingOrder->id, 5, '0', STR_PAD_LEFT))
