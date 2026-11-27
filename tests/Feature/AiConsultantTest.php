@@ -341,8 +341,8 @@ class AiConsultantTest extends TestCase
             ->assertSee('tidak tersimpan otomatis ke database')
             ->assertSeeHtml('href="https://wa.me/6285122797969"');
 
-        // Setelah percakapan berjalan (>1 pesan), state default menyembunyikan Topik Populer
-        $this->assertStringContainsString('(false && draft.trim().length === 0)', $component->html());
+        // Setelah percakapan berjalan (>1 pesan), state default menyembunyikan Topik Populer (showTopics: false)
+        $this->assertStringContainsString('showTopics: false', $component->html());
 
         // Pastikan tautan wa.me aman dan tag script berbahaya tetap ter-escape
         Config::set('services.gemini.key', 'test-key');

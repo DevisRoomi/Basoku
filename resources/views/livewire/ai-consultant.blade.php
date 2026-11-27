@@ -6,7 +6,7 @@
     x-data="{
         open: @entangle('isOpen').live,
         draft: '',
-        showTopicsManual: false,
+        showTopics: @js(! $hasUserConversation),
         isDesktop: window.innerWidth >= 640,
         expanded: false,
         resizing: false,
@@ -60,6 +60,10 @@
         },
         init() {
             this.clampSize();
+            this.$watch('$wire.chatHistory', (history) => {
+                const hasStarted = Array.isArray(history) && history.length > 1;
+                this.showTopics = !hasStarted;
+            });
         }
     }"
     @resize.window="clampSize()"
@@ -184,7 +188,7 @@
                 <button
                     type="button"
                     wire:click="clearChat"
-                    @click="draft = ''; showTopicsManual = false;"
+                    @click="draft = ''; showTopics = true;"
                     class="p-2 rounded-xl text-white/75 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                     title="Bersihkan Percakapan"
                     aria-label="Bersihkan Percakapan"
@@ -285,9 +289,9 @@
             </div>
         </div>
 
-        <!-- Pertanyaan Cepat (Auto-hide saat user mulai mengetik atau percakapan sudah berjalan; dapat dibuka manual lewat tombol Topik) -->
+        <!-- Pertanyaan Cepat (Default muncul di awal, otomatis sembunyi setelah chat dimulai / saat mengetik, dan selalu bisa di-toggle via tombol lampu atau Sembunyikan) -->
         <div
-            x-show="({{ $hasUserConversation ? 'false' : 'true' }} && draft.trim().length === 0) || showTopicsManual"
+            x-show="showTopics"
             x-transition:enter="transition ease-out duration-150"
             x-transition:enter-start="opacity-0 translate-y-1"
             x-transition:enter-end="opacity-100 translate-y-0"
@@ -301,9 +305,8 @@
                     Topik Populer:
                 </span>
                 <button
-                    x-show="showTopicsManual"
                     type="button"
-                    @click="showTopicsManual = false"
+                    @click="showTopics = false"
                     class="text-[10px] font-semibold text-[#5A534A] hover:text-[#8B231A] cursor-pointer"
                 >
                     Sembunyikan
@@ -315,7 +318,7 @@
                         wire:key="quick-prompt-{{ $idx }}"
                         type="button"
                         wire:click="askQuickPromptByIndex({{ $idx }})"
-                        @click="showTopicsManual = false; draft = '';"
+                        @click="showTopics = false; draft = '';"
                         wire:loading.attr="disabled"
                         wire:target="sendMessage, askQuickPrompt, askQuickPromptByIndex"
                         class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#8B231A]/10 text-[#26221E] hover:text-[#8B231A] border border-[#26221E]/15 text-left transition-colors cursor-pointer disabled:opacity-50"
@@ -330,18 +333,18 @@
         <div class="p-3 bg-white border-t border-[#26221E]/10 shrink-0">
             <form
                 wire:submit="sendMessage"
-                @submit="draft = ''; showTopicsManual = false;"
+                @submit="draft = ''; showTopics = false;"
                 class="flex items-center gap-1.5 sm:gap-2"
             >
-                <!-- Tombol Ringkas Munculkan Topik Populer (tampil saat panel topik sedang tersembunyi) -->
+                <!-- Tombol Lampu: Toggle Topik Populer kapan saja (baik input kosong maupun terisi) -->
                 <button
                     type="button"
-                    @click="showTopicsManual = !showTopicsManual"
-                    :aria-pressed="showTopicsManual.toString()"
-                    title="Tampilkan atau sembunyikan Topik Populer"
-                    aria-label="Tampilkan atau sembunyikan Topik Populer"
+                    @click="showTopics = !showTopics"
+                    :aria-pressed="showTopics.toString()"
+                    :title="showTopics ? 'Sembunyikan Topik Populer' : 'Tampilkan Topik Populer'"
+                    :aria-label="showTopics ? 'Sembunyikan Topik Populer' : 'Tampilkan Topik Populer'"
                     class="p-2.5 rounded-xl border transition-colors cursor-pointer shrink-0"
-                    :class="showTopicsManual ? 'bg-[#2D4235] text-white border-[#2D4235]' : 'bg-[#FAF7F2] text-[#5A534A] hover:text-[#2D4235] border-[#26221E]/15'"
+                    :class="showTopics ? 'bg-[#2D4235] text-white border-[#2D4235]' : 'bg-[#FAF7F2] text-[#5A534A] hover:text-[#2D4235] border-[#26221E]/15'"
                 >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
@@ -354,7 +357,7 @@
                     name="question"
                     type="text"
                     wire:model="question"
-                    @input="draft = $event.target.value; if (draft.trim().length > 0) { showTopicsManual = false; }"
+                    @input="draft = $event.target.value; if (draft.trim().length > 0) { showTopics = false; }"
                     placeholder="Tanyakan takaran resep atau tips selepan..."
                     class="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#26221E]/15 text-[#26221E] text-xs focus:outline-none focus:border-[#8B231A] focus:ring-1 focus:ring-[#8B231A] transition-all font-sans"
                     wire:loading.attr="disabled"
