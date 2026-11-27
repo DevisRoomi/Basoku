@@ -41,7 +41,7 @@ class GeminiConsultantService
             ],
             'contents' => $contents,
             'generationConfig' => [
-                'temperature' => 0.7,
+                'temperature' => 0.6,
                 'maxOutputTokens' => 800,
             ],
         ];
@@ -200,6 +200,36 @@ class GeminiConsultantService
     }
 
     /**
+     * Ambil informasi kontak WhatsApp resmi kios secara dinamis dari konfigurasi (sinkron dengan Pengaturan Kios).
+     *
+     * @return array{digits: string, display: string, url: string}
+     */
+    protected function kioskWhatsAppInfo(): array
+    {
+        $raw = preg_replace('/[^0-9]/', '', (string) config('services.kiosk.wa_number', '6285122797969')) ?? '6285122797969';
+        if ($raw === '') {
+            $raw = '6285122797969';
+        }
+
+        if (str_starts_with($raw, '0')) {
+            $digits = '62'.substr($raw, 1);
+        } elseif (! str_starts_with($raw, '62')) {
+            $digits = '62'.$raw;
+        } else {
+            $digits = $raw;
+        }
+
+        $local = str_starts_with($digits, '62') ? '0'.substr($digits, 2) : $digits;
+        $display = preg_replace('/^(\d{4})(\d{4})(\d+)$/', '$1-$2-$3', $local) ?? $local;
+
+        return [
+            'digits' => $digits,
+            'display' => $display,
+            'url' => "https://wa.me/{$digits}",
+        ];
+    }
+
+    /**
      * System Prompt persona konsultan adonan pasar BASOKU dilengkapi profil kios & data harga/formula live.
      */
     public function getSystemPrompt(): string
@@ -217,6 +247,7 @@ class GeminiConsultantService
 
         $openHour = sprintf('%02d.00', (int) config('services.kiosk.open_hour', 4));
         $closeHour = sprintf('%02d.00', (int) config('services.kiosk.close_hour', 12));
+        $wa = $this->kioskWhatsAppInfo();
         $catalogPriceLines = $this->buildLiveCatalogPriceLines();
 
         return <<<PROMPT
@@ -228,10 +259,19 @@ Profil & Informasi Resmi Kios BASOKU:
 - Koordinat GPS: 7°59'31.5"S 113°14'58.9"E (-7.992083, 113.249694)
 - Patokan Lokasi: Area Los Selepan Pasar Klakah, dekat Puskesmas Klakah & Jl. Gn. Ringgit
 - Jam Buka Operasional: Setiap hari (Senin s/d Minggu), buka subuh pukul {$openHour} - {$closeHour} WIB
+- Kontak WhatsApp Resmi Kios / Penjual: {$wa['display']} ({$wa['url']})
 - Layanan Utama: Belanja bahan baku segar (daging sapi gandik/paha, urat sengkel/brisket, tepung tapioka, aneka bumbu) dan jasa giling/selepan adonan bakso berkualitas tinggi.
 
 Daftar Harga Bahan Aktif & Tarif Selepan BASOKU Saat Ini:
 {$catalogPriceLines}
+
+Aturan Kejujuran & Batasan Sistem (WAJIB DIPATUHI TANPA KECUALI):
+1. DILARANG KERAS mengarang fitur, database, atau sistem yang tidak ada. Jujurlah bahwa percakapan di kotak chat AI ini bersifat sementara di sesi browser (TIDAK tersimpan ke database manajemen dan TIDAK dibaca otomatis oleh pemilik kios). Jangan pernah mengklaim ada "Sistem Pelaporan Internal", jangan berjanji meneruskan/mengunci keluhan ke sistem, dan jangan pernah mengarang "Nomor Laporan" atau tiket fiktif.
+2. Jika pelanggan menyampaikan kritik, saran, komplain, keluhan, atau meminta nomor WhatsApp / kontak penjual:
+   - Akui dengan ramah dan jujur bahwa sebagai asisten AI, Anda tidak terhubung otomatis ke kotak masuk pemilik kios.
+   - Langsung berikan kontak WhatsApp resmi kios BASOKU: **{$wa['display']}** beserta tautan langsung {$wa['url']} agar pelanggan bisa menghubungi penjual/pemilik kios secara langsung, atau menyampaikan langsung di Los Selepan Pasar Klakah pada jam buka ({$openHour} - {$closeHour} WIB).
+   - Jangan pernah bilang "kami belum menyediakan nomor WhatsApp" karena nomor WhatsApp resmi kios tersedia di atas.
+3. Pertanyaan santai atau di luar topik (misalnya candaan seperti planet, tebak-tebakan, obrolan ringan): TIDAK perlu ditolak kaku — tanggapi secara hangat, singkat, dan jenaka dengan mengaitkannya secara kreatif ke dunia bakso, adonan, atau selepan pasar BASOKU (tetap jujur jika memang tidak bisa mengecek data real-time seperti cuaca atau berita hari ini).
 
 Persona & Pengetahuan Ahli:
 1. Ramah, hangat, bersahabat, santun khas pedagang pasar nusantara yang penuh kearifan lokal ("Halo sedulur bakso!").
@@ -242,8 +282,8 @@ Persona & Pengetahuan Ahli:
    - Urutan penggilingan di mesin selepan: Daging + es + garam di awal; tepung dan bumbu penyedap di akhir adonan.
    - Estimasi butir & porsi: 1 kg daging sapi + 200g tepung menghasilkan sekitar 70-80 butir ukuran sedang (~18-20g) atau 14-16 porsi mangkok (bertambah seiring rasio tepung).
 3. Berikan saran yang praktis, higienis, dan realistis untuk diaplikasikan di dapur rumahan maupun pengusaha bakso keliling/kios.
-4. Jika ditanya seputar alamat, lokasi, rute, jam buka, harga bahan, atau kontak kios BASOKU, jawablah sesuai data resmi Pasar Klakah dan daftar harga aktif di atas.
-5. Format jawaban dengan paragraf ringkas atau poin-poin agar nyaman dibaca di layar ponsel.
+4. Jika ditanya seputar alamat, lokasi, rute, jam buka, harga bahan, atau kontak WhatsApp kios BASOKU, jawablah sesuai data resmi Pasar Klakah, kontak WA resmi, dan daftar harga aktif di atas.
+5. Format jawaban dengan paragraf ringkas atau poin-poin agar nyaman dibaca di layar ponsel maupun desktop.
 PROMPT;
     }
 
@@ -266,6 +306,32 @@ PROMPT;
             str_contains($q, 'suhu udara')
         ) {
             return "🌤️ **Waduh, saya konsultan adonan bakso jadi belum bisa mengecek cuaca langsung sedulur.**\n\nTapi kalau mau belanja daging segar atau giling adonan, Los Selepan Pasar Klakah buka setiap hari subuh **{$openHour} – {$closeHour} WIB**!";
+        }
+
+        // 0b. Topik Kontak WhatsApp Penjual, Kritik, Saran, & Komplain (Jujur + Langsung ke WA Resmi Kios)
+        if (
+            (bool) preg_match('/\bwa\b/i', $q) ||
+            str_contains($q, 'whatsapp') ||
+            str_contains($q, 'kontak') ||
+            str_contains($q, 'hubungi') ||
+            str_contains($q, 'nomor') ||
+            str_contains($q, 'nomer') ||
+            str_contains($q, 'kritik') ||
+            str_contains($q, 'saran') ||
+            str_contains($q, 'komplain') ||
+            str_contains($q, 'keluhan') ||
+            str_contains($q, 'lapor') ||
+            str_contains($q, 'penjual') ||
+            str_contains($q, 'pemilik')
+        ) {
+            $wa = $this->kioskWhatsAppInfo();
+
+            return "📱 **Kontak Resmi & Penyampaian Masukan ke Kios BASOKU:**\n\n"
+                ."Jujur saja sedulur, obrolan di asisten AI ini bersifat sementara di browser dan **tidak tersimpan otomatis ke database atau kotak masuk pemilik kios**.\n\n"
+                ."Untuk kritik, saran, komplain, atau tanya langsung ke penjual, silakan hubungi **WhatsApp Resmi Kios BASOKU**:\n"
+                ."• **WhatsApp:** **{$wa['display']}** — [Chat WhatsApp Kios]({$wa['url']})\n"
+                ."• **Kunjungan Langsung:** Los Selepan Pasar Klakah, setiap hari pukul **{$openHour} – {$closeHour} WIB**.\n\n"
+                .'Masukan sedulur sangat berarti agar layanan gilingan kami makin mantap!';
         }
 
         // 1. Topik Harga & Ketersediaan Es Batu (gunakan batas kata \bes\b agar tidak salah cocok dengan 'resep'/'estimasi')
@@ -296,12 +362,15 @@ PROMPT;
             (str_contains($q, 'kios') && ! str_contains($q, 'harga')) ||
             (str_contains($q, 'pasar') && ! str_contains($q, 'giling') && ! str_contains($q, 'selepan') && ! str_contains($q, 'harga'))
         ) {
+            $wa = $this->kioskWhatsAppInfo();
+
             return "📍 **Lokasi & Profil Kios BASOKU:**\n\n"
                 ."• **Nama Kios:** BASOKU (Spesialis Bahan & Selepan Bakso)\n"
                 ."• **Alamat:** Los Selepan Pasar Klakah, Kecamatan Klakah, Kabupaten Lumajang, Jawa Timur.\n"
                 ."• **Patokan Lokasi:** Di dalam area Los Selepan Pasar Klakah, dekat Puskesmas Klakah & akses Jl. Gn. Ringgit.\n"
                 ."• **Koordinat GPS:** `7°59'31.5\"S 113°14'58.9\"E` (-7.992083, 113.249694).\n"
                 ."• **Jam Buka:** Setiap hari subuh **{$openHour} – {$closeHour} WIB**.\n"
+                ."• **WhatsApp Resmi:** **{$wa['display']}** ([Chat WA]({$wa['url']}))\n"
                 ."• **Layanan:** Belanja bahan baku segar (daging sapi gandik/paha pilihan, urat sengkel/brisket, tepung tapioka berkualitas, bumbu lengkap) dan jasa giling/selepan adonan bakso higienis.\n\n"
                 .'Monggo pinarak ke kios subuh-subuh untuk mendapatkan daging segar terbaik dan adonan bakso kenyal alami!';
         }

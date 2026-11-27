@@ -314,4 +314,56 @@ class AiConsultantTest extends TestCase
         $this->assertStringNotContainsString('Takaran Es Batu', $reply);
         $this->assertStringNotContainsString('Harga & Ketersediaan Es Batu', $reply);
     }
+
+    public function test_system_prompt_enforces_honesty_and_includes_dynamic_kiosk_whatsapp(): void
+    {
+        Config::set('services.kiosk.wa_number', '6285122797969');
+
+        $service = new GeminiConsultantService;
+        $prompt = $service->getSystemPrompt();
+
+        $this->assertStringContainsString('0851-2279-7969', $prompt);
+        $this->assertStringContainsString('https://wa.me/6285122797969', $prompt);
+        $this->assertStringContainsString('TIDAK tersimpan ke database manajemen', $prompt);
+        $this->assertStringContainsString('Nomor Laporan', $prompt);
+    }
+
+    public function test_feedback_and_whatsapp_queries_return_honest_kiosk_whatsapp_link_and_escape_xss(): void
+    {
+        Config::set('services.kiosk.wa_number', '6285122797969');
+        Config::set('services.gemini.key', null);
+
+        $component = Livewire::test(AiConsultant::class)
+            ->set('question', 'Mana nomor WA penjual? Saya mau kasih kritik dan saran')
+            ->call('sendMessage')
+            ->assertHasNoErrors()
+            ->assertSee('0851-2279-7969')
+            ->assertSee('tidak tersimpan otomatis ke database')
+            ->assertSeeHtml('href="https://wa.me/6285122797969"');
+
+        // Setelah percakapan berjalan (>1 pesan), state default menyembunyikan Topik Populer
+        $this->assertStringContainsString('(false && draft.trim().length === 0)', $component->html());
+
+        // Pastikan tautan wa.me aman dan tag script berbahaya tetap ter-escape
+        Config::set('services.gemini.key', 'test-key');
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => 'Hubungi <script>alert(1)</script> langsung di https://wa.me/6285122797969 ya sedulur.'],
+                            ],
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        Livewire::test(AiConsultant::class)
+            ->set('question', 'Minta link WA penjual dong')
+            ->call('sendMessage')
+            ->assertSeeHtml('href="https://wa.me/6285122797969"')
+            ->assertDontSeeHtml('<script>alert(1)</script>');
+    }
 }
